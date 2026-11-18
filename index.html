@@ -11,7 +11,7 @@
 <link rel="icon" href="ikon-192.png">
 <link rel="apple-touch-icon" href="ikon-192.png">
 <title>MyTagihan Desa · BPJS Ketenagakerjaan KC Pamekasan</title>
-<!-- MyTagihan Desa 3.0.0 · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi bila PIN dipasang). -->
+<!-- MyTagihan Desa 3.1.0 · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi bila PIN dipasang). -->
 <style>
 /* MyTagihan Desa 3.0 — warna pembeda: UNGU TERONG (plum) + aksen kuning padi.
    LENSA PK = petrol #0E5A5F (master) · Monitor SPPG = biru · MyTagihan Desa = ungu terong #5B2A6E. */
@@ -240,7 +240,8 @@ body { overflow-x: clip; }
 @media (min-width: 760px) {
   :root { --sisi: 232px; --tab-h: 0px; }
   body { padding-left: var(--sisi); }
-  body[data-view="dasbor"] { --lebar-isi: 1320px; }
+  body[data-view="dasbor"] { --lebar-isi: 1560px; }
+  body[data-view="impornpp"] { --lebar-isi: 1040px; }
   body[data-view="laporan"], body[data-view="peserta"], body[data-view="npp"], body[data-view="riwayat"], body[data-view="target"] { --lebar-isi: 1040px; }
   .top { position: static; background: transparent; color: var(--ink); max-width: var(--lebar-isi); margin: 0 auto; padding: 26px 32px 12px; min-height: 0; align-items: flex-end; }
   .top h1 { font-size: 26px; font-weight: 700; letter-spacing: -.3px; }
@@ -347,6 +348,42 @@ body { overflow-x: clip; }
 #cetak .c-cat { font-size: 7pt; color: #4f4655; margin-top: 4pt; }
 .tab-dalam { display: contents; }
 @media (min-width: 760px) { .tab-dalam { display: flex; flex-direction: column; gap: 2px; } }
+
+/* Dasbor 3.1: kisi 12 kolom, kartu satu baris sama tinggi */
+.grid-d { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
+.grid-d > div { display: flex; min-width: 0; }
+.grid-d > div > .card.kd { flex: 1; }
+.lengkap { display: flex; align-items: center; gap: 8px; color: var(--ok); font-weight: 600; padding: 14px 0 4px; }
+.note.ingat { display: block; width: 100%; text-align: left; border: 0; cursor: pointer; font: inherit; margin-top: 6px; }
+.note.ingat:hover { filter: brightness(.97); }
+.bars-kec { display: flex; flex-direction: column; gap: 1px; }
+.bar-kec { display: grid; grid-template-columns: minmax(84px, .8fr) minmax(0, 2fr) minmax(120px, auto); gap: 10px; align-items: center; border: 0; background: none; text-align: left; padding: 5px 4px; border-radius: 8px; cursor: pointer; font-size: 13px; color: var(--ink); }
+.bar-kec:hover { background: var(--surface-2); }
+.bar-kec .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-kec .tr { height: 10px; background: #efebf1; border-radius: 3px; overflow: hidden; }
+.bar-kec .fi { display: block; height: 100%; background: var(--brand); border-radius: 3px; }
+.bar-kec .v { text-align: right; font-size: 12.5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bar-kec .kosong { color: var(--danger); font-weight: 600; margin-left: 4px; }
+
+/* Impor massal per NPP */
+.row3 { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; margin-top: 8px; }
+@media (min-width: 560px) { .row3 { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr); } }
+.im-k { border-left: 4px solid var(--line); border-radius: 0 var(--r) var(--r) 0; }
+.im-k.im-ok { border-left-color: var(--ok); }
+.im-k.im-warn { border-left-color: var(--aksen); }
+.im-k.im-err { border-left-color: var(--danger); }
+.im-k .note { margin: 0; }
+.im-rinci { margin-top: 6px; }
+.im-rinci summary { cursor: pointer; color: var(--brand); font-weight: 600; }
+.b.err { background: var(--danger-soft); color: var(--danger); }
+#im-bawah .sticky-act { background: var(--surface); border-radius: var(--r); padding: 10px 12px; box-shadow: 0 6px 18px rgba(20,10,24,.16); margin-top: 6px; }
+#im-bawah .sticky-act .btn { box-shadow: none; }
+@media (min-width: 1100px) {
+  .grid-d { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .grid-d > .d8 { grid-column: span 8; } .grid-d > .d4 { grid-column: span 4; }
+  .grid-d > .d7 { grid-column: span 7; } .grid-d > .d5 { grid-column: span 5; }
+  .grid-d .flush-list { flex: 1; }
+}
 
 </style>
 </head>
@@ -2784,6 +2821,225 @@ function apiDasbor() {
 }
 
 
+/* === mesin: Impor.gs (sama dengan spreadsheet) === */
+/**
+ * MyTagihan Desa — Impor.gs (2.2)
+ * Impor massal per NPP dari laporan sistem "Daftar Upah Tenaga Kerja" (PDF, NIK lengkap) atau Excel/CSV.
+ * Satu NPP = satu kelompok di satu desa. Untuk tiap NPP:
+ *  - NPP baru dibuat otomatis (kelompok & desa ditebak dari nama badan usaha, bisa dikoreksi),
+ *    lengkap dengan program, acuan upah, dan tarif JKK dari laporan.
+ *  - NPP yang sudah ada: pengguna memilih "tambah" (hanya peserta baru) atau "ganti"
+ *    (samakan dengan laporan: peserta yang tidak ada dinonaktifkan per tanggal pilihan, nama disamakan,
+ *    program/acuan/tarif disesuaikan).
+ *  - Semua perubahan satu kali impor = satu aktivitas di Riwayat (bisa dibatalkan sekaligus).
+ * Dipakai bersama oleh spreadsheet dan aplikasi 3.x (mesin yang sama).
+ */
+
+const KATA_KELOMPOK_ = [
+  [/\bBUM ?DES\b|BADAN USAHA MILIK DESA/, 'BUMDES'],
+  [/POSYANDU/, 'LKD-POSYANDU'],
+  [/\bPKK\b|PEMBERDAYAAN KESEJAHTERAAN KELUARGA/, 'LKD-PKK'],
+  [/KARANG ?TARUNA|\bKARTAR\b/, 'LKD-KARTAR'],
+  [/\bRT ?\/? ?RW\b|\bRT\b|\bRW\b|RUKUN TETANGGA|RUKUN WARGA/, 'LKD-RTRW'],
+  [/LEMBAGA ADAT|\bLAD\b/, 'ADAT'],
+  [/\bBPD\b|BADAN PERMUSYAWARATAN/, 'BPD'],
+  [/RENTAN/, 'RENTAN'],
+  [/PEMERINTAH DESA|\bPEMDES\b|PERANGKAT DESA|APARAT|KEPALA DESA/, 'APARAT']
+];
+
+function hurufBesar_(s) { return ' ' + String(s || '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim() + ' '; }
+function namaDesaPolos_(s) { return hurufBesar_(String(s || '').replace(/^\s*(desa|kelurahan|kel\.)\s+/i, '')); }
+
+/** Tebak kelompok dan desa dari nama badan usaha. NPP yang sudah terdaftar memakai datanya sendiri. */
+function tebakNpp_(M, W, npp, namaBU) {
+  const ada = M.npp[npp];
+  if (ada) return { ada: true, kel: ada.kel, kec: ada.kec, desa: ada.desa, kandidat: [] };
+  const N = hurufBesar_(namaBU);
+  let kel = '';
+  for (let i = 0; i < KATA_KELOMPOK_.length; i++) { if (KATA_KELOMPOK_[i][0].test(N) && M.kel[KATA_KELOMPOK_[i][1]]) { kel = KATA_KELOMPOK_[i][1]; break; } }
+  const cocok = [];
+  W.kecamatan.forEach(k => (W.desa[k] || []).forEach(d => {
+    const nd = namaDesaPolos_(d);
+    if (nd.trim() && N.indexOf(nd) >= 0) cocok.push({ kec: k, desa: d, p: nd.trim().length, kecDisebut: N.indexOf(hurufBesar_(k)) >= 0 });
+  }));
+  cocok.sort((a, b) => b.p - a.p || (b.kecDisebut ? 1 : 0) - (a.kecDisebut ? 1 : 0));
+  const terbaik = cocok.filter(c => c.p === (cocok[0] || {}).p);
+  const pilih = terbaik.length === 1 ? terbaik[0] : terbaik.filter(c => c.kecDisebut).length === 1 ? terbaik.filter(c => c.kecDisebut)[0] : null;
+  return { ada: false, kel, kec: pilih ? pilih.kec : '', desa: pilih ? pilih.desa : '', kandidat: cocok.slice(0, 6).map(c => ({ kec: c.kec, desa: c.desa })) };
+}
+
+function apiTebakImpor(d) {
+  const M = loadMaster_(), W = wilayah_();
+  return (d.items || []).map(x => Object.assign({ npp: String(x.npp || '') }, tebakNpp_(M, W, String(x.npp || '').trim(), x.namaBU)));
+}
+
+/** Program dari iuran laporan: JP > 0 → 4P, JHT > 0 → 3P, selain itu 2P. */
+function programDariIuran_(jht, jp) { return jp > 0 ? '4P' : jht > 0 ? '3P' : '2P'; }
+
+/**
+ * d = { items:[{ npp, namaBU, kel, kec, desa, program, upah, tarifJKK, blth:'yyyy-mm', mode:'tambah'|'ganti',
+ *        tglNonaktif:'yyyy-mm-dd', peserta:[{ nik, nama, keps:'yyyy-mm', upah }] }], fileName, dryRun }
+ * dryRun → rincian per NPP tanpa menyimpan.
+ */
+function apiImporNpp(d) {
+  const run = () => {
+    const M = loadMaster_(), W = wilayah_();
+    const P = readPeserta_().list;
+    const aktifNik = {};
+    P.forEach(p => { if (p.status === 'Aktif') aktifNik[p.nik] = p; });
+    const lokasiDipakai = {};
+    const hasil = (d.items || []).map(x => analisaNpp_(M, W, P, aktifNik, lokasiDipakai, x));
+    const siap = hasil.filter(h => !h.errors.length && (h.baru.length || h.hilang.length || h.namaBeda.length || h.perubahan.length || h.nppBaru));
+    const ringkas = {
+      items: hasil.map(h => { const o = Object.assign({}, h); delete o._x; return o; }),
+      siap: siap.length,
+      jumlah: { baru: sum_(siap, h => h.baru.length), nonaktif: sum_(siap, h => h.hilang.length), nama: sum_(siap, h => h.namaBeda.length), nppBaru: siap.filter(h => h.nppBaru).length }
+    };
+    if (d.dryRun) return ringkas;
+    if (!siap.length) throw new Error('Tidak ada NPP yang siap disimpan.');
+    const tx = new Tx('Impor per NPP', '');
+    siap.forEach(h => terapkanNpp_(tx, M, h));
+    tx.ket = siap.length + ' NPP dari ' + (d.fileName || 'laporan') + ' · ' + ringkas.jumlah.baru + ' peserta baru' +
+      (ringkas.jumlah.nonaktif ? ' · ' + ringkas.jumlah.nonaktif + ' dinonaktifkan' : '') + (ringkas.jumlah.nppBaru ? ' · ' + ringkas.jumlah.nppBaru + ' NPP baru' : '') +
+      ': ' + siap.map(h => h.npp + ' ' + h.namaBU).join('; ');
+    return tx.commit(Object.assign(ringkas, { message: siap.length + ' NPP diimpor · ' + ringkas.jumlah.baru + ' peserta baru' + (ringkas.jumlah.nonaktif ? ' · ' + ringkas.jumlah.nonaktif + ' dinonaktifkan' : '') + '.' }));
+  };
+  return d.dryRun ? run() : withLock_(run);
+}
+function ribuan_(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+function sum_(a, f) { return a.reduce((s, x) => s + f(x), 0); }
+
+function analisaNpp_(M, W, P, aktifNik, lokasiDipakai, x) {
+  const npp = String(x.npp || '').replace(/\D/g, '');
+  const h = { npp, namaBU: String(x.namaBU || '').trim(), kel: x.kel, kec: x.kec, desa: x.desa, mode: x.mode === 'ganti' ? 'ganti' : 'tambah',
+    nppBaru: !M.npp[npp], errors: [], warnings: [], baru: [], sama: 0, namaBeda: [], lainNpp: [], hilang: [], perubahan: [], iuran: null, _x: x };
+  const err = m => h.errors.push(m);
+  if (!/^\d{5,12}$/.test(npp)) { err('NPP tidak terbaca'); return h; }
+  const g = M.kel[x.kel];
+  if (!g) err('Pilih kelompok');
+  const kec = W.kecamatan.find(k => k.toLowerCase() === String(x.kec || '').toLowerCase());
+  const desa = kec && (W.desa[kec] || []).find(v => v.toLowerCase() === String(x.desa || '').toLowerCase());
+  if (!kec || !desa) err('Pilih kecamatan dan desa');
+  if (h.errors.length) return h;
+  h.kec = kec; h.desa = desa;
+  const ada = M.npp[npp];
+  if (ada && (ada.kel !== x.kel || ada.kec.toLowerCase() !== kec.toLowerCase() || ada.desa.toLowerCase() !== desa.toLowerCase())) {
+    err('NPP ini sudah terdaftar sebagai ' + (M.kel[ada.kel] || {}).nama + ' Desa ' + ada.desa + ', ' + ada.kec);
+    return h;
+  }
+  const lk = locKey_(x.kel, kec, desa);
+  const lain = M.nppByLoc[lk];
+  if (!ada && lain && M.npp[lain].aktif) { err(g.nama + ' Desa ' + desa + ' sudah punya NPP ' + lain); return h; }
+  if (lokasiDipakai[lk] && lokasiDipakai[lk] !== npp) { err('Desa & kelompok sama dengan NPP ' + lokasiDipakai[lk] + ' di impor ini'); return h; }
+  lokasiDipakai[lk] = npp;
+
+  // Program, upah, tarif JKK
+  let program = ['2P', '3P', '4P'].indexOf(x.program) >= 0 ? x.program : (ada && ada.program) || g.programAwal;
+  if (g.jenis === 'BPU' && program === '4P') { h.warnings.push('Laporan berisi JP, tetapi BPU tidak punya JP: memakai 3P'); program = '3P'; }
+  // NPP yang sudah ada + "tambah": program & acuan tidak diubah, hanya diberi tahu
+  const ubahNpp = !ada || h.mode === 'ganti';
+  const beda = m => (ubahNpp ? h.perubahan : h.warnings).push(ubahNpp ? m : m + ' (tidak diubah: pilih Ganti untuk menyamakan)');
+  if (!ubahNpp) program = ada.program || program;
+  h.program = program;
+  const upah = num_(x.upah);
+  const tarif = Math.round(num_(x.tarifJKK) * 100) / 100;
+  const mulaiAwal = (x.peserta || []).map(p => p.keps).filter(v => /^\d{4}-\d{2}$/.test(v)).sort()[0] || x.blth || nowYm_();
+  h.mulai = ada ? (x.blth || nowYm_()) : mulaiAwal;
+  const progLap = ['2P', '3P', '4P'].indexOf(x.program) >= 0 ? (g.jenis === 'BPU' && x.program === '4P' ? '3P' : x.program) : program;
+  if (ada && ada.program !== progLap) beda('Program ' + (ada.program || '-') + ' → ' + progLap);
+  if (!ada) h.perubahan.push('NPP baru: ' + g.nama + ' Desa ' + desa + ', ' + kec + ' · ' + program);
+  h.acuan = [];
+  if (upah > 0) {
+    try { validAcuan_(M, x.kel, 'Upah', upah); } catch (e) { err(e.message); return h; }
+    const cur = acuanFor_(M, 'Upah', npp, x.kel, h.mulai);
+    if (cur.nilai !== upah) {
+      if (ubahNpp) h.acuan.push({ jenis: 'Upah', nilai: upah });
+      beda('Acuan upah ' + (cur.nilai ? 'Rp' + ribuan_(cur.nilai) + ' (' + (cur.sumber === 'NPP' ? 'NPP' : 'kelompok') + ')' : 'kosong') + ' → Rp' + ribuan_(upah) + ' mulai ' + h.mulai);
+    }
+  } else if (!ada && acuanFor_(M, 'Upah', npp, x.kel, h.mulai).nilai === null) h.warnings.push('Upah tidak ada di laporan dan acuan upah ' + g.nama + ' masih kosong');
+  if (g.jenis !== 'BPU' && tarif > 0) {
+    if (tarif < 0.1 || tarif > 2) h.warnings.push('Tarif JKK ' + tarif + '% di luar 0,10–2%: diabaikan');
+    else {
+      const cur = acuanFor_(M, 'Tarif JKK', npp, x.kel, h.mulai);
+      const sekarang = cur.nilai === null || cur.nilai === undefined ? 0.24 : cur.nilai;
+      if (Math.abs(sekarang - tarif) > 0.001) { if (ubahNpp) h.acuan.push({ jenis: 'Tarif JKK', nilai: tarif }); beda('Tarif JKK ' + sekarang + '% → ' + tarif + '%'); }
+    }
+  }
+
+  // Peserta
+  const dalamNpp = P.filter(p => p.status === 'Aktif' && nppOf_(M, p) === npp);
+  const byNik = {}; dalamNpp.forEach(p => { byNik[p.nik] = p; });
+  const lihat = {};
+  (x.peserta || []).forEach((p, i) => {
+    const nik = String(p.nik || '').replace(/\D/g, '');
+    const nama = toTitleCase(String(p.nama || '').trim());
+    if (nik.length !== 16) { h.warnings.push('Baris ' + (i + 1) + ' (' + (p.nama || '?') + '): NIK harus 16 digit'); return; }
+    if (/0000$/.test(nik) && x.dariTabel) { h.warnings.push('Baris ' + (i + 1) + ' (' + nama + '): NIK berakhiran 0000, kemungkinan terpotong Excel. Pakai PDF dari sistem.'); return; }
+    if (lihat[nik]) { h.warnings.push('NIK ' + nik + ' ganda di laporan'); return; }
+    lihat[nik] = 1;
+    if (byNik[nik]) {
+      h.sama++;
+      if (nama && byNik[nik].nama.toLowerCase() !== nama.toLowerCase()) h.namaBeda.push({ id: byNik[nik].id, nik, lama: byNik[nik].nama, baru: nama });
+      return;
+    }
+    const lainP = aktifNik[nik];
+    if (lainP) { h.lainNpp.push({ nik, nama, ket: lainP.nama + ' · ' + (M.kel[kelOf_(lainP)] || {}).nama + ' ' + lainP.desa + ' (NPP ' + (nppOf_(M, lainP) || '-') + ')' }); return; }
+    const keps = /^\d{4}-\d{2}$/.test(p.keps) ? p.keps : (x.blth || nowYm_());
+    h.baru.push({ nik, nama, tgl: keps + '-01' });
+  });
+  if (h.mode === 'ganti') h.hilang = dalamNpp.filter(p => !lihat[p.nik]).map(p => ({ id: p.id, nik: p.nik, nama: p.nama }));
+  else h.namaBeda = [];
+  if (h.mode === 'ganti' && h.hilang.length) {
+    try { validYmd_(x.tglNonaktif, 'Tanggal nonaktif'); } catch (e) { err(e.message); }
+  }
+  // Perkiraan iuran per orang (bulan laporan) dengan acuan baru
+  const uEf = ubahNpp && upah > 0 ? upah : acuanFor_(M, 'Upah', npp, x.kel, h.mulai).nilai;
+  const tEf = ubahNpp && tarif >= 0.1 && tarif <= 2 ? tarif : acuanFor_(M, 'Tarif JKK', npp, x.kel, h.mulai).nilai;
+  if (uEf > 0) {
+    const u = uEf;
+    const kp = komponenProgram_(program);
+    const t = g.jenis === 'BPU'
+      ? Math.round(u * (M.tarif.BPU_JKK || 1) / 100) + Math.round(M.tarif.BPU_JKM || 6800) + (kp.JHT ? Math.round(u * (M.tarif.BPU_JHT || 2) / 100) : 0)
+      : Math.round(u * (tEf || 0.24) / 100) + Math.round(u * (M.tarif.PU_JKM || 0.3) / 100) +
+        (kp.JHT ? Math.round(u * (M.tarif.PU_JHT || 5.7) / 100) : 0) + (kp.JP ? Math.round((M.batasJP > 0 ? Math.min(u, M.batasJP) : u) * (M.tarif.PU_JP || 3) / 100) : 0);
+    h.iuran = t;
+  }
+  return h;
+}
+
+function terapkanNpp_(tx, M, h) {
+  const x = h._x, g = M.kel[x.kel];
+  const nama = h.namaBU || (g.nama + ' Desa ' + h.desa + ' Kecamatan ' + h.kec);
+  if (h.nppBaru) {
+    tx.insert(SH.NPP, { 'NPP': h.npp, 'Kelompok': x.kel, 'Kecamatan': h.kec, 'Desa': h.desa, 'Nama Badan Usaha': nama, 'Jenis Program': h.program, 'Kode Bayar': '', 'Status': 'Aktif' }, { 'NPP': '@', 'Kode Bayar': '@' });
+  } else if (M.npp[h.npp].program !== h.program) {
+    tx.update(SH.NPP, h.npp, { 'Jenis Program': h.program });
+  }
+  if (h.acuan.length) {
+    tx.insertMany(SH.ACU, h.acuan.map(a => ({ ID: uuid_(), Jenis: a.jenis, Tingkat: 'NPP', Kode: h.npp, Nilai: a.nilai, 'Berlaku Mulai': h.mulai, 'Dicatat Oleh': currentUser_(), Waktu: new Date() })), { 'Kode': '@', 'Berlaku Mulai': '@' });
+  }
+  const namaBuDb = h.nppBaru ? nama : M.npp[h.npp].nama;
+  if (h.baru.length) {
+    tx.insertMany(SH.DB, h.baru.map(o => ({
+      'ID': uuid_(), 'Status': 'Aktif', 'NIK': o.nik, 'Nama Lengkap': o.nama, 'Aparat/BPD': legacyAparat_(M, x.kel), 'Kelompok': x.kel,
+      'Kecamatan': h.kec, 'Desa': h.desa, 'Tanggal Entry': dmy_(parseDate(o.tgl)), 'Keterangan': '', 'Jenis Program': h.program,
+      'NPP': h.npp, 'Nama Badan Usaha': namaBuDb, 'Bebas JP Mulai': '', 'Ket. Bebas JP': ''
+    })), { 'NIK': '@', 'NPP': '@', 'Tanggal Entry': '@', 'Bebas JP Mulai': '@' });
+  }
+  if (h.mode === 'ganti') {
+    const tgl = h.hilang.length ? dmy_(parseDate(x.tglNonaktif)) : '';
+    const t = tx.t(SH.DB);
+    h.hilang.forEach(p => {
+      const ch = { 'Status': 'Nonaktif', 'Tanggal Entry': tgl, 'Keterangan': 'Tidak ada di daftar upah ' + (x.blth || '') + ' (impor)' };
+      ['Iuran JKK', 'Iuran JKM', 'Iuran JHT', 'Iuran JP', 'Total Iuran'].forEach(c => { if (t.ix(c) >= 0) ch[c] = 0; });
+      tx.update(SH.DB, p.id, ch);
+    });
+    h.namaBeda.forEach(p => tx.update(SH.DB, p.id, { 'Nama Lengkap': p.baru }));
+  }
+  if (!h.nppBaru && M.npp[h.npp].program !== h.program) syncDbNpp_(tx, h.npp, namaBuDb, h.program);
+}
+
+
 /* === mesin: Kode.gs (sama dengan spreadsheet) === */
 /**
  * =====================================================================
@@ -2794,11 +3050,11 @@ function apiDasbor() {
  *    - Aplikasi MyTagihan Desa 3.0 (GitHub Pages, HP + komputer, jalan tanpa sinyal)
  *      bersinkron lewat doPost di Sinkron.gs (deployment kedua "Siapa saja" + KUNCI).
  *  File lain: Data.gs, Iuran.gs, Setup.gs, Peserta.gs, Acuan.gs, Tagihan.gs,
- *             Laporan.gs, Riwayat.gs, Dasbor.gs, Sinkron.gs, Index.html, Css.html, Js.html
+ *             Laporan.gs, Riwayat.gs, Dasbor.gs, Impor.gs, Sinkron.gs, Index.html, Css.html, Js.html
  * =====================================================================
  */
 
-const APP_VERSION = '2.1.0';
+const APP_VERSION = '2.2.0';
 
 function onOpen() {
   SpreadsheetApp.getUi()
@@ -2896,6 +3152,8 @@ function apiMap_() {
     daftarArsip: apiDaftarArsip, infoIbr: apiInfoIbr, imporIbr: apiImporIbr,
     // Laporan & riwayat
     arsipAda: apiArsipAda,
+    // Impor massal per NPP (PDF Daftar Upah TK / Excel)
+    tebakImpor: apiTebakImpor, imporNpp: apiImporNpp,
     // Laporan, dasbor & riwayat
     laporan: apiLaporan, simpanPdf: apiSimpanPdf, riwayat: apiRiwayat, batalkan: apiBatalkan, dasbor: apiDasbor,
     hapusCache: function () { CacheService.getScriptCache().remove('dropdown_v2'); return { message: 'Cache daftar kecamatan/desa dihapus.' }; }
@@ -3143,13 +3401,271 @@ async function bacaBerkasTabel(file, namaLembar) {
 }
 
 
+/* === 12-pdf.js === */
+/* ----------------------------------------------------------------------
+ *  Pembaca laporan sistem "DAFTAR UPAH TENAGA KERJA" (PDF Oracle Reports) di perangkat, tanpa pustaka luar.
+ *  PDF memuat NIK lengkap (unduhan CSV/Excel sistem memotong 4 digit terakhir NIK).
+ *  Hasil per NPP: nama badan usaha, BLTH mutasi, peserta (NIK, nama, BLTH kepesertaan, upah, iuran per
+ *  komponen), program & tarif JKK yang tersirat, dan pemeriksaan jumlah terhadap baris JUMLAH.
+ * ---------------------------------------------------------------------- */
+function pdfLatin1(u8) { var s = ''; for (var i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return s; }
+function pdfA85(s) {
+  s = s.replace(/\s+/g, '');
+  if (s.indexOf('<~') === 0) s = s.slice(2);
+  var akhir = s.indexOf('~>'); if (akhir >= 0) s = s.slice(0, akhir);
+  var out = [], grup = [];
+  for (var i = 0; i < s.length; i++) {
+    var c = s.charCodeAt(i);
+    if (c === 122 && grup.length === 0) { out.push(0, 0, 0, 0); continue; } // 'z'
+    if (c < 33 || c > 117) continue;
+    grup.push(c - 33);
+    if (grup.length === 5) {
+      var v = (((grup[0] * 85 + grup[1]) * 85 + grup[2]) * 85 + grup[3]) * 85 + grup[4];
+      out.push((v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255); grup = [];
+    }
+  }
+  if (grup.length) {
+    var n = grup.length; while (grup.length < 5) grup.push(84);
+    var w = (((grup[0] * 85 + grup[1]) * 85 + grup[2]) * 85 + grup[3]) * 85 + grup[4];
+    var b = [(w >>> 24) & 255, (w >>> 16) & 255, (w >>> 8) & 255, w & 255];
+    for (var j = 0; j < n - 1; j++) out.push(b[j]);
+  }
+  return new Uint8Array(out);
+}
+/** Inflate zlib. Oracle Reports menambah beberapa bait sesudah akhir data: hasil yang sudah keluar tetap dipakai. */
+async function pdfInflate(u8) {
+  var coba = async function (jenis) {
+    var ds = new DecompressionStream(jenis), w = ds.writable.getWriter(), r = ds.readable.getReader(), bag = [], n = 0;
+    w.write(u8).catch(function () {}); w.close().catch(function () {});
+    try { for (;;) { var x = await r.read(); if (x.done) break; bag.push(x.value); n += x.value.length; } }
+    catch (e) { if (!n) throw e; }
+    var out = new Uint8Array(n), o = 0; bag.forEach(function (c) { out.set(c, o); o += c.length; });
+    return out;
+  };
+  try { return await coba('deflate'); } catch (e) { return coba('deflate-raw'); }
+}
+/** Semua aliran isi halaman (yang memuat teks), berurutan seperti di file. */
+async function pdfAliranTeks(buf) {
+  var u8 = new Uint8Array(buf), s = pdfLatin1(u8), out = [], re = /stream\r?\n/g, m;
+  while ((m = re.exec(s))) {
+    var awal = m.index + m[0].length;
+    var kepala = s.slice(Math.max(0, s.lastIndexOf(' obj', m.index)), m.index);
+    if (/\/Subtype\s*\/Image|\/DCTDecode|\/Type\s*\/XObject/.test(kepala)) continue;
+    var ujung = s.indexOf('endstream', awal); if (ujung < 0) break;
+    var lm = /\/Length\s+(\d+)(?!\s+\d+\s+R)/.exec(kepala);
+    var data = u8.subarray(awal, lm && awal + +lm[1] <= ujung ? awal + +lm[1] : ujung);
+    var filter = ((/\/Filter\s*(\[[^\]]*\]|\/\w+)/.exec(kepala) || [])[1] || '').match(/\/\w+/g) || [];
+    try {
+      for (var i = 0; i < filter.length; i++) {
+        if (filter[i] === '/ASCII85Decode' || filter[i] === '/A85') data = pdfA85(pdfLatin1(data));
+        else if (filter[i] === '/FlateDecode' || filter[i] === '/Fl') data = await pdfInflate(data);
+        else throw new Error('filter');
+      }
+    } catch (e) { continue; }
+    var teks = pdfLatin1(data);
+    if (/\bBT\b/.test(teks) && /T[jJ]/.test(teks)) out.push(teks);
+    re.lastIndex = ujung;
+  }
+  return out;
+}
+/** Potongan teks halaman: [{x, y, s, n}] (n = urutan tampil). Cukup untuk huruf standar (Helvetica WinAnsi). */
+function pdfPotongan(isi) {
+  var out = [], i = 0, L = isi.length, st = [], tm = [1, 0, 0, 1, 0, 0], tlm = tm.slice(), tl = 0, n = 0;
+  var tulis = function (t) { out.push({ x: tm[4], y: tm[5], s: t, n: n++ }); };
+  var pindah = function (tx, ty) { tlm = [tlm[0], tlm[1], tlm[2], tlm[3], tlm[4] + tx * tlm[0] + ty * tlm[2], tlm[5] + tx * tlm[1] + ty * tlm[3]]; tm = tlm.slice(); };
+  var bacaString = function () {
+    var dalam = 1, t = ''; i++;
+    while (i < L && dalam) {
+      var c = isi[i];
+      if (c === '\\') {
+        var d = isi[i + 1];
+        if (/[0-7]/.test(d)) { var o = /^[0-7]{1,3}/.exec(isi.slice(i + 1, i + 4))[0]; t += String.fromCharCode(parseInt(o, 8)); i += 1 + o.length; continue; }
+        t += ({ n: '\n', r: '\r', t: '\t', b: '\b', f: '\f' })[d] || (d === '\r' || d === '\n' ? '' : d); i += 2; continue;
+      }
+      if (c === '(') dalam++;
+      else if (c === ')') { dalam--; if (!dalam) { i++; break; } }
+      t += c; i++;
+    }
+    return t;
+  };
+  while (i < L) {
+    var c = isi[i];
+    if (/\s/.test(c)) { i++; continue; }
+    if (c === '%') { while (i < L && isi[i] !== '\n') i++; continue; }
+    if (c === '(') { st.push({ s: bacaString() }); continue; }
+    if (c === '<' && isi[i + 1] !== '<') {
+      var j = isi.indexOf('>', i), hx = isi.slice(i + 1, j).replace(/\s/g, ''), hs = '';
+      for (var k = 0; k < hx.length; k += 2) hs += String.fromCharCode(parseInt((hx.substr(k, 2) + '0').slice(0, 2), 16));
+      st.push({ s: hs }); i = j + 1; continue;
+    }
+    if (c === '[') { st.push('['); i++; continue; }
+    if (c === ']') { var arr = []; while (st.length && st[st.length - 1] !== '[') arr.unshift(st.pop()); st.pop(); st.push({ a: arr }); i++; continue; }
+    if (c === '<' || c === '>') { i += 2; continue; }
+    var m = /^[^\s()<>\[\]{}\/%]+|^\/[^\s()<>\[\]{}\/%]*/.exec(isi.slice(i, i + 64));
+    if (!m) { i++; continue; }
+    var tok = m[0]; i += tok.length;
+    if (/^[-+]?(\d+\.?\d*|\.\d+)$/.test(tok)) { st.push(+tok); continue; }
+    if (tok[0] === '/') { st.push(tok); continue; }
+    var a = st;
+    switch (tok) {
+      case 'BT': tm = [1, 0, 0, 1, 0, 0]; tlm = tm.slice(); break;
+      case 'Td': pindah(a[a.length - 2], a[a.length - 1]); break;
+      case 'TD': tl = -a[a.length - 1]; pindah(a[a.length - 2], a[a.length - 1]); break;
+      case 'TL': tl = a[a.length - 1]; break;
+      case 'Tm': tlm = a.slice(-6).map(Number); tm = tlm.slice(); break;
+      case 'T*': pindah(0, -tl); break;
+      case 'Tj': if (a.length && a[a.length - 1].s !== undefined) tulis(a[a.length - 1].s); break;
+      case "'": pindah(0, -tl); if (a.length && a[a.length - 1].s !== undefined) tulis(a[a.length - 1].s); break;
+      case '"': pindah(0, -tl); if (a.length && a[a.length - 1].s !== undefined) tulis(a[a.length - 1].s); break;
+      case 'TJ':
+        var ar = a.length && a[a.length - 1].a;
+        if (ar) tulis(ar.map(function (x) { return x.s !== undefined ? x.s : (typeof x === 'number' && x < -200 ? ' ' : ''); }).join(''));
+        break;
+    }
+    st = [];
+  }
+  return out;
+}
+function pdfAngka(s) { var t = String(s).trim().replace(/,/g, ''); return /^-?\d+(\.\d+)?$/.test(t) ? Number(t) : null; }
+function pdfBlth(s) { var m = /(\d{2})-(\d{4})/.exec(String(s || '')); return m ? m[2] + '-' + m[1] : ''; }
+function pdfNilaiLabel(pot, label) {
+  var l = pot.filter(function (p) { return p.s.trim() === label; })[0];
+  if (!l) return '';
+  return pot.filter(function (p) { return Math.abs(p.y - l.y) < 3 && p.x > l.x + 5 && p !== l; })
+    .sort(function (a, b) { return a.x - b.x || a.n - b.n; }).map(function (p) { return p.s; }).join('').replace(/^\s*:\s*/, '').trim();
+}
+/** Satu halaman → {npp, namaBU, blth, peserta[], total} atau null bila bukan Daftar Upah TK. */
+function pdfHalamanUpah(pot) {
+  if (!pot.some(function (p) { return /DAFTAR UPAH TENAGA KERJA/i.test(p.s); })) return null;
+  var npp = (/(\d{5,12})/.exec(pdfNilaiLabel(pot, 'NPP - Div')) || [])[1] || '';
+  var namaBU = pdfNilaiLabel(pot, 'Nama Pemberi Kerja/Badan Usaha');
+  var blth = pdfBlth(pdfNilaiLabel(pot, 'BLTH MUTASI :') || pdfNilaiLabel(pot, 'BLTH MUTASI'));
+  var baris = {};
+  pot.forEach(function (p) { var k = Math.round(p.y * 2) / 2; (baris[k] = baris[k] || []).push(p); });
+  var ys = Object.keys(baris).map(Number).sort(function (a, b) { return b - a; });
+  var rapat = function (y) { return ys.filter(function (z) { return Math.abs(z - y) <= 1.2; }).reduce(function (a, z) { return a.concat(baris[z]); }, []); };
+  var hdrNama = pot.filter(function (p) { return p.s.trim() === 'Nama TK'; })[0];
+  var hdrLahir = pot.filter(function (p) { return p.s.trim() === 'Lahir'; })[0];
+  var peserta = [], total = null, dipakai = {};
+  ys.forEach(function (y) {
+    if (dipakai[y]) return;
+    var r = rapat(y).sort(function (a, b) { return a.x - b.x || a.n - b.n; });
+    ys.forEach(function (z) { if (Math.abs(z - y) <= 1.2) dipakai[z] = 1; });
+    var nikP = r.filter(function (p) { return /^\s*\d{16}\s*$/.test(p.s); })[0];
+    var angka = r.filter(function (p) { return pdfAngka(p.s) !== null && /[.,]/.test(p.s); }).map(function (p) { return pdfAngka(p.s); });
+    if (!nikP) {
+      if (r.some(function (p) { return /^\s*JUMLAH\s*$/i.test(p.s); })) total = angka;
+      else if (peserta.length && hdrNama && !angka.length) { // nama panjang yang terlipat ke baris berikutnya
+        var lanjut = r.filter(function (p) { return p.x >= hdrNama.x - 60 && (!hdrLahir || p.x < hdrLahir.x - 5) && !/\*/.test(p.s); });
+        var akhir = peserta[peserta.length - 1];
+        if (lanjut.length && akhir._y - y < 12 && akhir._y > y) akhir.nama = (akhir.nama + ' ' + lanjut.map(function (p) { return p.s.trim(); }).join(' ')).trim();
+      }
+      return;
+    }
+    var keps = r.filter(function (p) { return /^\s*\d{2}-\d{4}\s*$/.test(p.s); })[0];
+    var nama = r.filter(function (p) {
+      return p !== nikP && p !== keps && !/\*/.test(p.s) && pdfAngka(p.s) === null && !/^\s*\d+\s*$/.test(p.s) && p.x > nikP.x;
+    }).map(function (p) { return p.s.trim(); }).join(' ').replace(/\s+/g, ' ').trim();
+    var a = angka.slice(-7);
+    peserta.push({ nik: nikP.s.trim(), nama: nama, keps: pdfBlth(keps ? keps.s : ''), upah: a[0] || 0, rapel: a[1] || 0, jht: a[2] || 0, jkm: a[3] || 0, jkk: a[4] || 0, jp: a[5] || 0, jumlah: a[6] || 0, lengkap: angka.length >= 7, _y: y });
+  });
+  return { npp: npp, namaBU: namaBU, blth: blth, peserta: peserta, total: total };
+}
+function pdfModus(a) { var c = {}, b = null; a.forEach(function (v) { c[v] = (c[v] || 0) + 1; if (b === null || c[v] > c[b]) b = v; }); return b === null ? 0 : Number(b); }
+/** Ringkas peserta satu NPP → program, upah (yang terbanyak), tarif JKK, peringatan. */
+function pdfRingkasNpp(r) {
+  var p = r.peserta, w = [];
+  var upah = pdfModus(p.map(function (x) { return x.upah; }).filter(function (v) { return v > 0; }));
+  var beda = p.filter(function (x) { return x.upah && x.upah !== upah; }).length;
+  if (beda) w.push(beda + ' peserta dengan upah berbeda di laporan; acuan memakai upah terbanyak');
+  var contoh = p.filter(function (x) { return x.upah === upah && x.jkk > 0; })[0];
+  var tarif = contoh ? Math.round(contoh.jkk / contoh.upah * 10000) / 100 : 0;
+  var jht = p.reduce(function (s, x) { return s + x.jht; }, 0), jp = p.reduce(function (s, x) { return s + x.jp; }, 0);
+  var tot = p.reduce(function (s, x) { return s + x.jumlah; }, 0);
+  if (r.total && r.total.length && Math.abs(r.total[r.total.length - 1] - tot) > 1) w.push('Jumlah iuran tidak sama dengan baris JUMLAH: periksa apakah ada baris yang tidak terbaca');
+  if (p.some(function (x) { return !x.lengkap; })) w.push('Ada baris dengan kolom iuran tidak lengkap');
+  return { program: jp > 0 ? '4P' : jht > 0 ? '3P' : '2P', upah: upah, tarifJKK: tarif, totalLaporan: Math.round(tot * 100) / 100, peringatan: w };
+}
+/** File PDF → daftar NPP. Halaman dengan NPP sama digabung (laporan panjang). */
+async function bacaPdfUpah(buf) {
+  var aliran = await pdfAliranTeks(buf), per = {}, urut = [];
+  aliran.forEach(function (isi) {
+    var h = pdfHalamanUpah(pdfPotongan(isi));
+    if (!h || !h.npp) return;
+    if (!per[h.npp]) { per[h.npp] = { npp: h.npp, namaBU: h.namaBU, blth: h.blth, peserta: [], total: null }; urut.push(h.npp); }
+    var t = per[h.npp];
+    t.peserta = t.peserta.concat(h.peserta);
+    if (h.total) t.total = h.total;
+    if (!t.namaBU) t.namaBU = h.namaBU;
+    if (!t.blth) t.blth = h.blth;
+  });
+  if (!urut.length) throw new Error('Bukan laporan "Daftar Upah Tenaga Kerja" dari sistem, atau teksnya tidak terbaca.');
+  return urut.map(function (n) { var r = per[n]; return Object.assign(r, pdfRingkasNpp(r)); });
+}
+/**
+ * Unduhan CSV/Excel laporan yang sama (NIK sering terpotong), atau tabel sederhana berkolom NPP, NIK, Nama (+ BLTH Keps).
+ * Hasil berbentuk sama dengan bacaPdfUpah, ditandai dariTabel.
+ */
+function tabelUpah(grid) {
+  var sel = function (r, j) { return String((r || [])[j] === undefined ? '' : r[j]).trim(); };
+  var kepala = grid.findIndex(function (r) { var h = r.map(function (x) { return String(x).trim().toUpperCase(); }); return h.indexOf('NPP') >= 0 && h.indexOf('NIK') >= 0; });
+  var per = {}, urut = [];
+  var tambah = function (npp, namaBU, blth) { if (!per[npp]) { per[npp] = { npp: npp, namaBU: namaBU || '', blth: blth || '', peserta: [], total: null, dariTabel: true }; urut.push(npp); } return per[npp]; };
+  if (kepala >= 0) {
+    var h = grid[kepala].map(function (x) { return String(x).trim().toUpperCase(); });
+    var ix = function (re) { return h.findIndex(function (x) { return re.test(x); }); };
+    var iN = h.indexOf('NPP'), iK = h.indexOf('NIK'), iNm = ix(/^NAMA( TK| LENGKAP| PESERTA)?$/), iB = ix(/NAMA (BADAN|PEMBERI|BU)/), iKp = ix(/KEPS|KEPESERTAAN|TANGGAL ENTRY/), iU = ix(/^UPAH$/);
+    grid.slice(kepala + 1).forEach(function (r) {
+      var npp = sel(r, iN).replace(/\D/g, ''), nik = sel(r, iK).replace(/\D/g, '');
+      if (!npp || !nik) return;
+      var t = tambah(npp, iB >= 0 ? sel(r, iB) : '', '');
+      t.peserta.push({ nik: nik, nama: sel(r, iNm), keps: tabelBlth(sel(r, iKp)), upah: iU >= 0 ? pdfAngka(sel(r, iU)) || 0 : 0, jht: 0, jp: 0, jkk: 0, jumlah: 0, lengkap: true });
+    });
+  } else {
+    var datar = grid.map(function (r) { return r.map(function (x) { return String(x).trim(); }).filter(Boolean); });
+    var cari = function (re) { for (var i = 0; i < datar.length; i++) for (var j = 0; j < datar[i].length; j++) { var m = re.exec(datar[i][j]); if (m) return m; } return null; };
+    var npp = (cari(/^:?\s*(\d{6,12})\s*-\s*\d{3}$/) || [])[1];
+    if (!npp) throw new Error('NPP tidak ditemukan di file. Pakai laporan "Daftar Upah Tenaga Kerja" atau tabel berkolom NPP, NIK, Nama.');
+    var iNama = datar.findIndex(function (r) { return r.some(function (x) { return /Nama Pemberi Kerja/i.test(x); }); });
+    var bu = iNama >= 0 ? ((datar.slice(iNama, iNama + 3).reduce(function (a, r) { return a.concat(r); }, []).filter(function (x) { return /^:\s*\S/.test(x); })[0]) || '').replace(/^:\s*/, '') : '';
+    var t = tambah(npp, bu, '');
+    datar.forEach(function (r) {
+      var nik = r.filter(function (x) { return /^\d{16}$/.test(x.replace(/\s/g, '')); })[0];
+      if (!nik) return;
+      var sisa = r.slice(r.indexOf(nik) + 1);
+      var nama = sisa.filter(function (x) { return !/\*/.test(x) && /[A-Za-z]{2}/.test(x) && !/^[A-Za-z]{3}-\d{2}$/.test(x); })[0] || '';
+      var keps = sisa.filter(function (x) { return /^[A-Za-z]{3}-\d{2}$|^\d{2}-\d{4}$/.test(x); })[0] || '';
+      var ik = keps ? sisa.indexOf(keps) : sisa.indexOf(nama);
+      var angka = sisa.slice(ik + 1).map(pdfAngka).filter(function (v) { return v !== null; });
+      t.peserta.push({ nik: nik.replace(/\s/g, ''), nama: nama, keps: tabelBlth(keps), upah: angka[0] || 0, rapel: angka[1] || 0, jht: angka[2] || 0, jkm: angka[3] || 0, jkk: angka[4] || 0, jp: angka[5] || 0, jumlah: angka[6] || 0, lengkap: angka.length >= 7 });
+    });
+  }
+  if (!urut.length) throw new Error('Tidak ada baris peserta (NPP + NIK) di file.');
+  return urut.map(function (n) { var r = per[n]; return Object.assign(r, pdfRingkasNpp(r)); });
+}
+function tabelBlth(s) {
+  var B = { JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, MEI: 5, JUN: 6, JUL: 7, AUG: 8, AGU: 8, AGS: 8, SEP: 9, OCT: 10, OKT: 10, NOV: 11, DEC: 12, DES: 12 };
+  var m = /^([A-Za-z]{3})-(\d{2})$/.exec(s); if (m && B[m[1].toUpperCase()]) return '20' + m[2] + '-' + ('0' + B[m[1].toUpperCase()]).slice(-2);
+  m = /^(\d{2})-(\d{4})$/.exec(s); if (m) return m[2] + '-' + m[1];
+  m = /^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{4})$/.exec(s); if (m) return m[3] + '-' + ('0' + m[2]).slice(-2);
+  m = /^(\d{4})-(\d{2})/.exec(s); if (m) return m[1] + '-' + m[2];
+  return '';
+}
+/** Pilih pembaca menurut jenis file. */
+async function bacaLaporanUpah(file) {
+  var nama = file.name || '';
+  if (/\.pdf$/i.test(nama) || file.type === 'application/pdf') return bacaPdfUpah(await file.arrayBuffer());
+  return tabelUpah(await bacaBerkasTabel(file));
+}
+
+
 /* === 20-simpan.js === */
 /* ----------------------------------------------------------------------
  *  Penyimpanan di perangkat: IndexedDB 'mytagihan_desa_3'. Semua sheet + pengaturan aplikasi +
  *  antrean sinkron. Bila PIN dipasang, isi disandikan AES-GCM 256 dengan kunci turunan PIN
  *  (PBKDF2-SHA256); tanpa PIN yang benar data tidak terbaca. (Sama dengan LENSA PK 2.0.)
  * ---------------------------------------------------------------------- */
-var VERSI_APP = '3.0.0';
+var VERSI_APP = '3.1.0';
 var NAMA_DB = 'mytagihan_desa_3';
 var ID_HALAMAN = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 var SIMPAN = { db: null, jenis: 'memori', tertunda: null, galat: '', terakhir: '', dimuat: 0, kunci: null, garam: null, setelahMuatUlang: null, rekTerkunci: null };
@@ -3339,7 +3855,7 @@ async function hapusSemua() {
  * ---------------------------------------------------------------------- */
 var FN_TULIS = ['tambahPeserta', 'nonaktifkan', 'ubahPeserta', 'bebasJP', 'imporPeserta', 'ubahAcuanKelompok', 'simpanNpp',
   'ubahNppMassal', 'tambahKeringanan', 'akhiriKeringanan', 'simpanPengaturan', 'simpanTarget', 'imporIbr', 'batalkan',
-  'buatTagihan', 'buatLampiran', 'hapusCache'];
+  'buatTagihan', 'buatLampiran', 'hapusCache', 'imporNpp'];
 var FN_LANGSUNG = ['arsipkan', 'arsipAda', 'pdfSheet', 'daftarArsip', 'templateImpor', 'simpanPdf'];
 var TAB_APP = ['Database', 'kelompok', 'npp', 'acuan_upah', 'keringanan', 'tarif', 'pengaturan', 'potensi', 'dropdown',
   'IBR', 'IBR (sebelumnya)', 'arsip saldo ibr', 'log_aplikasi', 'log_detail'];
@@ -3357,7 +3873,7 @@ function jalankanLokal(nama, argsJson) {
   var fn = apiMap_()[nama];
   if (!fn) return JSON.stringify({ ok: false, error: 'Aksi tidak dikenal: ' + nama });
   var args = argsJson ? JSON.parse(argsJson) : [];
-  var tulis = FN_TULIS.indexOf(nama) >= 0 && !(nama === 'imporPeserta' && args[0] && args[0].dryRun);
+  var tulis = FN_TULIS.indexOf(nama) >= 0 && !(args[0] && args[0].dryRun);
   var ubahAwal = GAS.diubah;
   _UUID_CATAT = [];
   try {
@@ -3376,7 +3892,7 @@ function jalankanLokal(nama, argsJson) {
 function antreOp(fn, argsJson, uuid) {
   APP.sinkron.antre.push({ cid: idOp(), fn: fn, args: argsJson || '[]', uuid: (uuid || []).slice(), t: Date.now() });
   simpanNanti();
-  if (sinkronAktif()) jadwalSinkron(fn === 'imporIbr' || fn === 'imporPeserta' ? 800 : 3000);
+  if (sinkronAktif()) jadwalSinkron(fn === 'imporIbr' || fn === 'imporPeserta' || fn === 'imporNpp' ? 800 : 3000);
 }
 function jumlahAntre() { return (APP.sinkron.antre || []).length; }
 
@@ -3676,6 +4192,7 @@ window.__mt3 = {
   hapusSemua: async function () { await hapusSemua(); kabarStatus(); kabarBerubah(); },
   pindahXlsx: async function (file) { var n = await pindahDariXlsx(file); kabarStatus(); return n; },
   bacaTabel: bacaBerkasTabel,
+  bacaLaporanUpah: bacaLaporanUpah,
   unduh: unduhBlob,
   infoPerangkat: function () { return { sheet: GAS.tab.map(function (s) { return { nama: s.nama, baris: Math.max(0, s.getLastRow() - 1) }; }) }; }
 };
@@ -3694,7 +4211,7 @@ async function siapkanAplikasi() {
 JMB.siap = siapkanAplikasi();
 /* pegangan untuk pemeriksaan (konsol / uji) — sama seperti window.LensaHp di LENSA PK 2.0 */
 window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, sinkronkan: sinkronkan, jumlahAntre: jumlahAntre, siap: function () { return JMB.siap; },
-  jalankan: function (nama, args) { return JSON.parse(jalankanLokal(nama, JSON.stringify(args || []))); }, simpanSekarang: simpanSekarang };
+  jalankan: function (nama, args) { return JSON.parse(jalankanLokal(nama, JSON.stringify(args || []))); }, simpanSekarang: simpanSekarang, bacaPdfUpah: bacaPdfUpah, tabelUpah: tabelUpah, bacaCsv: bacaCsv };
 
 })();
 </script>
@@ -4302,7 +4819,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   // =====================================================================
   const MENU = [
     ['Kelompok & Iuran', 'Kelompok · NPP · Keringanan · Target', [['kelompok', 'Kelompok kepesertaan', 'Acuan upah, tarif JKK, program per kelompok'], ['npp', 'Data NPP', 'Ubah satu atau beberapa NPP sekaligus'], ['keringanan', 'Keringanan iuran', 'Per kelompok dengan periode berlaku'], ['target', 'Target per desa', 'Opsional, untuk persentase di laporan']]],
-    ['Peserta', 'Bebas JP · Impor', [['bebasjp', 'Bebas JP (usia pensiun)', 'JP tidak ditagih, JHT tetap'], ['impor', 'Impor peserta', 'Template Excel + pemeriksaan per baris']]],
+    ['Peserta', 'Bebas JP · Impor', [['bebasjp', 'Bebas JP (usia pensiun)', 'JP tidak ditagih, JHT tetap'], ['impornpp', 'Impor massal per NPP', 'PDF Daftar Upah TK dari sistem · NPP baru otomatis'], ['impor', 'Impor peserta', 'Template Excel + pemeriksaan per baris']]],
     ['Tagihan & Bank', 'Batas JP · Penandatangan · Kode bayar · IBR', [['bank', 'Batas upah JP, penandatangan, kode bayar', 'Berlaku untuk semua tagihan'], ['ibr', 'Data IBR (saldo iuran)', 'Impor file IBR'], ['npp-bpu', 'NPP BPU tanpa kode bayar', 'Lengkapi kode bayar Bank Jatim']]],
     ['Dokumen & Aktivitas', 'Arsip · Riwayat & batalkan', [['arsip', 'Arsip tagihan di Drive', 'Perlu sinyal'], ['riwayat', 'Riwayat aktivitas', 'Batalkan perubahan sampai 30 hari']]],
     ['Aplikasi', 'Data & sinkron · PIN · cadangan · akses', [['data', 'Data & sinkron', 'Spreadsheet, PIN, cadangan, perangkat'], ['aplikasi', 'Akses & alamat aplikasi', 'Alamat untuk HP/komputer, tampilan Apps Script lama'], ['cache', 'Hapus cache daftar desa', 'Setelah mengubah sheet dropdown']]]
@@ -4767,6 +5284,133 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   }
 
   // =====================================================================
+  //  IMPOR MASSAL PER NPP (laporan "Daftar Upah Tenaga Kerja" dari sistem)
+  // =====================================================================
+  const IM = () => (S.imnpp = S.imnpp || { items: [], file: [] });
+  function bayangan(it) { // yang dikirim ke mesin
+    return { npp: it.npp, namaBU: it.namaBU, kel: it.kel, kec: it.kec, desa: it.desa, program: it.program, upah: it.upah, tarifJKK: it.tarifJKK, blth: it.blth,
+      mode: it.ada ? (it.mode || 'ganti') : 'tambah', tglNonaktif: it.tglNonaktif, dariTabel: !!it.dariTabel,
+      peserta: it.peserta.map(p => ({ nik: p.nik, nama: p.nama, keps: p.keps, upah: p.upah })) };
+  }
+  function perluPilih(it) { const a = it.an; return it.ada && !it.mode && a && !a.errors.length && (a.hilang.length || a.namaBeda.length || a.perubahan.length); }
+  function statusIm(it) {
+    const a = it.an;
+    if (!a) return ['', 'Memeriksa…'];
+    if (a.errors.length) return ['err', a.errors[0]];
+    if (perluPilih(it)) return ['warn', 'Ada perbedaan: pilih Ganti atau Tambah'];
+    if (!a.baru.length && !a.hilang.length && !(it.mode === 'ganti' && a.namaBeda.length) && !a.perubahan.length && !a.nppBaru) return ['', 'Sudah sama, tidak ada yang disimpan'];
+    return ['ok', 'Siap'];
+  }
+  function siapIm(it) { return statusIm(it)[0] === 'ok'; }
+  async function periksaIm(v) {
+    const D = IM();
+    if (!D.items.length) return gambarIm(v);
+    try {
+      const r = await api('imporNpp', { items: D.items.map(bayangan), dryRun: true });
+      r.items.forEach((a, i) => { if (D.items[i]) D.items[i].an = a; });
+    } catch (e) { D.items.forEach(it => { it.an = { errors: [e.message], warnings: [], baru: [], hilang: [], namaBeda: [], lainNpp: [], perubahan: [] }; }); }
+    gambarIm(v);
+  }
+  async function vImporNpp(v) {
+    setTitle('Impor massal per NPP', 'Laporan "Daftar Upah Tenaga Kerja" dari sistem');
+    const D = IM();
+    v.innerHTML =
+      acc('Pilih laporan', 'PDF per NPP · bisa banyak sekaligus',
+        '<p class="small" style="margin:0">Unduh laporan <b>Daftar Upah Tenaga Kerja</b> tiap NPP dari sistem dalam bentuk <b>PDF</b> (NIK lengkap 16 digit), lalu pilih semua file sekaligus. Unduhan Excel/CSV sistem memotong 4 digit terakhir NIK, jadi baris seperti itu ditolak.</p>' +
+        '<label class="btn p block" for="im-f">Pilih file PDF</label><input type="file" id="im-f" accept=".pdf,application/pdf,.xlsx,.csv" multiple hidden>' +
+        '<p class="small muted" style="margin:0">NPP baru dibuat otomatis (kelompok & desa ditebak dari nama badan usaha). Untuk NPP yang sudah ada dan isinya berbeda, Anda memilih <b>Ganti</b> (samakan dengan laporan) atau <b>Tambah saja</b>. Semua perubahan satu kali simpan bisa dibatalkan di Riwayat.</p>',
+        { open: !D.items.length }) +
+      '<div id="im-isi"></div><div id="im-bawah"></div>';
+    $('#im-f', v).onchange = async e => {
+      const files = Array.from(e.target.files || []); e.target.value = '';
+      if (!files.length) return;
+      busy('Membaca ' + files.length + ' file…');
+      const gagal = [];
+      let baru = 0;
+      for (const f of files) {
+        try {
+          const hasil = await M3.bacaLaporanUpah(f);
+          hasil.forEach(h => {
+            const lama = D.items.findIndex(x => x.npp === h.npp);
+            const it = Object.assign({ file: f.name, kel: '', kec: '', desa: '', mode: '', tglNonaktif: today(), an: null }, h);
+            if (lama >= 0) { it.peringatan = (it.peringatan || []).concat(['Menggantikan isi NPP yang sama dari ' + D.items[lama].file]); D.items[lama] = it; } else { D.items.push(it); baru++; }
+          });
+        } catch (x) { gagal.push(f.name + ': ' + x.message); }
+      }
+      try {
+        const t = await api('tebakImpor', { items: D.items.filter(it => !it.kel && !it.desa).map(it => ({ npp: it.npp, namaBU: it.namaBU })) });
+        t.forEach(g => { const it = D.items.find(x => x.npp === g.npp); if (!it) return; it.ada = g.ada; it.kandidat = g.kandidat; it.tebak = !g.ada; it.kel = g.kel; it.kec = g.kec; it.desa = g.desa; });
+      } catch (x) { gagal.push(x.message); }
+      busy(false);
+      if (gagal.length) sheet('<h2>Sebagian file tidak terbaca</h2><div class="note err">' + gagal.map(esc).join('<br>') + '</div><button class="btn block" data-close>Tutup</button>');
+      if (baru) toast(baru + ' NPP terbaca. Periksa kelompok & desa, lalu simpan.');
+      await periksaIm(v);
+    };
+    await periksaIm(v);
+  }
+  function gambarIm(v) {
+    const D = IM(), el = $('#im-isi', v), bw = $('#im-bawah', v);
+    if (!el) return;
+    if (!D.items.length) { el.innerHTML = ''; bw.innerHTML = ''; return; }
+    const kelOpt = K().map(k => ({ v: k.kode, t: k.nama }));
+    const urut = D.items.map((it, i) => ({ it, i })).sort((a, b) => { const r = x => ({ err: 0, warn: 1, ok: 2, '': 3 })[statusIm(x.it)[0]]; return r(a) - r(b); });
+    el.innerHTML = '<div class="sec">' + D.items.length + ' NPP dari ' + new Set(D.items.map(x => x.file)).size + ' file</div>' + urut.map(({ it, i }) => {
+      const a = it.an || { errors: [], warnings: [], baru: [], hilang: [], namaBeda: [], lainNpp: [], perubahan: [] };
+      const [st, teks] = statusIm(it);
+      const daftar = (judul, arr, f) => arr.length ? '<div class="sec" style="margin:8px 0 2px">' + judul + ' (' + arr.length + ')</div><div class="small">' + arr.slice(0, 200).map(f).join('<br>') + (arr.length > 200 ? '<br>…' : '') + '</div>' : '';
+      const chip = (n, t, c) => n ? '<span class="b ' + (c || '') + '">' + t + '</span>' : '';
+      const lok = it.ada
+        ? '<div class="small">' + esc((K().find(k => k.kode === it.kel) || {}).nama || it.kel) + ' · Desa ' + esc(it.desa) + ', ' + esc(it.kec) + ' <span class="muted">(sudah terdaftar)</span></div>'
+        : '<div class="row3"><select data-f="kel" data-i="' + i + '">' + opt(kelOpt, it.kel, 'Kelompok') + '</select><select data-f="kec" data-i="' + i + '">' + opt(W().kecamatan, it.kec, 'Kecamatan') + '</select><select data-f="desa" data-i="' + i + '">' + opt(W().desa[it.kec] || [], it.desa, 'Desa') + '</select></div>' +
+          (it.tebak && (it.kel || it.desa) ? '<div class="small muted">Ditebak dari nama badan usaha' + (it.kandidat && it.kandidat.length > 1 ? ' · desa lain yang mirip: ' + it.kandidat.filter(k => k.desa !== it.desa).map(k => esc(k.desa + ' (' + k.kec + ')')).join(', ') : '') + '</div>' : '');
+      const pilihan = it.ada && (perluPilih(it) || it.mode)
+        ? '<div class="seg" role="group" style="margin-top:8px"><button data-mode="ganti" data-i="' + i + '" class="' + (it.mode === 'ganti' ? 'on danger' : '') + '">Ganti (samakan)</button><button data-mode="tambah" data-i="' + i + '" class="' + (it.mode === 'tambah' ? 'on' : '') + '">Tambah saja</button></div>' +
+          (it.mode === 'ganti' && a.hilang.length ? '<div class="field" style="margin-top:8px"><label>Tanggal nonaktif untuk ' + a.hilang.length + ' peserta yang tidak ada di laporan</label><input type="date" data-f="tglNonaktif" data-i="' + i + '" value="' + esc(it.tglNonaktif) + '"><small>Tidak ditagih mulai bulan ' + esc(blnID(String(it.tglNonaktif).slice(0, 7))) + '. Bila bulan ini sudah dibayar, pilih tanggal di bulan berikutnya.</small></div>' : '')
+        : '';
+      return '<div class="card pad im-k im-' + (st || 'cek') + '">' +
+        '<div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start"><div style="min-width:0"><b>' + esc(it.namaBU || '(tanpa nama)') + '</b><div class="small muted">NPP ' + esc(it.npp) + ' · ' + it.peserta.length + ' TK · ' + esc(it.program) + ' · upah ' + rp(it.upah) + (it.tarifJKK ? ' · JKK ' + String(it.tarifJKK).replace('.', ',') + '%' : '') + (it.blth ? ' · ' + esc(blnID(it.blth)) : '') + ' · ' + esc(it.file) + '</div></div>' +
+        '<button class="icon-btn" data-hapus="' + i + '" aria-label="Keluarkan dari impor" style="color:var(--muted)"><svg class="i" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+        lok + pilihan +
+        '<div class="chips" style="margin-top:8px">' + (a.nppBaru ? '<span class="b pu">NPP baru</span>' : '') + chip(a.baru.length, '+' + a.baru.length + ' baru', 'ok') + chip(a.sama, a.sama + ' sudah ada') +
+          chip(a.hilang.length && it.mode !== 'tambah', a.hilang.length + (it.mode === 'ganti' ? ' dinonaktifkan' : ' tidak ada di laporan'), 'err') + chip(a.namaBeda.length && it.mode !== 'tambah', a.namaBeda.length + ' nama berbeda', 'warn') +
+          chip(a.lainNpp.length, a.lainNpp.length + ' aktif di NPP lain', 'warn') + (a.iuran ? '<span class="b">' + rp(a.iuran) + '/orang</span>' : '') + '</div>' +
+        '<div class="note ' + (st === 'ok' ? 'ok' : st === 'err' ? 'err' : st === 'warn' ? 'warn' : 'info') + '" style="margin-top:8px">' + esc(teks) + '</div>' +
+        ((it.peringatan || []).concat(a.warnings).length ? '<div class="small" style="color:var(--warn);margin-top:6px">' + (it.peringatan || []).concat(a.warnings).map(esc).join('<br>') + '</div>' : '') +
+        '<details class="im-rinci"><summary class="small">Rincian</summary>' +
+          daftar('Perubahan NPP', a.perubahan, esc) +
+          daftar('Peserta baru', a.baru, p => esc(p.nama) + ' · ' + esc(p.nik) + ' · mulai ' + esc(blnID(p.tgl.slice(0, 7)))) +
+          (it.mode !== 'tambah' ? daftar('Dinonaktifkan (tidak ada di laporan)', a.hilang, p => esc(p.nama) + ' · ' + esc(p.nik)) + daftar('Nama disamakan', a.namaBeda, p => esc(p.lama) + ' → ' + esc(p.baru)) : '') +
+          daftar('Dilewati: sudah aktif di NPP lain', a.lainNpp, p => esc(p.nama) + ' · ' + esc(p.nik) + ' — ' + esc(p.ket)) +
+        '</details></div>';
+    }).join('');
+    const siap = D.items.filter(siapIm), pilih = D.items.filter(perluPilih).length;
+    const jb = siap.reduce((s2, it) => s2 + it.an.baru.length, 0), jn = siap.reduce((s2, it) => s2 + (it.mode === 'ganti' ? it.an.hilang.length : 0), 0);
+    bw.innerHTML = '<div class="sticky-act"><div class="small" style="text-align:center;margin-bottom:6px">' + siap.length + ' NPP siap · ' + num(jb) + ' peserta baru' + (jn ? ' · ' + jn + ' dinonaktifkan' : '') + (pilih ? ' · <b>' + pilih + ' perlu dipilih</b>' : '') + '</div>' +
+      '<div class="btns"><button class="btn" id="im-batal">Kosongkan</button><button class="btn p" id="im-simpan"' + (siap.length ? '' : ' disabled') + '>Simpan ' + siap.length + ' NPP</button></div></div>';
+    const ulang = debounce(() => periksaIm(v), 250);
+    $$('select[data-f], input[data-f]', el).forEach(c => c.onchange = () => {
+      const it = D.items[+c.dataset.i]; it[c.dataset.f] = c.value;
+      if (c.dataset.f === 'kec') it.desa = '';
+      it.tebak = false; it.an = null; gambarIm(v); ulang();
+    });
+    $$('[data-mode]', el).forEach(b => b.onclick = () => { const it = D.items[+b.dataset.i]; it.mode = b.dataset.mode; it.an = null; gambarIm(v); ulang(); });
+    $$('[data-hapus]', el).forEach(b => b.onclick = () => { D.items.splice(+b.dataset.hapus, 1); gambarIm(v); });
+    $('#im-batal', bw).onclick = async () => { if (await confirmBox({ title: 'Kosongkan daftar impor?', ok: 'Kosongkan' })) { S.imnpp = null; render(); } };
+    $('#im-simpan', bw).onclick = async () => {
+      const ok = await confirmBox({ title: 'Simpan ' + siap.length + ' NPP?', ok: 'Simpan',
+        body: '<p>' + num(jb) + ' peserta baru' + (jn ? ', <b>' + jn + ' peserta dinonaktifkan</b>' : '') + ', ' + siap.filter(it => it.an.nppBaru).length + ' NPP baru.' +
+          (D.items.length > siap.length ? ' ' + (D.items.length - siap.length) + ' NPP lain tidak ikut disimpan (belum siap / perlu dipilih / sudah sama).' : '') + '</p><p class="small muted">Bisa dibatalkan sekaligus di Riwayat aktivitas.</p>' });
+      if (!ok) return;
+      const r = await write('imporNpp', [{ items: siap.map(bayangan), fileName: new Set(siap.map(x => x.file)).size + ' file laporan' }], 'Menyimpan ' + siap.length + ' NPP…');
+      if (!r) return;
+      D.items = D.items.filter(it => !siapIm(it));
+      D.items.forEach(it => { it.an = null; });
+      if (!D.items.length) S.imnpp = null;
+      render();
+    };
+  }
+
+  // =====================================================================
   //  DASBOR (komputer: layar utama · HP: menu ⋮)
   // =====================================================================
   function svgTren(D) {
@@ -4809,19 +5453,30 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     setTitle('Dasbor', 'Iuran desa · ' + bln + (st.aktif ? ' · sinkron ' + (st.terakhir ? st.terakhir.slice(11) : '–') : ' · belum tersambung ke spreadsheet'));
     const tot = D.kelompok.reduce((a, k) => a + k.aktif, 0) || 1;
     const mxK = Math.max(1, ...D.kelompok.map(k => k.aktif));
-    const kel = D.kelompok.map(k => '<button class="bar-k" data-kel="' + esc(k.kode) + '"><span class="n">' + esc(k.nama) + ' <span class="b ' + (k.jenis === 'BPU' ? 'bpu' : 'pu') + '">' + k.jenis + '</span></span><span class="tr"><span class="fi" style="width:' + (k.aktif / mxK * 100).toFixed(1) + '%"></span></span><span class="v"><b>' + num(k.aktif) + '</b> TK<br><span class="muted">' + (k.masalah ? '<span style="color:var(--danger)">' + k.masalah + ' tanpa acuan</span>' : rp(k.net)) + '</span></span></button>').join('');
+    const kosongK = D.kelompok.filter(k => !k.aktif);
+    const kel = D.kelompok.filter(k => k.aktif).map(k => '<button class="bar-k" data-kel="' + esc(k.kode) + '"><span class="n">' + esc(k.nama) + ' <span class="b ' + (k.jenis === 'BPU' ? 'bpu' : 'pu') + '">' + k.jenis + '</span></span><span class="tr"><span class="fi" style="width:' + (k.aktif / mxK * 100).toFixed(1) + '%"></span></span><span class="v"><b>' + num(k.aktif) + '</b> TK<br><span class="muted">' + (k.masalah ? '<span style="color:var(--danger)">' + k.masalah + ' tanpa acuan</span>' : rp(k.net)) + '</span></span></button>').join('');
     const pr = D.program, sp = (pr['2P'] + pr['3P'] + pr['4P']) || 1;
     const prog = '<div class="stack">' + [['2P', 'var(--brand-3)'], ['3P', 'var(--brand-2)'], ['4P', 'var(--brand)']].map(x => pr[x[0]] ? '<span style="width:' + (pr[x[0]] / sp * 100) + '%;background:' + x[1] + '" title="' + x[0] + ' ' + pr[x[0]] + '"></span>' : '').join('') + '</div>' +
       '<div class="legenda">' + [['2P · JKK+JKM', 'var(--brand-3)', pr['2P']], ['3P · +JHT', 'var(--brand-2)', pr['3P']], ['4P · +JP', 'var(--brand)', pr['4P']]].map(x => '<span><i style="background:' + x[1] + '"></i>' + x[0] + ' <b>' + num(x[2]) + '</b></span>').join('') + '</div>' +
       '<dl class="kv" style="margin-top:10px"><dt>Iuran normal</dt><dd>' + rp(D.iuran.normal) + '</dd><dt>Keringanan</dt><dd>− ' + rp(D.iuran.potongan) + '</dd><dt>Saldo IJT (IBR)</dt><dd>− ' + rp(D.iuran.saldo) + '</dd><dt>Peserta Bebas JP</dt><dd>' + num(D.iuran.bebasJP) + '</dd>' +
       (D.tanpaNpp ? '<dt>Belum punya NPP</dt><dd style="color:var(--danger)">' + num(D.tanpaNpp) + ' peserta</dd>' : '') + '</dl>' +
       D.iuran.masalah.map(m => '<div class="note warn">' + esc(m.teks) + ' (' + m.n + ' peserta)</div>').join('');
-    const kecUrut = D.kecamatan.slice().sort((a, b2) => b2.desaKosong - a.desaKosong || a.n - b2.n);
-    const kec = kecUrut.length ? '<div class="scroll-x"><table class="tbl tbl-d"><tr><th>Kecamatan</th><th>Peserta</th><th>Desa</th><th>Desa kosong</th><th>' + (kecUrut.some(k => k.target) ? 'Cakupan' : '') + '</th></tr>' +
-      kecUrut.map(k => '<tr data-lap="1"><td>' + esc(k.nama) + '</td><td><b>' + num(k.n) + '</b></td><td>' + k.desa + '</td><td style="' + (k.desaKosong ? 'color:var(--danger);font-weight:700' : '') + '">' + k.desaKosong + '</td><td>' + (k.target ? pct(k.n / k.target * 100) : '') + '</td></tr>').join('') + '</table></div>'
+    const kecUrut = D.kecamatan.slice().sort((a, b2) => a.n - b2.n || b2.desaKosong - a.desaKosong);
+    const mxKec = Math.max(1, ...kecUrut.map(k => k.n));
+    const kec = kecUrut.length ? '<div class="bars-kec">' + kecUrut.map(k => '<button class="bar-kec" data-lap="1"><span class="n">' + esc(k.nama) + '</span><span class="tr"><span class="fi" style="width:' + (k.n / mxKec * 100).toFixed(1) + '%"></span></span><span class="v"><b>' + num(k.n) + '</b>' +
+        (k.target ? ' · ' + pct(k.n / k.target * 100) : '') + (k.desaKosong ? ' <span class="kosong">' + k.desaKosong + ' desa kosong</span>' : '') + '</span></button>').join('') + '</div>'
       : '<div class="empty">Daftar kecamatan/desa (sheet dropdown) belum ada.</div>';
+    const tg = D.tagihanTerakhir, blnBesar = bln.toUpperCase();
+    const tgBlnIni = tg && tg.ket.toUpperCase().indexOf(blnBesar) >= 0;
+    const umurIbr = D.ibr && D.ibr.lastImport ? Math.floor((Date.now() - new Date(D.ibr.lastImport.at).getTime()) / 86400000) : null;
+    const ingat = [];
+    if (!tgBlnIni) ingat.push(['warn', 'Tagihan ' + bln + ' belum dibuat', 'tagihan']);
+    if (umurIbr === null) ingat.push(['info', 'IBR belum pernah diimpor lewat aplikasi', 'ibr']);
+    else if (umurIbr > 30) ingat.push(['warn', 'IBR terakhir ' + umurIbr + ' hari lalu', 'ibr']);
+    if (st.aktif && st.antre) ingat.push(['info', st.antre + ' perubahan belum terkirim ke spreadsheet', 'data']);
+    if (st.aktif && st.galat) ingat.push(['warn', 'Sinkron tertunda: ' + st.galat, 'data']);
     const per = (b.perhatian || []).map(p => '<button class="row" data-aksi="' + esc(p.aksi) + '"><span class="m" style="white-space:normal">' + esc(p.teks) + '</span><span class="chev"></span></button>').join('');
-    const akt = D.aktivitas.map(l => '<div class="row" style="cursor:default;align-items:flex-start"><span class="m"><span class="t1" style="display:block;white-space:normal">' + esc(l.aksi) + (l.status !== 'Aktif' ? ' <span class="b">dibatalkan</span>' : '') + '</span><span class="t2" style="display:block;white-space:normal">' + esc(l.ket) + '</span></span><span class="small muted" style="flex-shrink:0">' + waktuID(l.waktu) + '</span></div>').join('');
+    const akt = D.aktivitas.slice(0, 5).map(l => '<div class="row" style="cursor:default;align-items:flex-start"><span class="m"><span class="t1" style="display:block;white-space:normal">' + esc(l.aksi) + (l.status !== 'Aktif' ? ' <span class="b">dibatalkan</span>' : '') + '</span><span class="t2" style="display:block;white-space:normal">' + esc(l.ket) + '</span></span><span class="small muted" style="flex-shrink:0">' + waktuID(l.waktu) + '</span></div>').join('');
     const ibr = D.ibr && D.ibr.lastImport ? waktuID(D.ibr.lastImport.at) : 'belum pernah lewat aplikasi';
     v.innerHTML =
       (st.data && !st.pin ? '<div class="note warn">Data NIK peserta tersimpan di perangkat ini tanpa PIN. <button class="link" data-ke="data">Pasang PIN</button></div>' : '') +
@@ -4831,18 +5486,21 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
       kotakKpi('Keluar ' + bln, num(D.nKeluar), 'dinonaktifkan', ' data-dl="keluar"') +
       kotakKpi('Iuran ' + bln, rp(D.iuran.net), 'setelah keringanan', ' data-ke="tagihan"') +
       kotakKpi('Perkiraan tagihan', rp(D.iuran.perkiraan), 'iuran − saldo IJT', ' data-ke="tagihan"') + '</div>' +
-      '<div class="grid2">' +
-      kartuD('Peserta 12 bulan', 'garis = peserta ditagih tiap akhir bulan · batang = masuk / keluar', svgTren(D) +
-        '<div class="legenda"><span><i style="background:var(--brand)"></i>Peserta ditagih</span><span><i style="background:var(--ok)"></i>Masuk</span><span><i style="background:var(--danger)"></i>Keluar</span></div>') +
-      kartuD('Per kelompok', num(tot) + ' TK ditagih · iuran ' + bln + ' · ketuk untuk daftar peserta', '<div class="bars-k">' + kel + '</div>') + '</div>' +
-      '<div class="grid2">' +
-      kartuD('Program & iuran', bln, prog) +
-      kartuD('Perlu perhatian', (b.perhatian || []).length + ' hal', per ? '<div class="flush-list">' + per + '</div>' : '<div class="empty">Tidak ada. Semua lengkap.</div>') + '</div>' +
-      '<div class="grid2">' +
-      kartuD('Cakupan per kecamatan', 'desa tanpa peserta terbanyak di atas · ketuk untuk laporan', kec, '<button class="btn sm" data-ke="laporan">Laporan</button>') +
-      kartuD('Aktivitas terakhir', 'Tagihan terakhir: ' + (D.tagihanTerakhir ? esc(D.tagihanTerakhir.ket.split(' · ')[0]) + ' · ' + waktuID(D.tagihanTerakhir.waktu) : 'belum ada') + ' · IBR: ' + ibr,
-        akt ? '<div class="flush-list">' + akt + '</div>' : '<div class="empty">Belum ada aktivitas.</div>', '<button class="btn sm" data-ke="riwayat">Riwayat</button>') + '</div>';
-    $$('[data-ke]', v).forEach(el => el.onclick = () => { const k = el.dataset.ke; if (k === 'peserta' || k === 'tagihan') tab(k); else go(k); });
+      '<div class="grid-d">' +
+      '<div class="d8">' + kartuD('Peserta 12 bulan', 'garis = peserta ditagih tiap akhir bulan · batang = masuk / keluar', svgTren(D) +
+        '<div class="legenda"><span><i style="background:var(--brand)"></i>Peserta ditagih</span><span><i style="background:var(--ok)"></i>Masuk</span><span><i style="background:var(--danger)"></i>Keluar</span></div>') + '</div>' +
+      '<div class="d4">' + kartuD('Ekosistem desa', num(tot) + ' TK ditagih · ketuk untuk daftar peserta', '<div class="bars-k">' + (kel || '<div class="empty">Belum ada peserta.</div>') + '</div>' +
+        (kosongK.length ? '<div class="sec" style="margin:6px 0 0">Belum ada peserta (' + kosongK.length + ')</div><div class="chips">' + kosongK.map(k => '<span class="b">' + esc(k.nama) + '</span>').join('') + '</div>' +
+          '<button class="btn sm" data-ke="impornpp" style="align-self:flex-start;margin-top:4px">Impor massal per NPP</button>' : '')) + '</div>' +
+      '<div class="d4">' + kartuD('Program & iuran', bln, prog) + '</div>' +
+      '<div class="d4">' + kartuD('Perlu perhatian', (b.perhatian || []).length ? (b.perhatian || []).length + ' hal' : 'semua lengkap', per ? '<div class="flush-list">' + per + '</div>' : '<div class="lengkap"><svg class="i" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>Tidak ada yang perlu dilengkapi.</div>') + '</div>' +
+      '<div class="d4">' + kartuD('Data & tagihan', 'tagihan terakhir: ' + (tg ? esc(tg.ket.split(' · ')[0]) + ' · ' + waktuID(tg.waktu) : 'belum ada'),
+        '<dl class="kv"><dt>Sinkron</dt><dd>' + (st.aktif ? (st.terakhir ? esc(st.terakhir.slice(11)) + (st.terakhir.slice(0, 10) === today() ? '' : ' · ' + tglID(st.terakhir.slice(0, 10))) : '–') : 'belum tersambung') + '</dd><dt>IBR</dt><dd>' + (D.ibr && D.ibr.lastImport ? waktuID(D.ibr.lastImport.at) : '–') + '</dd><dt>Belum terkirim</dt><dd>' + (st.antre || 0) + '</dd></dl>' +
+        (ingat.length ? ingat.map(x => '<button class="note ' + x[0] + ' ingat" data-ke="' + x[2] + '">' + esc(x[1]) + '</button>').join('') : '<div class="note ok">Tagihan ' + bln + ' sudah dibuat dan data terbaru.</div>')) + '</div>' +
+      '<div class="d7">' + kartuD('Cakupan per kecamatan', 'peserta paling sedikit di atas · ketuk untuk laporan cakupan', kec, '<button class="btn sm" data-ke="laporan">Laporan</button>') + '</div>' +
+      '<div class="d5">' + kartuD('Aktivitas terakhir', 'lima terbaru', akt ? '<div class="flush-list">' + akt + '</div>' : '<div class="empty">Belum ada aktivitas.</div>', '<button class="btn sm" data-ke="riwayat">Riwayat</button>') + '</div>' +
+      '</div>';
+    $$('[data-ke]', v).forEach(el => el.onclick = () => { const k = el.dataset.ke; if (k === 'peserta' || k === 'tagihan') tab(k); else if (k === 'data') tab('data'); else go(k); });
     $$('[data-dl]', v).forEach(el => el.onclick = () => daftarPeserta(el.dataset.dl === 'masuk' ? 'Masuk ' + bln : 'Keluar ' + bln, el.dataset.dl === 'masuk' ? D.masuk : D.keluar));
     $$('[data-kel]', v).forEach(el => el.onclick = () => { const f = LS.get('pf', {}); LS.set('pf', Object.assign(f, { status: 'Aktif', kel: el.dataset.kel, kec: '', desa: '', bebasJP: false })); tab('peserta'); });
     $$('[data-lap]', v).forEach(el => el.onclick = () => go('laporan'));
@@ -5022,7 +5680,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   const VIEWS = {
     dasbor: vDasbor, data: vData,
     beranda: vBeranda, mutasi: vMutasi, tagihan: vTagihan, peserta: vPeserta, detail: vDetail, pengaturan: vPengaturan,
-    kelompok: vKelompok, npp: vNpp, keringanan: vKeringanan, target: vTarget, bebasjp: vBebasJP, impor: vImpor,
+    kelompok: vKelompok, npp: vNpp, keringanan: vKeringanan, target: vTarget, bebasjp: vBebasJP, impor: vImpor, impornpp: vImporNpp,
     bank: vBank, ibr: vIbr, arsip: vArsip, riwayat: vRiwayat, aplikasi: vAplikasi, laporan: vLaporan
   };
   $$('#tabbar button[data-tab]').forEach(b => b.onclick = () => tab(b.dataset.tab));

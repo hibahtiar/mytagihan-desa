@@ -51,6 +51,14 @@ Hitung tagihan, mutasi, impor peserta/IBR, laporan, dan Urungkan jalan di perang
 **template impor Excel**, dan **daftar arsip**. Setelah tagihan dibuat, arsip ke Drive dibuat otomatis bila ada sinyal;
 bila tidak, tekan **Simpan arsip .xlsx ke Drive** nanti.
 
+## Impor massal per NPP (BUMDes, LKD, LAD, Rentan, …)
+Pengaturan › Peserta › **Impor massal per NPP** (atau tombol di kartu Ekosistem desa di Dasbor).
+Unduh laporan **Daftar Upah Tenaga Kerja** per NPP dari sistem dalam bentuk **PDF** (NIK lengkap), pilih semua file
+sekaligus. NPP baru dibuat otomatis lengkap dengan program, acuan upah, dan tarif JKK dari laporan; kelompok & desa
+ditebak dari nama badan usaha dan bisa dikoreksi. NPP yang sudah ada dan berbeda: pilih **Ganti** (samakan dengan
+laporan, peserta yang tidak ada dinonaktifkan per tanggal pilihan) atau **Tambah saja**. Satu kali simpan = satu
+aktivitas di Riwayat (bisa dibatalkan). Unduhan Excel/CSV sistem memotong NIK, jadi barisnya ditolak.
+
 ## Laporan cakupan PDF
 Laporan › **Cetak / simpan PDF A4** → dialog cetak → pilih *Simpan sebagai PDF*. A4 tegak, judul tabel berulang,
 baris tidak terpotong, satu halaman per kecamatan. Dibuat di perangkat tanpa pustaka luar (pdfmake tidak dipakai lagi).
