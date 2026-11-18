@@ -11,7 +11,7 @@
 <link rel="icon" href="ikon-192.png">
 <link rel="apple-touch-icon" href="ikon-192.png">
 <title>MyTagihan Desa · BPJS Ketenagakerjaan KC Pamekasan</title>
-<!-- MyTagihan Desa 3.1.0 · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi bila PIN dipasang). -->
+<!-- MyTagihan Desa 3.2.1 · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi bila PIN dipasang). -->
 <style>
 /* MyTagihan Desa 3.0 — warna pembeda: UNGU TERONG (plum) + aksen kuning padi.
    LENSA PK = petrol #0E5A5F (master) · Monitor SPPG = biru · MyTagihan Desa = ungu terong #5B2A6E. */
@@ -41,7 +41,7 @@ svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-widt
 .icon-btn { width: 42px; height: 42px; border: 0; background: transparent; color: inherit; border-radius: 10px; display: grid; place-items: center; cursor: pointer; }
 .icon-btn:active { background: rgba(255,255,255,.15); }
 #view { max-width: 760px; margin: 0 auto; padding: 14px 14px calc(var(--tab-h) + 28px); display: flex; flex-direction: column; gap: 12px; }
-.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; height: calc(var(--tab-h) + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, 1fr); }
+.tabbar { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; height: calc(var(--tab-h) + env(safe-area-inset-bottom, 0px)); padding-bottom: env(safe-area-inset-bottom, 0px); background: var(--surface); border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); }
 .tabbar button { border: 0; background: none; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 11px; font-weight: 600; color: var(--muted); cursor: pointer; }
 .tabbar button svg { padding: 2px 12px; box-sizing: content-box; border-radius: 12px; }
 .tabbar button.on { color: var(--brand); }
@@ -105,7 +105,7 @@ input[type=text], input[type=search], input[type=number], input[type=date], inpu
   width: 100%; min-height: 46px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); font-size: 16px; }
 textarea { min-height: 70px; }
 input:focus, select:focus, textarea:focus, summary:focus-visible, button:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row2 { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--surface-2); border: 1px solid var(--line); border-radius: 12px; padding: 3px; gap: 3px; }
 .seg button { min-height: 42px; border: 0; border-radius: 9px; background: transparent; font-weight: 650; color: var(--muted); cursor: pointer; }
 .seg button.on { background: var(--surface); color: var(--brand); box-shadow: 0 1px 3px rgba(0,0,0,.12); }
@@ -130,10 +130,13 @@ input:focus, select:focus, textarea:focus, summary:focus-visible, button:focus-v
 .btn.sm { min-height: 36px; padding: 0 12px; font-size: 13.5px; }
 .btn.block { width: 100%; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
-.btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
 .link { background: none; border: 0; padding: 4px 0; color: var(--brand); font-weight: 650; cursor: pointer; font-size: 13.5px; }
 .sticky-act { position: sticky; bottom: calc(var(--tab-h) + 10px); z-index: 5; }
 .sticky-act .btn { box-shadow: 0 6px 18px rgba(0,0,0,.18); }
+.sticky-act.diam { position: static; }
+.sticky-act.diam .btn { box-shadow: none; }
+.sticky-act .btn:disabled { opacity: 1; background: var(--surface-2, #ece6ef); color: var(--muted); border-color: var(--line); }
 
 /* Grafik batang */
 .bars { display: flex; flex-direction: column; gap: 7px; }
@@ -385,6 +388,23 @@ body { overflow-x: clip; }
   .grid-d .flush-list { flex: 1; }
 }
 
+/* iPhone/Safari: kolom tanggal & bulan punya lebar bawaan yang membuat kartu terpotong */
+input[type=date], input[type=month] { -webkit-appearance: none; appearance: none; display: block; width: 100%; min-width: 0; max-width: 100%; min-height: 46px; text-align: left; }
+input[type=date]::-webkit-date-and-time-value, input[type=month]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.field, .card, .kpi, .acc, .row2 > *, .btns > * { min-width: 0; }
+.kpi b, .kpi .v, .kpi strong { overflow-wrap: anywhere; }
+.kpi .v { font-size: clamp(17px, 5.6vw, 22px); }
+@media (min-width: 760px) { .kpi .v { font-size: 22px; } }
+
+/* Jarak antar-blok yang konsisten (tombol tidak menempel pada kartu) */
+.tumpuk { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.tumpuk:empty { display: none; }
+.btn.arsip { flex-direction: column; gap: 0; padding: 8px 14px; line-height: 1.25; text-align: center; border: 1px dashed var(--line); }
+.btn.arsip small { font-weight: 500; font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.btn { line-height: 1.2; text-align: center; }
+.badges .b.z { background: #fbe8e6; color: var(--danger); }
+@media (min-width: 760px) { .kpis.k3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
 </style>
 </head>
 <body data-view="">
@@ -624,7 +644,7 @@ const SH = {
 
 /** Kolom tiap sheet acuan. Kolom pertama = kunci unik. */
 const SCHEMA = {
-  kelompok: ['Kode', 'Nama', 'Induk', 'Jenis Kepesertaan', 'Program Awal', 'Urutan', 'Hitung Kelengkapan'],
+  kelompok: ['Kode', 'Nama', 'Induk', 'Jenis Kepesertaan', 'Program Awal', 'Urutan', 'Hitung Kelengkapan', 'Tingkat'],
   npp: ['NPP', 'Kelompok', 'Kecamatan', 'Desa', 'Nama Badan Usaha', 'Jenis Program', 'Kode Bayar', 'Status'],
   acuan_upah: ['ID', 'Jenis', 'Tingkat', 'Kode', 'Nilai', 'Berlaku Mulai', 'Dicatat Oleh', 'Waktu'],
   keringanan: ['ID', 'Nama', 'Kelompok', 'Komponen', 'Potongan (%)', 'Mulai', 'Selesai', 'Dasar', 'Status'],
@@ -952,8 +972,10 @@ function loadMaster_() {
       kode: code, nama: String(o.Nama || code), induk: String(o.Induk || '').trim(),
       jenis: String(o['Jenis Kepesertaan'] || 'PU').trim().toUpperCase() === 'BPU' ? 'BPU' : 'PU',
       programAwal: String(o['Program Awal'] || '2P').trim(), urutan: num_(o.Urutan) || 99,
-      lengkap: String(o['Hitung Kelengkapan'] || 'Ya').trim().toLowerCase() !== 'tidak'
+      lengkap: String(o['Hitung Kelengkapan'] || 'Ya').trim().toLowerCase() !== 'tidak',
+      tingkat: String(o.Tingkat || '').trim().toLowerCase() === 'kecamatan' ? 'Kecamatan' : 'Desa'
     };
+    if (g.tingkat === 'Kecamatan') g.lengkap = false;
     g.grup = g.induk || g.kode;
     M.kel[code] = g;
     M.kelList.push(g);
@@ -1003,6 +1025,15 @@ function loadMaster_() {
   t.rows.forEach(r => { const o = t.obj(r); if (o.Kunci) M.tarif[String(o.Kunci).trim()] = num_(o.Nilai); });
   M.batasJP = num_(M.set.BATAS_UPAH_JP) || 0;
   return M;
+}
+
+/** Kelompok tingkat kecamatan (mis. BUMDesma): NPP per kecamatan, kolom Desa kosong. */
+function tingkatKec_(M, kel) { return !!(M.kel[kel] && M.kel[kel].tingkat === 'Kecamatan'); }
+
+/** Lokasi wajib: kecamatan selalu, desa hanya untuk kelompok tingkat desa (tingkat kecamatan → desa dikosongkan). */
+function lokasiSah_(M, d) {
+  if (tingkatKec_(M, d.kel)) { d.desa = ''; if (!d.kec) throw new Error('Pilih kecamatan.'); return; }
+  if (!d.kec || !d.desa) throw new Error('Pilih kecamatan dan desa.');
 }
 
 function locKey_(kel, kec, desa) { return [kel, kec, desa].map(s => String(s || '').trim().toLowerCase()).join('|'); }
@@ -1145,15 +1176,17 @@ function pesertaOut_(M, p) {
  */
 
 const KELOMPOK_AWAL = [
-  ['APARAT', 'Aparat Desa', '', 'PU', '4P', 1, 'Ya'],
-  ['BPD', 'BPD', '', 'PU', '2P', 2, 'Ya'],
-  ['BUMDES', 'BUMDes', '', 'PU', '2P', 3, 'Ya'],
-  ['LKD-POSYANDU', 'Kader Posyandu', 'LKD', 'PU', '2P', 4, 'Ya'],
-  ['LKD-PKK', 'Kader PKK', 'LKD', 'PU', '2P', 5, 'Ya'],
-  ['LKD-KARTAR', 'Karang Taruna', 'LKD', 'PU', '2P', 6, 'Ya'],
-  ['LKD-RTRW', 'RT/RW', 'LKD', 'PU', '2P', 7, 'Ya'],
-  ['ADAT', 'Lembaga Adat Desa', '', 'PU', '2P', 8, 'Tidak'],
-  ['RENTAN', 'Pekerja Rentan', '', 'BPU', '2P', 9, 'Ya']
+  ['APARAT', 'Aparat Desa', '', 'PU', '4P', 1, 'Ya', 'Desa'],
+  ['BPD', 'BPD', '', 'PU', '2P', 2, 'Ya', 'Desa'],
+  ['BUMDES', 'BUMDes', '', 'PU', '2P', 3, 'Ya', 'Desa'],
+  ['LKD-POSYANDU', 'Kader Posyandu', 'LKD', 'PU', '2P', 4, 'Ya', 'Desa'],
+  ['LKD-PKK', 'Kader PKK', 'LKD', 'PU', '2P', 5, 'Ya', 'Desa'],
+  ['LKD-KARTAR', 'Karang Taruna', 'LKD', 'PU', '2P', 6, 'Ya', 'Desa'],
+  ['LKD-RTRW', 'RT/RW', 'LKD', 'PU', '2P', 7, 'Ya', 'Desa'],
+  ['ADAT', 'Lembaga Adat Desa', '', 'PU', '2P', 8, 'Tidak', 'Desa'],
+  ['RENTAN', 'Pekerja Rentan', '', 'BPU', '2P', 9, 'Ya', 'Desa'],
+  // Tingkat kecamatan: satu NPP per kecamatan, kolom Desa dikosongkan, tidak ikut kelengkapan desa
+  ['BUMDESMA', 'BUMDesma', '', 'PU', '2P', 10, 'Tidak', 'Kecamatan']
 ];
 
 const TARIF_AWAL = [
@@ -1360,7 +1393,8 @@ function apiBootstrap() {
   if (tanpaNpp.length) perhatian.push({ jenis: 'npp', teks: tanpaNpp.length + ' peserta aktif belum punya NPP (tidak ikut tagihan)', aksi: 'npp' });
   M.kelList.forEach(g => {
     const pakai = Object.keys(M.npp).some(n => M.npp[n].kel === g.kode && M.npp[n].aktif);
-    if (pakai && acuanFor_(M, 'Upah', '', g.kode, ym).nilai === null) perhatian.push({ jenis: 'acuan', teks: 'Acuan upah ' + g.nama + ' belum diisi', aksi: 'kelompok' });
+    const tanpa = Object.keys(M.npp).some(n => M.npp[n].kel === g.kode && M.npp[n].aktif && acuanFor_(M, 'Upah', n, g.kode, ym).nilai === null);
+    if (pakai && tanpa) perhatian.push({ jenis: 'acuan', teks: 'Acuan upah ' + g.nama + ' belum diisi', aksi: 'kelompok' });
   });
   const bpuTanpaKode = Object.keys(M.npp).filter(n => { const r = M.npp[n]; return r.aktif && M.kel[r.kel] && M.kel[r.kel].jenis === 'BPU' && !r.kodeBayar; });
   if (bpuTanpaKode.length) perhatian.push({ jenis: 'kode', teks: bpuTanpaKode.length + ' NPP BPU belum punya kode bayar Bank Jatim', aksi: 'npp-bpu' });
@@ -1370,7 +1404,7 @@ function apiBootstrap() {
 
   return {
     version: APP_VERSION, user: currentUser_(), needsSetup: false,
-    kelompok: M.kelList.map(g => ({ kode: g.kode, nama: g.nama, jenis: g.jenis, grup: g.grup, induk: g.induk, programAwal: g.programAwal })),
+    kelompok: M.kelList.map(g => ({ kode: g.kode, nama: g.nama, jenis: g.jenis, grup: g.grup, induk: g.induk, programAwal: g.programAwal, tingkat: g.tingkat })),
     wilayah: wilayah_(), keterangan: KETERANGAN_KELUAR,
     tarif: { PU_JKM: M.tarif.PU_JKM || 0.3, PU_JHT: M.tarif.PU_JHT || 5.7, PU_JP: M.tarif.PU_JP || 3, BPU_JKK: M.tarif.BPU_JKK || 1, BPU_JKM: M.tarif.BPU_JKM || 6800, BPU_JHT: M.tarif.BPU_JHT || 2 },
     batasJP: M.batasJP, stats: st, terbaru, perhatian,
@@ -1416,8 +1450,9 @@ function apiCekNik(nik) {
 /** NPP, program, dan perkiraan iuran per orang untuk kelompok + lokasi (pratinjau form). */
 function apiResolveNpp(f) {
   const M = loadMaster_();
+  if (tingkatKec_(M, f.kel)) f.desa = '';
   const npp = M.nppByLoc[locKey_(f.kel, f.kec, f.desa)] || '';
-  if (!npp) return { npp: '', pesan: 'NPP ' + ((M.kel[f.kel] || {}).nama || f.kel) + ' untuk desa ini belum ada.' };
+  if (!npp) return { npp: '', pesan: 'NPP ' + ((M.kel[f.kel] || {}).nama || f.kel) + ' untuk ' + (tingkatKec_(M, f.kel) ? 'kecamatan' : 'desa') + ' ini belum ada.' };
   const n = M.npp[npp];
   const r = iuranOrang_(M, { kelompok: f.kel, kec: f.kec, desa: f.desa, npp }, nowYm_());
   return { npp, nama: n.nama, program: n.program, iuran: r.error ? null : r.net, error: r.error };
@@ -1443,14 +1478,14 @@ function apiTambahPeserta(d) {
     const nama = toTitleCase(d.nama);
     if (nama.length < 3) throw new Error('Nama lengkap wajib diisi.');
     if (!M.kel[d.kel]) throw new Error('Pilih kelompok.');
-    if (!d.kec || !d.desa) throw new Error('Pilih kecamatan dan desa.');
+    lokasiSah_(M, d);
     const tgl = validYmd_(d.tanggal, 'Tanggal entry');
     const P = readPeserta_().list;
     const dup = P.find(p => p.nik === nik && p.status === 'Aktif');
     if (dup) throw new Error('NIK ' + nik + ' sudah AKTIF atas nama ' + dup.nama + ' (' + dup.desa + ').');
     const npp = M.nppByLoc[locKey_(d.kel, d.kec, d.desa)] || '';
     const n = M.npp[npp] || {};
-    const tx = new Tx('Tambah peserta', nama + ' (' + nik + ') · ' + M.kel[d.kel].nama + ' ' + d.desa + ', ' + d.kec);
+    const tx = new Tx('Tambah peserta', nama + ' (' + nik + ') · ' + M.kel[d.kel].nama + ' ' + (d.desa ? d.desa + ', ' : 'Kec. ') + d.kec);
     const id = uuid_();
     tx.insert(SH.DB, {
       'ID': id, 'Status': 'Aktif', 'NIK': nik, 'Nama Lengkap': nama, 'Aparat/BPD': legacyAparat_(M, d.kel), 'Kelompok': d.kel,
@@ -1504,6 +1539,7 @@ function apiUbahPeserta(d) {
       if (dup) throw new Error('NIK ' + nik + ' sudah dipakai ' + dup.nama + '.');
     }
     if (!M.kel[d.kel]) throw new Error('Pilih kelompok.');
+    lokasiSah_(M, d);
     const tgl = validYmd_(d.tanggal, 'Tanggal entry');
     const npp = M.nppByLoc[locKey_(d.kel, d.kec, d.desa)] || '';
     const n = M.npp[npp] || {};
@@ -1598,15 +1634,15 @@ function apiImporPeserta(d) {
       if (!kel) return err('Kelompok "' + (r.kelompok || '') + '" tidak dikenal');
       const kec = W.kecamatan.find(k => k.toLowerCase() === String(r.kec || '').trim().toLowerCase());
       if (!kec) return err('Kecamatan "' + (r.kec || '') + '" tidak dikenal');
-      const desa = (W.desa[kec] || []).find(x => x.toLowerCase() === String(r.desa || '').trim().toLowerCase());
-      if (!desa) {
+      const desa = tingkatKec_(M, kel) ? '' : (W.desa[kec] || []).find(x => x.toLowerCase() === String(r.desa || '').trim().toLowerCase());
+      if (!desa && !tingkatKec_(M, kel)) {
         const mirip = (W.desa[kec] || []).find(x => x.toLowerCase().slice(0, 4) === String(r.desa || '').trim().toLowerCase().slice(0, 4));
         return err('Desa "' + (r.desa || '') + '" tidak ada di ' + kec + (mirip ? '. Maksudnya ' + mirip + '?' : ''));
       }
       const tgl = parseDate(r.tanggal);
       if (!tgl) return err('Tanggal entry kosong/salah');
       const npp = M.nppByLoc[locKey_(kel, kec, desa)];
-      if (!npp) return err('NPP ' + M.kel[kel].nama + ' Desa ' + desa + ' belum ada');
+      if (!npp) return err('NPP ' + M.kel[kel].nama + (desa ? ' Desa ' + desa : ' Kecamatan ' + kec) + ' belum ada');
       if (aktifNik[nik]) { sudah.push({ baris, nik, nama: r.nama, msg: 'Sudah aktif: ' + aktifNik[nik].nama + ' (' + aktifNik[nik].desa + ')' }); return; }
       ok.push({ baris, nik, nama: toTitleCase(r.nama), kel, kec, desa, tgl, npp, bebasJP: ym_(r.bebasJP) || '' });
     });
@@ -1688,13 +1724,14 @@ function apiKelompokList() {
     const kU = acuanFor_(M, 'Upah', '', g.kode, ym);
     const kJ = acuanFor_(M, 'Tarif JKK', '', g.kode, ym);
     const khusus = npps.filter(n => acuanFor_(M, 'Upah', n, g.kode, ym).sumber === 'NPP' || (g.jenis === 'PU' && acuanFor_(M, 'Tarif JKK', n, g.kode, ym).sumber === 'NPP')).length;
+    const upahNpp = npps.filter(n => acuanFor_(M, 'Upah', n, g.kode, ym).sumber === 'NPP').length;
     const hist = M.acuan.filter(a => a.tingkat === 'Kelompok' && a.kode === g.kode).slice(-6).reverse()
       .map(a => ({ jenis: a.jenis, nilai: a.nilai, mulai: a.mulai, oleh: a.oleh }));
     const nanti = M.acuan.filter(a => a.tingkat === 'Kelompok' && a.kode === g.kode && a.mulai > ym).map(a => ({ jenis: a.jenis, nilai: a.nilai, mulai: a.mulai }));
     const ker = M.ker.filter(k => k.aktif && k.selesai >= ym && (k.kelompok.indexOf(g.kode) >= 0 || k.kelompok.indexOf(g.grup) >= 0)).map(k => ({ nama: k.nama, pct: k.pct, komponen: k.komponen, mulai: k.mulai, selesai: k.selesai }));
     return {
-      kode: g.kode, nama: g.nama, jenis: g.jenis, induk: g.induk, programAwal: g.programAwal,
-      upah: kU.nilai, tarifJKK: g.jenis === 'PU' ? kJ.nilai : null, npp: npps.length, khusus, aktif: aktif[g.kode] || 0,
+      kode: g.kode, nama: g.nama, jenis: g.jenis, induk: g.induk, programAwal: g.programAwal, tingkat: g.tingkat,
+      upah: kU.nilai, tarifJKK: g.jenis === 'PU' ? kJ.nilai : null, npp: npps.length, khusus, upahNpp, aktif: aktif[g.kode] || 0,
       riwayat: hist, nanti, keringanan: ker
     };
   });
@@ -1782,18 +1819,18 @@ function apiSimpanNpp(d) {
     const npp = String(d.npp || '').trim();
     if (!/^\d{5,12}$/.test(npp)) throw new Error('NPP harus angka (5–12 digit).');
     if (!M.kel[d.kel]) throw new Error('Pilih kelompok.');
-    if (!d.kec || !d.desa) throw new Error('Pilih kecamatan dan desa.');
+    lokasiSah_(M, d);
     if (['2P', '3P', '4P'].indexOf(d.program) === -1) throw new Error('Pilih jenis program.');
     if (M.kel[d.kel].jenis === 'BPU' && d.program === '4P') throw new Error('BPU tidak memiliki program JP (4P).');
     const g = M.kel[d.kel];
-    const nama = String(d.nama || '').trim() || (g.nama + ' Desa ' + d.desa + ' Kecamatan ' + d.kec);
+    const nama = String(d.nama || '').trim() || (g.nama + (d.desa ? ' Desa ' + d.desa : '') + ' Kecamatan ' + d.kec);
     const kode = String(d.kodeBayar || '').replace(/\D/g, '');
     const lain = M.nppByLoc[locKey_(d.kel, d.kec, d.desa)];
     const tx = new Tx(d.isNew ? 'Tambah NPP' : 'Ubah NPP', npp + ' · ' + nama);
     const rec = { 'NPP': npp, 'Kelompok': d.kel, 'Kecamatan': d.kec, 'Desa': d.desa, 'Nama Badan Usaha': nama, 'Jenis Program': d.program, 'Kode Bayar': kode, 'Status': d.status || 'Aktif' };
     if (d.isNew) {
       if (M.npp[npp]) throw new Error('NPP ' + npp + ' sudah ada.');
-      if (lain && M.npp[lain].aktif) throw new Error(g.nama + ' Desa ' + d.desa + ' sudah punya NPP ' + lain + '.');
+      if (lain && M.npp[lain].aktif) throw new Error(g.nama + (d.desa ? ' Desa ' + d.desa : ' Kecamatan ' + d.kec) + ' sudah punya NPP ' + lain + '.');
       tx.insert(SH.NPP, rec, { 'NPP': '@', 'Kode Bayar': '@' });
     } else {
       if (!M.npp[npp]) throw new Error('NPP tidak ditemukan.');
@@ -1958,7 +1995,7 @@ function apiSimpanPengaturan(d) {
 /** Grup kelompok untuk laporan & target: kode kelompok, atau induknya (LKD). */
 function grupList_(M) {
   const seen = {}, out = [];
-  M.kelList.forEach(g => { if (!seen[g.grup]) { seen[g.grup] = 1; out.push({ key: g.grup, nama: g.induk ? g.induk : g.nama, lengkap: g.lengkap }); } });
+  M.kelList.forEach(g => { if (!seen[g.grup]) { seen[g.grup] = 1; out.push({ key: g.grup, nama: g.induk ? g.induk : g.nama, lengkap: g.lengkap, tingkat: g.tingkat }); } });
   return out;
 }
 
@@ -1975,7 +2012,7 @@ function apiTarget(d) {
   const M = loadMaster_();
   const W = wilayah_();
   const T = targetMap_();
-  const grup = grupList_(M);
+  const grup = grupList_(M).filter(g => g.tingkat !== 'Kecamatan');
   const desa = (W.desa[d.kec] || []).map(x => ({ desa: x, target: grup.map(g => { const v = T[targetKey_(d.kec, x, g.key)]; return v === undefined ? '' : v; }) }));
   return { kec: d.kec, grup, desa };
 }
@@ -2211,23 +2248,34 @@ function apiBuatTagihan(d) {
     return {
       periode: d.periode, bulan: per.months[0], months: per.months, title: per.title, kelompok: codes, kelompokNama: label.nama,
       fileName, fileExists, tanpaNpp: H.tanpaNpp, totals: tot, program: prog, bebasJP: bjp, keringanan: kerList,
+      judul: judulTagihan_(), terbilang: terbilang_(tot.total),
       groups: groups.map(g => ({
         kode: g.kode, nama: g.nama, jenis: g.jenis, sub: g.sub,
-        rows: g.rows.map(r => ({ npp: r.npp, nama: r.nama, kec: r.kec, desa: r.desa, program: r.program, total: r.total, months: r.months }))
+        rows: g.rows.map(r => ({ npp: r.npp, nama: r.nama, kec: r.kec, desa: r.desa, program: r.program, total: r.total, months: r.months, kodeBayar: kodeBayar_(M, r.npp) }))
       }))
     };
   });
 }
 
-function ttd_(sh, row, colL, colR) {
-  const s = settings_();
-  const put = (c, a, b, j) => {
-    sh.getRange(row, c).setValue(a || '').setHorizontalAlignment('center');
-    sh.getRange(row + 4, c).setValue(b || '').setHorizontalAlignment('center').setFontWeight('bold').setFontLine('underline');
-    sh.getRange(row + 5, c).setValue(j || '').setHorizontalAlignment('center');
+function judulTagihan_() { return settings_().JUDUL_TAGIHAN || 'Tagihan Iuran Pemerintah Desa dan BPD Kab. Pamekasan'; }
+
+/** Angka → kata (rupiah), mis. 163812 → "seratus enam puluh tiga ribu delapan ratus dua belas rupiah". */
+function terbilang_(n) {
+  n = Math.round(Math.abs(Number(n) || 0));
+  const S = ['', 'satu', 'dua', 'tiga', 'empat', 'lima', 'enam', 'tujuh', 'delapan', 'sembilan', 'sepuluh', 'sebelas'];
+  const k = (x) => {
+    if (x < 12) return S[x];
+    if (x < 20) return k(x - 10) + ' belas';
+    if (x < 100) return k(Math.floor(x / 10)) + ' puluh' + (x % 10 ? ' ' + k(x % 10) : '');
+    if (x < 200) return 'seratus' + (x - 100 ? ' ' + k(x - 100) : '');
+    if (x < 1000) return k(Math.floor(x / 100)) + ' ratus' + (x % 100 ? ' ' + k(x % 100) : '');
+    if (x < 2000) return 'seribu' + (x - 1000 ? ' ' + k(x - 1000) : '');
+    if (x < 1e6) return k(Math.floor(x / 1000)) + ' ribu' + (x % 1000 ? ' ' + k(x % 1000) : '');
+    if (x < 1e9) return k(Math.floor(x / 1e6)) + ' juta' + (x % 1e6 ? ' ' + k(x % 1e6) : '');
+    if (x < 1e12) return k(Math.floor(x / 1e9)) + ' miliar' + (x % 1e9 ? ' ' + k(x % 1e9) : '');
+    return k(Math.floor(x / 1e12)) + ' triliun' + (x % 1e12 ? ' ' + k(x % 1e12) : '');
   };
-  put(colL, s.TTD1_JUDUL, s.TTD1_NAMA, s.TTD1_JABATAN);
-  put(colR, s.TTD2_JUDUL, s.TTD2_NAMA, s.TTD2_JABATAN);
+  return (n ? k(n) : 'nol') + ' rupiah';
 }
 
 function freshSheet_(name) {
@@ -2243,15 +2291,17 @@ function tulisTagihan_(M, periode, per, label, groups, tot, prog, bjp, kerList) 
   const sh = freshSheet_(SH.TAG);
   const s = settings_();
   const tri = periode === 'Triwulan';
+  const adaKer = tot.ker > 0; // kolom Iuran Normal & Keringanan hanya bila ada keringanan
   let heads;
-  if (!tri) heads = ['No', 'NPP', 'Nama Badan Usaha', 'Program', 'Jumlah TK', 'Iuran Normal', 'Keringanan', 'Iuran', 'Saldo Iuran', 'Total Tagihan'];
+  if (!tri) heads = ['No', 'NPP', 'Nama Badan Usaha', 'Program', 'Jumlah TK'].concat(adaKer ? ['Iuran Normal', 'Keringanan'] : [], ['Iuran', 'Saldo Iuran', 'Total Tagihan']);
   else {
     heads = ['No', 'NPP', 'Nama Badan Usaha', 'Program'];
     per.months.forEach(ym => { const b = BLN3[Number(ym.slice(5)) - 1] + ' ' + ym.slice(0, 4); heads.push(b + ' TK', b + ' Iuran', b + ' Saldo'); });
-    heads.push('Keringanan', 'Total Tagihan');
+    if (adaKer) heads.push('Keringanan');
+    heads.push('Total Tagihan');
   }
   const W = heads.length;
-  sh.getRange(1, 1, 1, W).merge().setValue(s.JUDUL_TAGIHAN || 'Tagihan Iuran Pemerintah Desa dan BPD Kab. Pamekasan').setFontSize(14).setFontWeight('bold').setHorizontalAlignment('center');
+  sh.getRange(1, 1, 1, W).merge().setValue(judulTagihan_()).setFontSize(14).setFontWeight('bold').setHorizontalAlignment('center');
   sh.getRange(2, 1, 1, W).merge().setValue('PERIODE ' + per.title).setFontSize(12).setFontWeight('bold').setHorizontalAlignment('center');
   sh.getRange(3, 1, 1, W).merge().setValue('Kelompok: ' + label.nama).setHorizontalAlignment('center');
   const H0 = 5;
@@ -2261,22 +2311,24 @@ function tulisTagihan_(M, periode, per, label, groups, tot, prog, bjp, kerList) 
   const marks = []; // {row, type}
   let no = 0;
   const lineOf = (r) => {
-    if (!tri) { const m = r.months[0]; return [++no, r.npp, r.nama, r.program, m.tk, m.normal, m.ker, m.net, m.saldo, r.total]; }
+    if (!tri) { const m = r.months[0]; return [++no, r.npp, r.nama, r.program, m.tk].concat(adaKer ? [m.normal, m.ker] : [], [m.net, m.saldo, r.total]); }
     const row = [++no, r.npp, r.nama, r.program];
     let ker = 0;
     r.months.forEach(m => { row.push(m.tk, m.net, m.saldo); ker += m.ker; });
-    row.push(ker, r.total);
+    if (adaKer) row.push(ker);
+    row.push(r.total);
     return row;
   };
   const subOf = (label2, g) => {
-    if (!tri) return ['', '', label2, '', g.sub.tk, g.sub.normal, g.sub.ker, g.sub.net, g.sub.saldo, g.sub.total];
+    if (!tri) return ['', '', label2, '', g.sub.tk].concat(adaKer ? [g.sub.normal, g.sub.ker] : [], [g.sub.net, g.sub.saldo, g.sub.total]);
     const row = ['', '', label2, ''];
     for (let i = 0; i < 3; i++) {
       let tk = 0, net = 0, sal = 0;
       g.rows.forEach(r => { tk += r.months[i].tk; net += r.months[i].net; sal += r.months[i].saldo; });
       row.push(tk, net, sal);
     }
-    row.push(g.sub.ker, g.sub.total);
+    if (adaKer) row.push(g.sub.ker);
+    row.push(g.sub.total);
     return row;
   };
   groups.forEach(g => {
@@ -2302,19 +2354,27 @@ function tulisTagihan_(M, periode, per, label, groups, tot, prog, bjp, kerList) 
     if (m.type === 'group') sh.getRange(r, 1, 1, W).merge().setBackground(C_GROUP).setFontWeight('bold').setHorizontalAlignment('left');
     else sh.getRange(r, 1, 1, W).setBackground(m.type === 'total' ? '#d9ead3' : C_SUB).setFontWeight('bold');
   });
-  // Ringkasan
+  // Rekap ringkas per kelompok (tanpa tanda tangan)
   let r = lastRow + 2;
-  const sum = [['Jumlah NPP ditagih', tot.npp]];
-  groups.forEach(g => sum.push(['Peserta ' + g.nama, g.sub.tk]));
-  sum.push(['Program 2P / 3P / 4P', prog['2P'] + ' / ' + prog['3P'] + ' / ' + prog['4P']]);
-  sum.push(['Peserta Bebas JP', bjp]);
-  kerList.forEach(k => sum.push(['Keringanan: ' + k.nama, 'Rp' + k.total.toLocaleString('id-ID')]));
-  if (tri) sum.push(['Catatan', 'Jumlah peserta memakai bulan terakhir triwulan; kolom Iuran sudah dikurangi keringanan']);
-  sh.getRange(r, 2, sum.length, 2).setValues(sum);
-  sh.getRange(r, 2, sum.length, 1).setFontWeight('bold').setHorizontalAlignment('right');
-  sh.getRange(r, 3, sum.length, 1).setHorizontalAlignment('left');
-  ttd_(sh, r + sum.length + 1, 3, Math.max(W - 2, 6));
-  sh.setColumnWidth(1, 40); sh.setColumnWidth(2, 90); sh.setColumnWidth(3, 300); sh.setColumnWidth(4, 70);
+  sh.getRange(r, 2).setValue('REKAP TAGIHAN').setFontWeight('bold');
+  const rh = ['Kelompok', 'Jenis', 'NPP', 'Jumlah TK', 'Iuran', 'Saldo Iuran', 'Total Tagihan'];
+  const rk = groups.map(g => [g.nama, g.jenis, g.rows.length, g.sub.tk, g.sub.net, g.sub.saldo, g.sub.total]);
+  rk.push(['TOTAL', '', tot.npp, tot.tk, tot.net, tot.saldo, tot.total]);
+  sh.getRange(r + 1, 2, 1, rh.length).setValues([rh]).setBackground(C_HEAD).setFontColor('white').setFontWeight('bold').setHorizontalAlignment('center');
+  sh.getRange(r + 2, 2, rk.length, rh.length).setValues(rk).setBorder(true, true, true, true, true, true);
+  sh.getRange(r + 1, 2, rk.length + 1, rh.length).setBorder(true, true, true, true, true, true);
+  sh.getRange(r + 2, 4, rk.length, 5).setNumberFormat(FMT_N).setHorizontalAlignment('right');
+  sh.getRange(r + 2, 3, rk.length, 1).setHorizontalAlignment('center');
+  sh.getRange(r + 1 + rk.length, 2, 1, rh.length).setBackground('#d9ead3').setFontWeight('bold');
+  r += rk.length + 3;
+  const cat = [['Program', '2P ' + prog['2P'] + ' TK · 3P ' + prog['3P'] + ' TK · 4P ' + prog['4P'] + ' TK' + (bjp ? ' · Bebas JP ' + bjp + ' TK' : '')]];
+  kerList.forEach(k => cat.push(['Keringanan', k.nama + ': Rp' + k.total.toLocaleString('id-ID')]));
+  cat.push(['Terbilang', terbilang_(tot.total)]);
+  if (tri) cat.push(['Catatan', 'Jumlah TK memakai bulan terakhir triwulan; kolom Iuran sudah dikurangi keringanan']);
+  sh.getRange(r, 2, cat.length, 2).setValues(cat);
+  sh.getRange(r, 2, cat.length, 1).setFontWeight('bold');
+  sh.getRange(r, 3, cat.length, 1).setFontStyle('italic');
+  sh.setColumnWidth(1, 40); sh.setColumnWidth(2, 110); sh.setColumnWidth(3, 300); sh.setColumnWidth(4, 70);
   for (let c = 5; c <= W; c++) sh.setColumnWidth(c, tri ? 90 : 110);
   sh.setFrozenRows(H0);
 }
@@ -2371,7 +2431,6 @@ function tulisTransfer_(M, per, label, groups) {
     else sh.getRange(r, 1, 1, W).setBackground(m.type === 'total' ? '#d9ead3' : C_SUB).setFontWeight('bold');
   });
   kosong.forEach(i => sh.getRange(first + i, 5).setFontColor('#b3261e').setFontWeight('bold'));
-  ttd_(sh, first + out.length + 2, 3, 6);
   sh.setColumnWidth(1, 40); sh.setColumnWidth(2, 100); sh.setColumnWidth(3, 330); sh.setColumnWidth(4, 90); sh.setColumnWidth(5, 190); sh.setColumnWidth(6, 120);
   sh.setFrozenRows(H0);
   return kosong.length;
@@ -2468,7 +2527,7 @@ function apiPdfSheet(d) {
   const ss = getSS();
   const sh = ss.getSheetByName(d.name);
   if (!sh || sh.getLastRow() === 0) throw new Error('Sheet "' + d.name + '" masih kosong. Buat dulu dari menu Tagihan.');
-  const portrait = d.name === SH.TRF;
+  const portrait = d.name !== SH.LAMP; // Tagihan & Trf tegak, lampiran mendatar
   const url = 'https://docs.google.com/spreadsheets/d/' + ss.getId() + '/export?format=pdf&gid=' + sh.getSheetId() +
     '&size=A4&portrait=' + portrait + '&fitw=true&gridlines=false&printtitle=false&sheetnames=false&pagenum=CENTER&fzr=true' +
     '&top_margin=0.5&bottom_margin=0.5&left_margin=0.5&right_margin=0.5';
@@ -2514,7 +2573,9 @@ function apiLaporan(d) {
   const end = new Date(posisi.getFullYear(), posisi.getMonth(), posisi.getDate());
   const codes = (d.kelompok && d.kelompok.length ? d.kelompok : M.kelList.map(g => g.kode)).filter(c => M.kel[c]);
   const sel = {}; codes.forEach(c => { sel[c] = true; });
-  const grup = grupList_(M).filter(g => M.kelList.some(k => sel[k.kode] && k.grup === g.key));
+  const semuaGrup = grupList_(M).filter(g => M.kelList.some(k => sel[k.kode] && k.grup === g.key));
+  // Kelompok tingkat kecamatan (mis. BUMDesma) tidak masuk kolom/kelengkapan desa; dihitung per kecamatan
+  const grup = semuaGrup.filter(g => g.tingkat !== 'Kecamatan'), grupKec = semuaGrup.filter(g => g.tingkat === 'Kecamatan');
   const lengkapKeys = grup.filter(g => g.lengkap).map(g => g.key);
 
   const blank = () => ({ n: 0, prog: { '2P': 0, '3P': 0, '4P': 0 }, grp: {} });
@@ -2535,7 +2596,13 @@ function apiLaporan(d) {
     if (!npp) tanpaNpp++;
     const prog = npp ? M.npp[npp].program : '';
     const g = (M.kel[kel] || {}).grup || kel;
-    const k = p.kec || '(tanpa kecamatan)', ds = p.desa || '(tanpa desa)';
+    const k = p.kec || '(tanpa kecamatan)';
+    if (tingkatKec_(M, kel)) {
+      const K = ensure(k); K.tk = K.tk || blank();
+      K.tk.n++; if (K.tk.prog[prog] !== undefined) K.tk.prog[prog]++; K.tk.grp[g] = (K.tk.grp[g] || 0) + 1;
+      return;
+    }
+    const ds = p.desa || '(tanpa desa)';
     const x = ensure(k, ds).desa[ds];
     x.n++;
     if (x.prog[prog] !== undefined) x.prog[prog]++;
@@ -2560,7 +2627,10 @@ function apiLaporan(d) {
     return acc;
   };
 
-  const kab = Object.assign(blank(), { desa: 0, desaKosong: 0, target: null });
+  // NPP aktif tingkat kecamatan per kecamatan & kelompok (ada NPP walau belum ada peserta)
+  const nppKec = {};
+  Object.keys(M.npp).forEach(n => { const r = M.npp[n]; if (r.aktif && sel[r.kel] && tingkatKec_(M, r.kel) && r.kec) { const key = r.kec.toLowerCase() + '|' + M.kel[r.kel].grup; (nppKec[key] = nppKec[key] || []).push(r.npp); } });
+  const kab = Object.assign(blank(), { desa: 0, desaKosong: 0, target: null, nDesa: 0, tk: blank(), kecTk: {} });
   const kecList = Object.keys(kec).map(k => {
     const K = Object.assign(blank(), { nama: k, desa: 0, desaKosong: 0, target: null });
     const desaList = Object.keys(kec[k].desa).map(ds => {
@@ -2574,12 +2644,16 @@ function apiLaporan(d) {
       return x;
     }).sort((a, b) => a.n - b.n || a.nama.localeCompare(b.nama));
     K.desaList = desaList;
-    sumInto(kab, K); kab.desa += K.desa; kab.desaKosong += K.desaKosong; kab.target = addTgt(kab.target, K.target);
+    K.nDesa = K.n;
+    K.tk = kec[k].tk || blank();
+    K.tkNpp = {}; grupKec.forEach(g => { K.tkNpp[g.key] = nppKec[k.toLowerCase() + '|' + g.key] || []; if (K.tkNpp[g.key].length) kab.kecTk[g.key] = (kab.kecTk[g.key] || 0) + 1; });
+    sumInto(K, K.tk);
+    sumInto(kab, K); kab.nDesa += K.nDesa; sumInto(kab.tk, K.tk); kab.desa += K.desa; kab.desaKosong += K.desaKosong; kab.target = addTgt(kab.target, K.target);
     return K;
   }).sort((a, b) => a.n - b.n || a.nama.localeCompare(b.nama));
 
   return {
-    posisi: ymd_(end), kelompok: codes, kelompokNama: kelLabel_(M, codes).nama, grup, lengkap: lengkapKeys.length,
+    posisi: ymd_(end), kelompok: codes, kelompokNama: kelLabel_(M, codes).nama, grup, grupKec, lengkap: lengkapKeys.length,
     kab, kec: kecList, tanpaNpp, judul: M.set.JUDUL_LAPORAN || 'Pemerintah Desa', unit: M.set.UNIT || '',
     dibuat: Utilities.formatDate(new Date(), tz_(), 'd MMM yyyy, HH.mm')
   };
@@ -2591,6 +2665,61 @@ function apiSimpanPdf(d) {
   const blob = Utilities.newBlob(Utilities.base64Decode(d.base64), 'application/pdf', name);
   const f = folder_('Laporan').createFile(blob);
   return { url: f.getUrl(), name: f.getName() };
+}
+
+/**
+ * Profil wilayah (baca saja): satu desa → nama peserta aktif per kelompok + NPP;
+ * satu kecamatan (desa kosong) → angka per desa × kelompok + NPP tingkat kecamatan (mis. BUMDesma, kolom Desa kosong).
+ */
+function apiProfilWilayah(d) {
+  d = d || {};
+  const kec = String(d.kec || '').trim(), desa = String(d.desa || '').trim();
+  if (!kec) throw new Error('Pilih kecamatan.');
+  const M = loadMaster_();
+  const sama = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+  const P = readPeserta_().list.filter(p => p.status === 'Aktif' && sama(p.kec, kec)).map(p => pesertaOut_(M, p));
+  const tkNpp = {};
+  P.forEach(o => { if (o.npp) tkNpp[o.npp] = (tkNpp[o.npp] || 0) + 1; });
+  const nppDi = (ds) => Object.keys(M.npp).map(n => M.npp[n]).filter(n => n.aktif && sama(n.kec, kec) && sama(n.desa, ds))
+    .map(n => ({ npp: n.npp, nama: n.nama, kel: n.kel, program: n.program, tk: tkNpp[n.npp] || 0 }));
+  const orang = o => ({ id: o.id, nama: o.nama, nik: o.nik, program: o.program, npp: o.npp, tgl: o.tgl, bebasJP: o.bebasJP });
+  const kelompok = M.kelList.filter(g => g.tingkat !== 'Kecamatan').map(g => ({ kode: g.kode, nama: g.nama, jenis: g.jenis, lengkap: g.lengkap }));
+  const nppKec = nppDi('').map(n => Object.assign(n, {
+    kelNama: (M.kel[n.kel] || {}).nama || n.kel,
+    peserta: P.filter(o => o.npp === n.npp).sort((a, b) => a.nama.localeCompare(b.nama)).map(orang)
+  }));
+  if (desa) {
+    const Pd = P.filter(o => sama(o.desa, desa));
+    const npp = nppDi(desa);
+    const isi = kelompok.map(g => ({
+      kode: g.kode, nama: g.nama, jenis: g.jenis, lengkap: g.lengkap,
+      npp: npp.filter(n => n.kel === g.kode),
+      peserta: Pd.filter(o => o.kel === g.kode).sort((a, b) => a.nama.localeCompare(b.nama)).map(orang)
+    }));
+    const lain = Pd.filter(o => !M.kel[o.kel]);
+    if (lain.length) isi.push({ kode: '', nama: 'Tanpa kelompok', jenis: '', lengkap: false, npp: [], peserta: lain.map(orang) });
+    const wajib = isi.filter(k => k.lengkap);
+    return {
+      kec, desa, total: Pd.length, kelompok: isi,
+      terisi: wajib.filter(k => k.peserta.length).length, lengkap: wajib.length,
+      program: ['2P', '3P', '4P'].reduce((o, x) => { o[x] = Pd.filter(p => p.program === x).length; return o; }, {}),
+      nppKec: nppKec.map(n => ({ npp: n.npp, nama: n.nama, kelNama: n.kelNama, program: n.program, tk: n.tk }))
+    };
+  }
+  const W = wilayah_();
+  const daftar = (W.desa[kec] || []).slice();
+  P.forEach(o => { if (o.desa && !daftar.some(x => sama(x, o.desa))) daftar.push(o.desa); });
+  const desaList = daftar.map(ds => {
+    const Pd = P.filter(o => sama(o.desa, ds));
+    const grp = {}; kelompok.forEach(g => { grp[g.kode] = 0; });
+    Pd.forEach(o => { if (grp[o.kel] !== undefined) grp[o.kel]++; });
+    return { nama: ds, n: Pd.length, grp, terisi: kelompok.filter(g => g.lengkap && grp[g.kode]).length, npp: nppDi(ds).length };
+  });
+  const grp = {}; kelompok.forEach(g => { grp[g.kode] = desaList.reduce((s, x) => s + x.grp[g.kode], 0); });
+  return {
+    kec, desa: '', total: P.length, kelompok, desaList, grp, lengkap: kelompok.filter(g => g.lengkap).length,
+    desaKosong: desaList.filter(x => !x.n).length, nppKec
+  };
 }
 
 
@@ -2799,7 +2928,7 @@ function apiDasbor() {
   try {
     const L = apiLaporan({});
     kab = { n: L.kab.n, desa: L.kab.desa, desaKosong: L.kab.desaKosong, target: L.kab.target ? L.kab.target.total : null };
-    kec = L.kec.map(k => ({ nama: k.nama, n: k.n, desa: k.desa, desaKosong: k.desaKosong, target: k.target ? k.target.total : null }));
+    kec = L.kec.map(k => ({ nama: k.nama, n: k.n, nDesa: k.nDesa, desa: k.desa, desaKosong: k.desaKosong, target: k.target ? k.target.total : null }));
   } catch (e) { /* daftar wilayah belum ada */ }
 
   const logs = logRows_();
@@ -2836,6 +2965,7 @@ function apiDasbor() {
  */
 
 const KATA_KELOMPOK_ = [
+  [/\bBUM ?DES ?MA\b|\bBUM ?DESA? BERSAMA\b|BADAN USAHA MILIK DESA BERSAMA/, 'BUMDESMA'],
   [/\bBUM ?DES\b|BADAN USAHA MILIK DESA/, 'BUMDES'],
   [/POSYANDU/, 'LKD-POSYANDU'],
   [/\bPKK\b|PEMBERDAYAAN KESEJAHTERAAN KELUARGA/, 'LKD-PKK'],
@@ -2857,6 +2987,11 @@ function tebakNpp_(M, W, npp, namaBU) {
   const N = hurufBesar_(namaBU);
   let kel = '';
   for (let i = 0; i < KATA_KELOMPOK_.length; i++) { if (KATA_KELOMPOK_[i][0].test(N) && M.kel[KATA_KELOMPOK_[i][1]]) { kel = KATA_KELOMPOK_[i][1]; break; } }
+  if (tingkatKec_(M, kel)) {
+    // Tingkat kecamatan: cukup kecamatan dari nama badan usaha, desa dikosongkan
+    const kk = W.kecamatan.filter(k => N.indexOf(hurufBesar_(k)) >= 0).sort((a, b) => b.length - a.length);
+    return { ada: false, kel, kec: kk[0] || '', desa: '', kandidat: kk.slice(0, 6).map(k => ({ kec: k, desa: '' })) };
+  }
   const cocok = [];
   W.kecamatan.forEach(k => (W.desa[k] || []).forEach(d => {
     const nd = namaDesaPolos_(d);
@@ -2919,18 +3054,20 @@ function analisaNpp_(M, W, P, aktifNik, lokasiDipakai, x) {
   if (!g) err('Pilih kelompok');
   const kec = W.kecamatan.find(k => k.toLowerCase() === String(x.kec || '').toLowerCase());
   const desa = kec && (W.desa[kec] || []).find(v => v.toLowerCase() === String(x.desa || '').toLowerCase());
-  if (!kec || !desa) err('Pilih kecamatan dan desa');
+  const diKec = g && tingkatKec_(M, x.kel);
+  if (diKec ? !kec : (!kec || !desa)) err(diKec ? 'Pilih kecamatan' : 'Pilih kecamatan dan desa');
   if (h.errors.length) return h;
-  h.kec = kec; h.desa = desa;
+  h.kec = kec; h.desa = diKec ? '' : desa;
+  const desa_ = h.desa, tempat = desa_ ? ' Desa ' + desa_ : ' Kecamatan ' + kec;
   const ada = M.npp[npp];
-  if (ada && (ada.kel !== x.kel || ada.kec.toLowerCase() !== kec.toLowerCase() || ada.desa.toLowerCase() !== desa.toLowerCase())) {
-    err('NPP ini sudah terdaftar sebagai ' + (M.kel[ada.kel] || {}).nama + ' Desa ' + ada.desa + ', ' + ada.kec);
+  if (ada && (ada.kel !== x.kel || ada.kec.toLowerCase() !== kec.toLowerCase() || ada.desa.toLowerCase() !== desa_.toLowerCase())) {
+    err('NPP ini sudah terdaftar sebagai ' + (M.kel[ada.kel] || {}).nama + (ada.desa ? ' Desa ' + ada.desa + ',' : ' Kecamatan') + ' ' + ada.kec);
     return h;
   }
-  const lk = locKey_(x.kel, kec, desa);
+  const lk = locKey_(x.kel, kec, desa_);
   const lain = M.nppByLoc[lk];
-  if (!ada && lain && M.npp[lain].aktif) { err(g.nama + ' Desa ' + desa + ' sudah punya NPP ' + lain); return h; }
-  if (lokasiDipakai[lk] && lokasiDipakai[lk] !== npp) { err('Desa & kelompok sama dengan NPP ' + lokasiDipakai[lk] + ' di impor ini'); return h; }
+  if (!ada && lain && M.npp[lain].aktif) { err(g.nama + tempat + ' sudah punya NPP ' + lain); return h; }
+  if (lokasiDipakai[lk] && lokasiDipakai[lk] !== npp) { err((desa_ ? 'Desa' : 'Kecamatan') + ' & kelompok sama dengan NPP ' + lokasiDipakai[lk] + ' di impor ini'); return h; }
   lokasiDipakai[lk] = npp;
 
   // Program, upah, tarif JKK
@@ -2947,7 +3084,7 @@ function analisaNpp_(M, W, P, aktifNik, lokasiDipakai, x) {
   h.mulai = ada ? (x.blth || nowYm_()) : mulaiAwal;
   const progLap = ['2P', '3P', '4P'].indexOf(x.program) >= 0 ? (g.jenis === 'BPU' && x.program === '4P' ? '3P' : x.program) : program;
   if (ada && ada.program !== progLap) beda('Program ' + (ada.program || '-') + ' → ' + progLap);
-  if (!ada) h.perubahan.push('NPP baru: ' + g.nama + ' Desa ' + desa + ', ' + kec + ' · ' + program);
+  if (!ada) h.perubahan.push('NPP baru: ' + g.nama + (desa_ ? ' Desa ' + desa_ + ', ' + kec : ' Kecamatan ' + kec) + ' · ' + program);
   h.acuan = [];
   if (upah > 0) {
     try { validAcuan_(M, x.kel, 'Upah', upah); } catch (e) { err(e.message); return h; }
@@ -3009,7 +3146,7 @@ function analisaNpp_(M, W, P, aktifNik, lokasiDipakai, x) {
 
 function terapkanNpp_(tx, M, h) {
   const x = h._x, g = M.kel[x.kel];
-  const nama = h.namaBU || (g.nama + ' Desa ' + h.desa + ' Kecamatan ' + h.kec);
+  const nama = h.namaBU || (g.nama + (h.desa ? ' Desa ' + h.desa : '') + ' Kecamatan ' + h.kec);
   if (h.nppBaru) {
     tx.insert(SH.NPP, { 'NPP': h.npp, 'Kelompok': x.kel, 'Kecamatan': h.kec, 'Desa': h.desa, 'Nama Badan Usaha': nama, 'Jenis Program': h.program, 'Kode Bayar': '', 'Status': 'Aktif' }, { 'NPP': '@', 'Kode Bayar': '@' });
   } else if (M.npp[h.npp].program !== h.program) {
@@ -3054,7 +3191,7 @@ function terapkanNpp_(tx, M, h) {
  * =====================================================================
  */
 
-const APP_VERSION = '2.2.0';
+const APP_VERSION = '2.3.1';
 
 function onOpen() {
   SpreadsheetApp.getUi()
@@ -3155,7 +3292,7 @@ function apiMap_() {
     // Impor massal per NPP (PDF Daftar Upah TK / Excel)
     tebakImpor: apiTebakImpor, imporNpp: apiImporNpp,
     // Laporan, dasbor & riwayat
-    laporan: apiLaporan, simpanPdf: apiSimpanPdf, riwayat: apiRiwayat, batalkan: apiBatalkan, dasbor: apiDasbor,
+    laporan: apiLaporan, profilWilayah: apiProfilWilayah, simpanPdf: apiSimpanPdf, riwayat: apiRiwayat, batalkan: apiBatalkan, dasbor: apiDasbor,
     hapusCache: function () { CacheService.getScriptCache().remove('dropdown_v2'); return { message: 'Cache daftar kecamatan/desa dihapus.' }; }
   };
 }
@@ -3571,6 +3708,33 @@ function pdfHalamanUpah(pot) {
   });
   return { npp: npp, namaBU: namaBU, blth: blth, peserta: peserta, total: total };
 }
+/** Laporan BPU "RINCIAN TENAGA KERJA AKTIF PER WADAH" (Pekerja Rentan): NPW, nama wadah, tanda program, tgl kepesertaan. */
+function pdfHalamanWadah(pot) {
+  if (!pot.some(function (p) { return /RINCIAN TENAGA KERJA AKTIF PER WADAH/i.test(p.s); })) return null;
+  var npp = (/(\d{5,12})/.exec(pdfNilaiLabel(pot, 'NPW')) || [])[1] || '';
+  var namaBU = pdfNilaiLabel(pot, 'Nama Wadah');
+  var periode = pot.filter(function (p) { return /^\d{2}-\d{2}-\d{4}$/.test(p.s.trim()); }).map(function (p) { return p.s.trim(); })[0] || '';
+  var blth = periode ? periode.slice(6, 10) + '-' + periode.slice(3, 5) : '';
+  var hJht = pot.filter(function (p) { return p.s.trim() === 'JHT'; })[0];
+  var baris = {};
+  pot.forEach(function (p) { var k = Math.round(p.y * 2) / 2; (baris[k] = baris[k] || []).push(p); });
+  var peserta = [];
+  Object.keys(baris).map(Number).sort(function (a, b) { return b - a; }).forEach(function (y) {
+    var r = baris[y].sort(function (a, b) { return a.x - b.x; });
+    var nikP = r.filter(function (p) { return /^\s*\d{16}\s*$/.test(p.s); })[0];
+    if (!nikP) return;
+    var kpj = r.filter(function (p) { return /^\s*\d{9,12}\s*$/.test(p.s) && p.x > nikP.x; })[0];
+    var lahir = r.filter(function (p) { return /\*/.test(p.s); })[0];
+    var nama = r.filter(function (p) { return p.x > (kpj || nikP).x && (!lahir || p.x < lahir.x) && !/^\s*[\d*]+\s*$/.test(p.s); })
+      .map(function (p) { return p.s.trim(); }).join(' ').replace(/\s+/g, ' ').trim();
+    var tgl = r.filter(function (p) { return /^\s*\d{2}-[A-Z]{3}-\d{2}\s*$/i.test(p.s); }).map(function (p) { return p.s.trim(); });
+    var flag = r.filter(function (p) { return /^\s*[01]\s*$/.test(p.s) && p.x > (lahir || nikP).x; });
+    var jht = hJht ? flag.filter(function (p) { return Math.abs(p.x - hJht.x) < 20; })[0] : flag[0];
+    peserta.push({ nik: nikP.s.trim(), nama: nama, keps: tabelBlth((tgl[0] || '').replace(/^(\d{2})-([A-Z]{3})-(\d{2})$/i, '$2-$3')), upah: 0, rapel: 0,
+      jht: jht && jht.s.trim() === '1' ? 1 : 0, jkm: 1, jkk: 1, jp: 0, jumlah: 0, lengkap: true, berakhir: tgl[1] || '' });
+  });
+  return { npp: npp, namaBU: namaBU, blth: blth, peserta: peserta, total: null, bpu: true };
+}
 function pdfModus(a) { var c = {}, b = null; a.forEach(function (v) { c[v] = (c[v] || 0) + 1; if (b === null || c[v] > c[b]) b = v; }); return b === null ? 0 : Number(b); }
 /** Ringkas peserta satu NPP → program, upah (yang terbanyak), tarif JKK, peringatan. */
 function pdfRingkasNpp(r) {
@@ -3578,8 +3742,9 @@ function pdfRingkasNpp(r) {
   var upah = pdfModus(p.map(function (x) { return x.upah; }).filter(function (v) { return v > 0; }));
   var beda = p.filter(function (x) { return x.upah && x.upah !== upah; }).length;
   if (beda) w.push(beda + ' peserta dengan upah berbeda di laporan; acuan memakai upah terbanyak');
-  var contoh = p.filter(function (x) { return x.upah === upah && x.jkk > 0; })[0];
+  var contoh = upah ? p.filter(function (x) { return x.upah === upah && x.jkk > 0; })[0] : null;
   var tarif = contoh ? Math.round(contoh.jkk / contoh.upah * 10000) / 100 : 0;
+  if (r.bpu && !upah) w.push('Laporan BPU tanpa upah: iuran memakai acuan upah kelompok');
   var jht = p.reduce(function (s, x) { return s + x.jht; }, 0), jp = p.reduce(function (s, x) { return s + x.jp; }, 0);
   var tot = p.reduce(function (s, x) { return s + x.jumlah; }, 0);
   if (r.total && r.total.length && Math.abs(r.total[r.total.length - 1] - tot) > 1) w.push('Jumlah iuran tidak sama dengan baris JUMLAH: periksa apakah ada baris yang tidak terbaca');
@@ -3590,16 +3755,16 @@ function pdfRingkasNpp(r) {
 async function bacaPdfUpah(buf) {
   var aliran = await pdfAliranTeks(buf), per = {}, urut = [];
   aliran.forEach(function (isi) {
-    var h = pdfHalamanUpah(pdfPotongan(isi));
+    var pot = pdfPotongan(isi), h = pdfHalamanUpah(pot) || pdfHalamanWadah(pot);
     if (!h || !h.npp) return;
-    if (!per[h.npp]) { per[h.npp] = { npp: h.npp, namaBU: h.namaBU, blth: h.blth, peserta: [], total: null }; urut.push(h.npp); }
+    if (!per[h.npp]) { per[h.npp] = { npp: h.npp, namaBU: h.namaBU, blth: h.blth, peserta: [], total: null, bpu: !!h.bpu }; urut.push(h.npp); }
     var t = per[h.npp];
     t.peserta = t.peserta.concat(h.peserta);
     if (h.total) t.total = h.total;
     if (!t.namaBU) t.namaBU = h.namaBU;
     if (!t.blth) t.blth = h.blth;
   });
-  if (!urut.length) throw new Error('Bukan laporan "Daftar Upah Tenaga Kerja" dari sistem, atau teksnya tidak terbaca.');
+  if (!urut.length) throw new Error('Bukan laporan "Daftar Upah Tenaga Kerja" atau "Rincian Tenaga Kerja Aktif per Wadah" dari sistem, atau teksnya tidak terbaca.');
   return urut.map(function (n) { var r = per[n]; return Object.assign(r, pdfRingkasNpp(r)); });
 }
 /**
@@ -3659,13 +3824,195 @@ async function bacaLaporanUpah(file) {
 }
 
 
+/* === 13-pdfbuat.js === */
+/* ----------------------------------------------------------------------
+ *  Pembuat PDF kecil di perangkat (tanpa pustaka luar, juga tanpa sinyal): huruf standar Helvetica,
+ *  teks, kotak, garis, gambar JPEG, dan tabel dengan judul kolom berulang di tiap halaman.
+ *  Dipakai untuk PDF Tagihan, Trf Bank Jatim, dan Laporan cakupan. File dibagikan (iPhone/Android:
+ *  Simpan ke File, WhatsApp) atau diunduh (komputer).
+ * ---------------------------------------------------------------------- */
+var PDF_LEBAR = {"Helvetica": {"a": [278, 278, 355, 556, 556, 889, 667, 222, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 278, 278, 584, 584, 584, 556, 1015, 667, 667, 722, 722, 667, 611, 778, 722, 278, 500, 667, 556, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 278, 278, 278, 469, 556, 222, 556, 556, 500, 556, 556, 278, 556, 556, 222, 222, 500, 222, 833, 556, 556, 556, 556, 333, 500, 278, 556, 500, 722, 500, 500, 500, 334, 260, 334, 584], "x": {"128": 556, "145": 222, "146": 222, "147": 333, "148": 333, "149": 350, "150": 556, "151": 1000, "183": 278, "215": 584, "176": 400, "233": 556, "232": 556}}, "Helvetica-Bold": {"a": [278, 333, 474, 556, 556, 889, 722, 278, 333, 333, 389, 584, 278, 333, 278, 278, 556, 556, 556, 556, 556, 556, 556, 556, 556, 556, 333, 333, 584, 584, 584, 611, 975, 722, 722, 722, 722, 667, 611, 778, 722, 278, 556, 722, 611, 833, 722, 778, 667, 778, 722, 667, 611, 722, 667, 944, 667, 667, 611, 333, 278, 333, 584, 556, 278, 556, 611, 556, 611, 556, 333, 611, 611, 278, 278, 556, 278, 889, 611, 611, 611, 611, 389, 556, 333, 611, 556, 778, 556, 556, 500, 389, 280, 389, 584], "x": {"128": 556, "145": 278, "146": 278, "147": 500, "148": 500, "149": 350, "150": 556, "151": 1000, "183": 278, "215": 584, "176": 400, "233": 556, "232": 556}}};
+var PDF_WIN = { 8230: 133, 8364: 128, 8216: 145, 8217: 146, 8220: 147, 8221: 148, 8226: 149, 8211: 150, 8212: 151, 183: 183, 215: 215, 176: 176, 233: 233, 232: 232 };
+PDF_LEBAR.Helvetica.x['133'] = 1000; PDF_LEBAR['Helvetica-Bold'].x['133'] = 1000;
+function pdfKode(ch) {
+  var c = ch.charCodeAt(0);
+  if (c >= 32 && c <= 126) return c;
+  if (PDF_WIN[c]) return PDF_WIN[c];
+  if (c === 8594) return -1; // → ditulis "->"
+  if (c >= 160 && c <= 255) return c;
+  return 63;
+}
+function pdfWinAnsi(s) {
+  var o = '';
+  String(s == null ? '' : s).replace(/→/g, '->').replace(/−/g, '-').split('').forEach(function (ch) { o += String.fromCharCode(pdfKode(ch)); });
+  return o;
+}
+function pdfLebar(s, uk, tebal) {
+  var t = PDF_LEBAR[tebal ? 'Helvetica-Bold' : 'Helvetica'], w = 0, x = pdfWinAnsi(s);
+  for (var i = 0; i < x.length; i++) { var c = x.charCodeAt(i); w += c >= 32 && c <= 126 ? t.a[c - 32] : (t.x[c] || 556); }
+  return w * uk / 1000;
+}
+function pdfWarna(h) { h = String(h || '#000').replace('#', ''); if (h.length === 3) h = h.replace(/./g, '$&$&'); return [0, 2, 4].map(function (i) { return (parseInt(h.substr(i, 2), 16) / 255).toFixed(3); }).join(' '); }
+function pdfAngkaPt(n) { return (Math.round(n * 100) / 100).toString(); }
+
+function PdfBaru(o) {
+  o = o || {};
+  var lanskap = o.arah === 'L';
+  this.W = lanskap ? 841.89 : 595.28; this.H = lanskap ? 595.28 : 841.89;
+  this.m = Object.assign({ t: 34, r: 28, b: 40, l: 28 }, o.margin || {});
+  this.hal = []; this.gambar = []; this.isi = null;
+  this.halamanBaru();
+}
+PdfBaru.prototype = {
+  halamanBaru: function () { this.isi = []; this.hal.push(this.isi); this.y = this.m.t; return this; },
+  get bawah() { return this.H - this.m.b; },
+  get lebarIsi() { return this.W - this.m.l - this.m.r; },
+  _p: function (s) { this.isi.push(s); },
+  teks: function (x, y, s, o) {
+    o = o || {}; var uk = o.uk || 9, tebal = !!o.tebal;
+    s = String(s == null ? '' : s);
+    if (o.lebar) s = this.potong(s, o.lebar, uk, tebal);
+    var w = pdfLebar(s, uk, tebal), xx = x;
+    if (o.rata === 'kanan') xx = x + (o.lebar || 0) - w; else if (o.rata === 'tengah') xx = x + ((o.lebar || 0) - w) / 2;
+    var t = pdfWinAnsi(s).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+    this._p('BT /' + (tebal ? 'F2' : 'F1') + ' ' + pdfAngkaPt(uk) + ' Tf ' + pdfWarna(o.warna || '#1d1620') + ' rg ' + pdfAngkaPt(xx) + ' ' + pdfAngkaPt(this.H - y - uk * 0.8) + ' Td (' + t + ') Tj ET');
+    return w;
+  },
+  lebarTeks: function (s, uk, tebal) { return pdfLebar(s, uk, tebal); },
+  potong: function (s, lebar, uk, tebal) {
+    s = String(s); if (pdfLebar(s, uk, tebal) <= lebar) return s;
+    while (s.length > 1 && pdfLebar(s + '…', uk, tebal) > lebar) s = s.slice(0, -1);
+    return s.replace(/\s+$/, '') + '…';
+  },
+  bungkus: function (s, lebar, uk, tebal, maks) {
+    var kata = String(s == null ? '' : s).split(/\s+/), baris = [], b = '';
+    kata.forEach(function (k) { var c = b ? b + ' ' + k : k; if (pdfLebar(c, uk, tebal) <= lebar || !b) b = c; else { baris.push(b); b = k; } });
+    if (b) baris.push(b);
+    if (maks && baris.length > maks) { baris = baris.slice(0, maks); baris[maks - 1] = this.potong(baris[maks - 1] + ' …', lebar, uk, tebal); }
+    var self = this; return baris.map(function (x) { return pdfLebar(x, uk, tebal) > lebar ? self.potong(x, lebar, uk, tebal) : x; });
+  },
+  kotak: function (x, y, w, h, o) {
+    o = o || {}; var s = '';
+    if (o.isi) s += pdfWarna(o.isi) + ' rg ';
+    if (o.garis) s += pdfWarna(o.garis) + ' RG ' + pdfAngkaPt(o.tebal || 0.5) + ' w ';
+    s += pdfAngkaPt(x) + ' ' + pdfAngkaPt(this.H - y - h) + ' ' + pdfAngkaPt(w) + ' ' + pdfAngkaPt(h) + ' re ' + (o.isi && o.garis ? 'B' : o.isi ? 'f' : 'S');
+    this._p(s);
+  },
+  garis: function (x1, y1, x2, y2, o) {
+    o = o || {};
+    this._p(pdfWarna(o.warna || '#000') + ' RG ' + pdfAngkaPt(o.tebal || 0.5) + ' w ' + pdfAngkaPt(x1) + ' ' + pdfAngkaPt(this.H - y1) + ' m ' + pdfAngkaPt(x2) + ' ' + pdfAngkaPt(this.H - y2) + ' l S');
+  },
+  /** JPEG (Uint8Array) dengan ukuran piksel lebarPx × tinggiPx. */
+  jpeg: function (data, lebarPx, tinggiPx, x, y, w, h) {
+    var nama = 'Im' + (this.gambar.length + 1);
+    this.gambar.push({ nama: nama, data: data, w: lebarPx, h: tinggiPx });
+    this._p('q ' + pdfAngkaPt(w) + ' 0 0 ' + pdfAngkaPt(h) + ' ' + pdfAngkaPt(x) + ' ' + pdfAngkaPt(this.H - y - h) + ' cm /' + nama + ' Do Q');
+  },
+  /** Pastikan ada ruang setinggi t; bila tidak, halaman baru. Hasil: true bila berganti halaman. */
+  ruang: function (t) { if (this.y + t > this.bawah) { this.halamanBaru(); return true; } return false; },
+  /**
+   * Tabel. kolom: [{judul, lebar (0 = sisa), rata, bungkus}], baris: [{sel:[...], jenis:''|'grup'|'sub'|'total', warna:[...]}].
+   * Judul kolom digambar di awal dan di setiap halaman baru (hanya bila masih ada baris di bawahnya).
+   */
+  tabel: function (o) {
+    var self = this, x0 = this.m.l, uk = o.uk || 8, pad = 3, gar = o.garis || '#c9c3cc';
+    var sisa = this.lebarIsi - o.kolom.reduce(function (s, k) { return s + (k.lebar || 0); }, 0);
+    var kol = o.kolom.map(function (k) { return Object.assign({}, k, { lebar: k.lebar || sisa }); });
+    var jdlBaris = kol.map(function (k) { return self.bungkus(k.judul, k.lebar - 2 * pad, uk, true, 3); });
+    var tJudul = Math.max.apply(null, jdlBaris.map(function (b) { return b.length; })) * (uk + 1.5) + 2 * pad;
+    var judul = function () {
+      var x = x0;
+      kol.forEach(function (k, i) {
+        self.kotak(x, self.y, k.lebar, tJudul, { isi: o.warnaJudul || '#274e13', garis: gar });
+        var b = jdlBaris[i], y = self.y + (tJudul - b.length * (uk + 1.5)) / 2;
+        b.forEach(function (t, j) { self.teks(x + pad, y + j * (uk + 1.5), t, { uk: uk, tebal: true, warna: '#ffffff', rata: 'tengah', lebar: k.lebar - 2 * pad }); });
+        x += k.lebar;
+      });
+      self.y += tJudul;
+    };
+    this.ruang(tJudul + uk + 2 * pad + 2);
+    judul();
+    o.baris.forEach(function (r) {
+      var tebal = r.jenis === 'grup' || r.jenis === 'sub' || r.jenis === 'total';
+      var isiSel = r.jenis === 'grup' ? [{ t: [r.sel[0]], k: { lebar: self.lebarIsi, rata: 'kiri' } }] : kol.map(function (k, i) {
+        var v = r.sel[i] == null ? '' : String(r.sel[i]);
+        return { t: k.bungkus ? self.bungkus(v, k.lebar - 2 * pad, uk, tebal, k.bungkus) : [v], k: k };
+      });
+      var tinggi = Math.max.apply(null, isiSel.map(function (c) { return c.t.length; })) * (uk + 1.5) + 2 * pad - 1;
+      if (self.y + tinggi > self.bawah) { self.halamanBaru(); if (o.saatHalamanBaru) o.saatHalamanBaru(); judul(); }
+      var latar = r.jenis === 'grup' ? (o.warnaGrup || '#e2efe4') : r.jenis === 'sub' ? (o.warnaSub || '#f1f4f0') : r.jenis === 'total' ? (o.warnaTotal || '#d9ead3') : r.latar || null;
+      var x = x0;
+      isiSel.forEach(function (c, i) {
+        self.kotak(x, self.y, c.k.lebar, tinggi, latar ? { isi: latar, garis: gar } : { garis: gar });
+        c.t.forEach(function (t, j) {
+          self.teks(x + pad, self.y + pad + j * (uk + 1.5), t, { uk: uk, tebal: tebal, rata: c.k.rata || 'kiri', lebar: c.k.lebar - 2 * pad, warna: (r.warna && r.warna[i]) || '#1d1620' });
+        });
+        x += c.k.lebar;
+      });
+      self.y += tinggi;
+    });
+    return this.y;
+  },
+  /** Bait PDF. kaki(i, n) → {kiri, kanan} teks kaki halaman. */
+  selesai: function (kaki) {
+    var self = this, n = this.hal.length;
+    if (kaki) this.hal.forEach(function (isi, i) {
+      self.isi = isi;
+      var k = kaki(i + 1, n) || {};
+      if (k.kiri) self.teks(self.m.l, self.H - self.m.b + 14, k.kiri, { uk: 7, warna: '#645a69', lebar: self.lebarIsi * 0.75 });
+      if (k.kanan) self.teks(self.m.l, self.H - self.m.b + 14, k.kanan, { uk: 7, warna: '#645a69', rata: 'kanan', lebar: self.lebarIsi });
+    });
+    var obj = [], tambah = function (s) { obj.push(s); return obj.length; };
+    var katalog = tambah(''), halaman = tambah(''), f1 = tambah('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>'),
+      f2 = tambah('<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>');
+    var gb = this.gambar.map(function (g) { return { nama: g.nama, id: tambah({ g: g }) }; });
+    var xo = gb.length ? ' /XObject << ' + gb.map(function (g) { return '/' + g.nama + ' ' + g.id + ' 0 R'; }).join(' ') + ' >>' : '';
+    var kid = this.hal.map(function (isi) {
+      var s = isi.join('\n'), c = tambah({ s: s });
+      return tambah('<< /Type /Page /Parent ' + halaman + ' 0 R /MediaBox [0 0 ' + pdfAngkaPt(self.W) + ' ' + pdfAngkaPt(self.H) + '] /Resources << /Font << /F1 ' + f1 + ' 0 R /F2 ' + f2 + ' 0 R >>' + xo + ' >> /Contents ' + c + ' 0 R >>');
+    });
+    obj[katalog - 1] = '<< /Type /Catalog /Pages ' + halaman + ' 0 R >>';
+    obj[halaman - 1] = '<< /Type /Pages /Kids [' + kid.map(function (k) { return k + ' 0 R'; }).join(' ') + '] /Count ' + kid.length + ' >>';
+    var bag = [], pjg = 0, off = [];
+    var tulis = function (x) { var b = typeof x === 'string' ? Uint8Array.from(x, function (c) { return c.charCodeAt(0) & 255; }) : x; bag.push(b); pjg += b.length; };
+    tulis('%PDF-1.4\n%\xe2\xe3\xcf\xd3\n');
+    obj.forEach(function (o, i) {
+      off.push(pjg);
+      if (typeof o === 'string') tulis((i + 1) + ' 0 obj\n' + o + '\nendobj\n');
+      else if (o.s !== undefined) { tulis((i + 1) + ' 0 obj\n<< /Length ' + o.s.length + ' >>\nstream\n'); tulis(o.s); tulis('\nendstream\nendobj\n'); }
+      else { var g = o.g; tulis((i + 1) + ' 0 obj\n<< /Type /XObject /Subtype /Image /Width ' + g.w + ' /Height ' + g.h + ' /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ' + g.data.length + ' >>\nstream\n'); tulis(g.data); tulis('\nendstream\nendobj\n'); }
+    });
+    var xref = pjg;
+    tulis('xref\n0 ' + (obj.length + 1) + '\n0000000000 65535 f \n' + off.map(function (o) { return ('000000000' + o).slice(-10) + ' 00000 n \n'; }).join(''));
+    tulis('trailer\n<< /Size ' + (obj.length + 1) + ' /Root ' + katalog + ' 0 R >>\nstartxref\n' + xref + '\n%%EOF\n');
+    return new Blob(bag, { type: 'application/pdf' });
+  }
+};
+/** Bagikan (HP: Simpan ke File / WhatsApp) atau unduh (komputer). Harus dipanggil dari ketukan pengguna. */
+async function bagikanPdf(blob, nama) {
+  var f = null;
+  try { f = new File([blob], nama, { type: 'application/pdf' }); } catch (e) { /* browser lama */ }
+  var sentuh = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+  if (f && sentuh && navigator.canShare && navigator.canShare({ files: [f] })) {
+    try { await navigator.share({ files: [f], title: nama }); return 'bagi'; }
+    catch (e) { if (e && e.name === 'AbortError') return 'batal'; }
+  }
+  unduhBlob(blob, nama);
+  return 'unduh';
+}
+
+
+/* === 14-logo.js === logo BPJS Ketenagakerjaan untuk PDF (JPEG) */
+var LOGO_BPJSTK = { w: 480, h: 111, b64: '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' };
+
+
 /* === 20-simpan.js === */
 /* ----------------------------------------------------------------------
  *  Penyimpanan di perangkat: IndexedDB 'mytagihan_desa_3'. Semua sheet + pengaturan aplikasi +
  *  antrean sinkron. Bila PIN dipasang, isi disandikan AES-GCM 256 dengan kunci turunan PIN
  *  (PBKDF2-SHA256); tanpa PIN yang benar data tidak terbaca. (Sama dengan LENSA PK 2.0.)
  * ---------------------------------------------------------------------- */
-var VERSI_APP = '3.1.0';
+var VERSI_APP = '3.2.1';
 var NAMA_DB = 'mytagihan_desa_3';
 var ID_HALAMAN = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 var SIMPAN = { db: null, jenis: 'memori', tertunda: null, galat: '', terakhir: '', dimuat: 0, kunci: null, garam: null, setelahMuatUlang: null, rekTerkunci: null };
@@ -4193,6 +4540,9 @@ window.__mt3 = {
   pindahXlsx: async function (file) { var n = await pindahDariXlsx(file); kabarStatus(); return n; },
   bacaTabel: bacaBerkasTabel,
   bacaLaporanUpah: bacaLaporanUpah,
+  Pdf: PdfBaru,
+  logo: function () { return { w: LOGO_BPJSTK.w, h: LOGO_BPJSTK.h, data: dariB64(LOGO_BPJSTK.b64) }; },
+  bagikanPdf: bagikanPdf,
   unduh: unduhBlob,
   infoPerangkat: function () { return { sheet: GAS.tab.map(function (s) { return { nama: s.nama, baris: Math.max(0, s.getLastRow() - 1) }; }) }; }
 };
@@ -4342,7 +4692,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   // =====================================================================
   const LEBAR = () => window.matchMedia('(min-width: 760px)').matches;
   const S = { boot: null, stack: [], view: LEBAR() ? 'dasbor' : 'beranda', params: {}, tagihan: null, selKeluar: new Map(), dasbor: null };
-  const TAB_OF = { dasbor: 'dasbor', beranda: 'beranda', laporan: 'beranda', mutasi: 'mutasi', tagihan: 'tagihan', arsip: 'tagihan', peserta: 'peserta', detail: 'peserta', data: 'data' };
+  const TAB_OF = { dasbor: 'dasbor', beranda: 'beranda', laporan: 'beranda', mutasi: 'mutasi', tagihan: 'tagihan', arsip: 'tagihan', peserta: 'peserta', detail: 'peserta', wilayah: 'peserta', data: 'data' };
 
   async function boot(force) {
     if (S.boot && !force) return S.boot;
@@ -4416,7 +4766,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
       acc('Peserta aktif per kelompok', K().length + ' kelompok',
         perKel.map(x => '<div class="row" style="cursor:default"><span class="m">' + esc(x.k.nama) + '</span><span class="b ' + (x.k.jenis === 'BPU' ? 'bpu' : 'pu') + '">' + x.k.jenis + '</span><b class="num" style="width:56px;text-align:right">' + num(x.n) + '</b></div>').join(''), { open: true, cls: 'flush' }) +
       acc('Mutasi terbaru', b.terbaru.length + ' terakhir',
-        b.terbaru.map(p => '<button class="row" data-id="' + esc(p.id) + '"><span class="m"><span class="t1" style="display:block">' + esc(p.nama) + '</span><span class="t2" style="display:block">' + esc(p.kelNama) + ' · ' + esc(p.desa) + ', ' + esc(p.kec) + '</span></span><span class="e"><span class="b ' + (p.status === 'Aktif' ? 'ok' : 'red') + '">' + (p.status === 'Aktif' ? 'Masuk' : 'Keluar') + '</span><br><span class="muted small">' + tglID(p.tgl) + '</span></span></button>').join('') || '<div class="empty">Belum ada.</div>', { cls: 'flush' });
+        b.terbaru.map(p => '<button class="row" data-id="' + esc(p.id) + '"><span class="m"><span class="t1" style="display:block">' + esc(p.nama) + '</span><span class="t2" style="display:block">' + esc(p.kelNama) + ' · ' + lokTeks(p) + '</span></span><span class="e"><span class="b ' + (p.status === 'Aktif' ? 'ok' : 'red') + '">' + (p.status === 'Aktif' ? 'Masuk' : 'Keluar') + '</span><br><span class="muted small">' + tglID(p.tgl) + '</span></span></button>').join('') || '<div class="empty">Belum ada.</div>', { cls: 'flush' });
     $('#go-lap').onclick = () => go('laporan');
     const bd = $('#b-data', v); if (bd) bd.onclick = () => go('data');
     $$('[data-aksi]', v).forEach(el => el.onclick = () => {
@@ -4430,16 +4780,23 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   // =====================================================================
   //  MUTASI
   // =====================================================================
+  /** Kelompok tingkat kecamatan (mis. BUMDesma): satu NPP per kecamatan, tanpa desa. */
+  function lokTeks(o) { return o.desa ? esc(o.desa) + ', ' + esc(o.kec) : 'Kec. ' + esc(o.kec); }
+  function diKec(kode) { return (K().find(k => k.kode === kode) || {}).tingkat === 'Kecamatan'; }
+  const OPSI_KEC = '<option value="">— tingkat kecamatan —</option>';
   function lokasiHtml(p, loc) {
-    return '<div class="field"><label for="' + p + '-kel">Kelompok</label><select id="' + p + '-kel">' + opt(K().map(k => ({ v: k.kode, t: k.nama + (k.jenis === 'BPU' ? ' (BPU)' : '') })), loc.kel, 'Pilih…') + '</select></div>' +
+    const kc = diKec(loc.kel);
+    return '<div class="field"><label for="' + p + '-kel">Kelompok</label><select id="' + p + '-kel">' + opt(K().map(k => ({ v: k.kode, t: k.nama + (k.jenis === 'BPU' ? ' (BPU)' : '') + (k.tingkat === 'Kecamatan' ? ' · per kecamatan' : '') })), loc.kel, 'Pilih…') + '</select></div>' +
       '<div class="row2"><div class="field"><label for="' + p + '-kec">Kecamatan</label><select id="' + p + '-kec">' + opt(W().kecamatan, loc.kec, 'Pilih…') + '</select></div>' +
-      '<div class="field"><label for="' + p + '-desa">Desa</label><select id="' + p + '-desa">' + opt(W().desa[loc.kec] || [], loc.desa, 'Pilih…') + '</select></div></div>';
+      '<div class="field"><label for="' + p + '-desa">Desa</label><select id="' + p + '-desa"' + (kc ? ' disabled' : '') + '>' + (kc ? OPSI_KEC : opt(W().desa[loc.kec] || [], loc.desa, 'Pilih…')) + '</select></div></div>';
   }
   function bindLokasi(root, p, onChange) {
-    const get = () => ({ kel: $('#' + p + '-kel', root).value, kec: $('#' + p + '-kec', root).value, desa: $('#' + p + '-desa', root).value });
-    $('#' + p + '-kel', root).onchange = () => onChange(get());
-    $('#' + p + '-kec', root).onchange = e => { $('#' + p + '-desa', root).innerHTML = opt(W().desa[e.target.value] || [], '', 'Pilih…'); onChange(get()); };
-    $('#' + p + '-desa', root).onchange = () => onChange(get());
+    const el = x => $('#' + p + '-' + x, root);
+    const get = () => ({ kel: el('kel').value, kec: el('kec').value, desa: el('desa').disabled ? '' : el('desa').value });
+    const isiDesa = () => { const kc = diKec(el('kel').value); el('desa').disabled = kc; el('desa').innerHTML = kc ? OPSI_KEC : opt(W().desa[el('kec').value] || [], '', 'Pilih…'); };
+    el('kel').onchange = () => { if (diKec(el('kel').value) !== el('desa').disabled) isiDesa(); onChange(get()); };
+    el('kec').onchange = () => { isiDesa(); onChange(get()); };
+    el('desa').onchange = () => onChange(get());
     return get;
   }
 
@@ -4463,7 +4820,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     const showNpp = async l => {
       LS.set('loc', l);
       const box = $('#m-npp', el);
-      if (!l.kel || !l.kec || !l.desa) { box.innerHTML = ''; return; }
+      if (!l.kel || !l.kec || (!l.desa && !diKec(l.kel))) { box.innerHTML = ''; return; }
       box.innerHTML = '<div class="small muted">Mencari NPP…</div>';
       try {
         const r = await api('resolveNpp', l);
@@ -4493,11 +4850,11 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     $('#m-save', el).onclick = async () => {
       const l = get();
       const d = { kel: l.kel, kec: l.kec, desa: l.desa, tanggal: $('#m-tgl', el).value, nik: nik.value, nama: $('#m-nama', el).value.trim() };
-      if (!d.kel || !d.kec || !d.desa) return toast('Pilih kelompok, kecamatan, dan desa.', 'err');
+      if (!d.kel || !d.kec || (!d.desa && !diKec(d.kel))) return toast(diKec(d.kel) ? 'Pilih kecamatan.' : 'Pilih kelompok, kecamatan, dan desa.', 'err');
       if (!/^\d{16}$/.test(d.nik)) return toast('NIK harus 16 digit angka.', 'err');
       if (d.nama.length < 3) return toast('Nama lengkap wajib diisi.', 'err');
       if (blocked) return toast('NIK ini masih aktif.', 'err');
-      const ok = await confirmBox({ title: 'Simpan peserta baru?', body: '<dl class="kv"><dt>Nama</dt><dd>' + esc(d.nama) + '</dd><dt>NIK</dt><dd>' + esc(d.nik) + '</dd><dt>Kelompok</dt><dd>' + esc(kelNama(d.kel)) + '</dd><dt>Lokasi</dt><dd>' + esc(d.desa) + ', ' + esc(d.kec) + '</dd><dt>Tanggal entry</dt><dd>' + tglID(d.tanggal) + '</dd></dl>', ok: 'Simpan' });
+      const ok = await confirmBox({ title: 'Simpan peserta baru?', body: '<dl class="kv"><dt>Nama</dt><dd>' + esc(d.nama) + '</dd><dt>NIK</dt><dd>' + esc(d.nik) + '</dd><dt>Kelompok</dt><dd>' + esc(kelNama(d.kel)) + '</dd><dt>Lokasi</dt><dd>' + (d.desa ? lokTeks(d) : 'Kecamatan ' + esc(d.kec)) + '</dd><dt>Tanggal entry</dt><dd>' + tglID(d.tanggal) + '</dd></dl>', ok: 'Simpan' });
       if (!ok) return;
       const r = await write('tambahPeserta', [d], 'Menyimpan peserta…');
       if (r) { nik.value = ''; $('#m-nama', el).value = ''; note.innerHTML = ''; $('#m-cnt', el).textContent = '0/16'; nik.focus(); }
@@ -4514,13 +4871,14 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
       acc('2 · Dipilih', '<span id="k-n">0</span> peserta', '<div class="chips" id="k-chips"></div>', { open: true }) +
       acc('3 · Alasan & tanggal', '', '<div class="chips" id="k-ket">' + ket.map((k, i) => '<button class="chip' + (i === 0 ? ' on' : '') + '" data-v="' + esc(k) + '">' + esc(k) + '</button>').join('') + '</div>' +
         '<div class="field"><label for="k-tgl">Tanggal nonaktif</label><input type="date" id="k-tgl" value="' + today() + '"><small>Peserta tetap ditagih untuk bulan sebelum tanggal ini.</small></div>', { open: true }) +
-      '<div class="sticky-act"><button class="btn d block" id="k-go" disabled>Nonaktifkan</button></div>';
+      '<div class="sticky-act diam" id="k-bar"><button class="btn d block" id="k-go" disabled>Centang peserta yang akan dinonaktifkan</button></div>';
     const sel = S.selKeluar;
     const draw = () => {
       $('#k-n', el).textContent = sel.size;
       $('#k-chips', el).innerHTML = sel.size ? Array.from(sel.values()).map(p => '<button class="chip-x" data-x="' + esc(p.id) + '">' + esc(p.nama) + ' ×</button>').join('') : '<span class="muted small">Belum ada.</span>';
       $$('[data-x]', el).forEach(b => b.onclick = () => { sel.delete(b.dataset.x); draw(); sync(); });
-      const g = $('#k-go', el); g.disabled = !sel.size; g.textContent = sel.size ? 'Nonaktifkan ' + sel.size + ' peserta' : 'Nonaktifkan';
+      const g = $('#k-go', el); g.disabled = !sel.size; g.textContent = sel.size ? 'Nonaktifkan ' + sel.size + ' peserta' : 'Centang peserta yang akan dinonaktifkan';
+      $('#k-bar', el).classList.toggle('diam', !sel.size);
     };
     const sync = () => $$('input[data-pid]', el).forEach(c => { c.checked = sel.has(c.dataset.pid); });
     const rows = list => list.map(p => '<label class="check"><input type="checkbox" data-pid="' + esc(p.id) + '"' + (sel.has(p.id) ? ' checked' : '') + '><span class="m"><b>' + esc(p.nama) + '</b><br><span class="small muted">' + esc(p.nik) + ' · ' + esc(p.kelNama) + ' ' + esc(p.desa) + '</span></span></label>').join('');
@@ -4536,7 +4894,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     const lok = $('#k-lok', el);
     const loadLok = async l => {
       LS.set('locK', l);
-      if (!l.kec || !l.desa) { lok.innerHTML = ''; return; }
+      if (!l.kec || (!l.desa && !diKec(l.kel))) { lok.innerHTML = ''; return; }
       lok.innerHTML = '<div class="small muted">Memuat…</div>';
       try {
         const list = await api('pesertaLokasi', l);
@@ -4592,12 +4950,12 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
         '<div class="field"><label for="t-bln" id="t-bl">Bulan</label><input type="month" id="t-bln" value="' + (LS.get('bulanTagihan', thisMonth())) + '"></div>' +
         '<div class="note info" id="t-info"></div>', { open: !T }) +
       '<button class="btn p block" id="t-go">Buat tagihan</button>' +
-      '<div id="t-res"></div>' +
+      '<div id="t-res" class="tumpuk"></div>' +
       acc('Lampiran triwulan', 'Rincian per peserta, 3 bulan · kelompok sama dengan pilihan di atas',
         '<div class="field"><label for="l-bln">Bulan awal triwulan</label><input type="month" id="l-bln" value="' + thisMonth() + '"></div><button class="btn block" id="l-go">Buat lampiran triwulan</button>') +
       acc('Dokumen & arsip', 'PDF dari sheet terakhir · arsip .xlsx di Drive · perlu sinyal',
         '<div class="btns"><button class="btn" data-pdf="Tagihan">PDF Tagihan</button><button class="btn" data-pdf="Trf Bank Jatim">PDF Trf Bank Jatim</button></div><button class="btn" data-pdf="Lampiran Triwulan">PDF Lampiran Triwulan</button><button class="btn ghost" id="t-arsip">Lihat arsip di Drive</button>' +
-        '<p class="small muted" style="margin:0">Tagihan dihitung di perangkat (juga tanpa sinyal). PDF dan arsip .xlsx dibuat Google Drive dari sheet di spreadsheet, setelah perubahan terkirim.</p>');
+        '<p class="small muted" style="margin:0">Tagihan dan PDF Tagihan / Trf dibuat di perangkat (juga tanpa sinyal). Arsip .xlsx dan PDF Lampiran dibuat Google Drive, setelah perubahan terkirim.</p>');
     const ks = () => { $('#t-ks', v).textContent = sel.size ? Array.from(sel).map(kelNama).join(', ') : 'Belum dipilih'; LS.set('kelTagihan', Array.from(sel)); };
     bindKelChips($('#t-kel', v), sel, ks); ks();
     const ps = () => {
@@ -4614,7 +4972,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     $('#t-bln', v).onchange = ps; ps();
     $('#t-go', v).onclick = () => buatTagihan(Array.from(sel), $('#t-per .on', v).dataset.p, $('#t-bln', v).value);
     $('#l-go', v).onclick = () => buatLampiran(Array.from(sel), $('#l-bln', v).value, true);
-    $$('[data-pdf]', v).forEach(b => b.onclick = () => pdfSheet(b.dataset.pdf));
+    $$('[data-pdf]', v).forEach(b => b.onclick = () => pdfLokal(b.dataset.pdf, S.tagihan));
     $('#t-arsip', v).onclick = () => go('arsip');
     if (T) hasilTagihan($('#t-res', v), T);
   }
@@ -4671,6 +5029,125 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     } catch (e) { fail(e); }
   }
 
+  // =====================================================================
+  //  PDF di perangkat (tagihan, Trf Bank Jatim, laporan) — juga tanpa sinyal & di iPhone
+  // =====================================================================
+  const HIJAU = '#274e13';
+  function kakiPdf(judul) { const sk = waktuID(new Date().toISOString()); return (i, n) => ({ kiri: judul + ' · dicetak ' + sk, kanan: 'Hal ' + i + ' dari ' + n }); }
+  function judulPdf(d, baris) {
+    baris.forEach((b, i) => { d.teks(d.m.l, d.y, b.t, { uk: b.uk, tebal: b.tebal, rata: 'tengah', lebar: d.lebarIsi, warna: b.warna }); d.y += b.uk + (i < baris.length - 1 ? 4 : 10); });
+  }
+  /** Rekap per kelompok + program + terbilang (ringkas, satu blok). */
+  function rekapPdf(d, T) {
+    const blok = T.groups.length * 13 + 13 + 18 + 60;
+    if (d.y + blok > d.bawah) d.halamanBaru(); else d.y += 14;
+    d.teks(d.m.l, d.y, 'Rekap tagihan', { uk: 10, tebal: true, warna: HIJAU }); d.y += 15;
+    const baris = T.groups.map(g => ({ sel: [g.nama, g.jenis, num(g.rows.length), num(g.sub.tk), num(g.sub.net), num(g.sub.saldo), num(g.sub.total)] }));
+    baris.push({ jenis: 'total', sel: ['Total', '', num(T.totals.npp), num(T.totals.tk), num(T.totals.net), num(T.totals.saldo), num(T.totals.total)] });
+    d.tabel({ uk: 7.5, kolom: [{ judul: 'Kelompok', lebar: 0 }, { judul: 'Jenis', lebar: 36, rata: 'tengah' }, { judul: 'NPP', lebar: 40, rata: 'kanan' }, { judul: 'Jumlah TK', lebar: 50, rata: 'kanan' },
+      { judul: 'Iuran', lebar: 78, rata: 'kanan' }, { judul: 'Saldo Iuran', lebar: 66, rata: 'kanan' }, { judul: 'Total Tagihan', lebar: 82, rata: 'kanan' }], baris, warnaJudul: HIJAU });
+    d.y += 8;
+    const p = T.program, info = [['Program', '2P ' + num(p['2P']) + ' TK · 3P ' + num(p['3P']) + ' TK · 4P ' + num(p['4P']) + ' TK' + (T.bebasJP ? ' · Bebas JP ' + num(T.bebasJP) + ' TK' : '')]];
+    (T.keringanan || []).forEach(k => info.push(['Keringanan', k.nama + ': ' + rp(k.total)]));
+    info.push(['Total tagihan', rp(T.totals.total)]);
+    if (T.terbilang) info.push(['Terbilang', T.terbilang.charAt(0).toUpperCase() + T.terbilang.slice(1)]);
+    if (T.periode === 'Triwulan') info.push(['Catatan', 'Jumlah TK memakai bulan terakhir triwulan; Iuran sudah dikurangi keringanan.']);
+    info.forEach(([k, v]) => {
+      const b = d.bungkus(v, d.lebarIsi - 80, 8, false);
+      d.ruang(b.length * 10 + 2);
+      d.teks(d.m.l, d.y, k, { uk: 8, tebal: true, warna: '#4f4655' });
+      b.forEach((t, i) => d.teks(d.m.l + 80, d.y + i * 10, t, { uk: 8, tebal: k === 'Total tagihan' }));
+      d.y += b.length * 10 + 3;
+    });
+  }
+  function pdfTagihan(T) {
+    const tri = T.periode === 'Triwulan', ker = T.totals.ker > 0;
+    const d = new M3.Pdf({ arah: 'P' });
+    judulPdf(d, [{ t: T.judul || 'Tagihan Iuran Pemerintah Desa dan BPD Kab. Pamekasan', uk: 13, tebal: true }, { t: 'PERIODE ' + T.title, uk: 10.5, tebal: true }, { t: 'Kelompok: ' + T.kelompokNama, uk: 8, warna: '#4f4655' }]);
+    let kolom, isi;
+    const N = x => num(x);
+    if (!tri) {
+      kolom = [{ judul: 'No', lebar: 22, rata: 'tengah' }, { judul: 'NPP', lebar: 48, rata: 'tengah' }, { judul: 'Nama Badan Usaha', lebar: 0, bungkus: 2 }, { judul: 'Prog', lebar: 26, rata: 'tengah' }, { judul: 'TK', lebar: 26, rata: 'kanan' }]
+        .concat(ker ? [{ judul: 'Iuran Normal', lebar: 58, rata: 'kanan' }, { judul: 'Keringanan', lebar: 54, rata: 'kanan' }] : [],
+          [{ judul: 'Iuran', lebar: 60, rata: 'kanan' }, { judul: 'Saldo Iuran', lebar: 54, rata: 'kanan' }, { judul: 'Total Tagihan', lebar: 64, rata: 'kanan' }]);
+      isi = (no, r) => { const m = r.months[0]; return [no, r.npp, r.nama, r.program, N(m.tk)].concat(ker ? [N(m.normal), N(m.ker)] : [], [N(m.net), N(m.saldo), N(r.total)]); };
+    } else {
+      const bl = T.months.map(ym => BLN[Number(ym.slice(5)) - 1]);
+      kolom = [{ judul: 'No', lebar: 18, rata: 'tengah' }, { judul: 'NPP', lebar: 42, rata: 'tengah' }, { judul: 'Nama Badan Usaha', lebar: 0, bungkus: 3 }, { judul: 'Prog', lebar: 22, rata: 'tengah' }];
+      bl.forEach(b => kolom.push({ judul: b + ' TK', lebar: 20, rata: 'kanan' }, { judul: b + ' Iuran', lebar: 42, rata: 'kanan' }, { judul: b + ' Saldo', lebar: 34, rata: 'kanan' }));
+      if (ker) kolom.push({ judul: 'Kering-anan', lebar: 38, rata: 'kanan' });
+      kolom.push({ judul: 'Total Tagihan', lebar: 50, rata: 'kanan' });
+      isi = (no, r) => { const a = [no, r.npp, r.nama, r.program]; let k = 0; r.months.forEach(m => { a.push(N(m.tk), N(m.net), N(m.saldo)); k += m.ker; }); if (ker) a.push(N(k)); a.push(N(r.total)); return a; };
+    }
+    const sub = (label, rows, s) => {
+      if (!tri) return [ '', '', label, '', N(s.tk) ].concat(ker ? [N(s.normal), N(s.ker)] : [], [N(s.net), N(s.saldo), N(s.total)]);
+      const a = ['', '', label, ''];
+      for (let i = 0; i < 3; i++) { let tk = 0, net = 0, sal = 0; rows.forEach(r => { tk += r.months[i].tk; net += r.months[i].net; sal += r.months[i].saldo; }); a.push(N(tk), N(net), N(sal)); }
+      if (ker) a.push(N(s.ker)); a.push(N(s.total)); return a;
+    };
+    const baris = []; let no = 0;
+    T.groups.forEach(g => {
+      if (!g.rows.length) return;
+      baris.push({ jenis: 'grup', sel: [g.nama.toUpperCase() + ' (' + g.jenis + ')'] });
+      g.rows.forEach(r => baris.push({ sel: isi(++no, r) }));
+      baris.push({ jenis: 'sub', sel: sub('Subtotal ' + g.nama, g.rows, g.sub) });
+    });
+    baris.push({ jenis: 'total', sel: sub('TOTAL KESELURUHAN', [].concat(...T.groups.map(g => g.rows)), T.totals) });
+    d.tabel({ kolom, baris, uk: tri ? 6.3 : 7.3, warnaJudul: HIJAU });
+    rekapPdf(d, T);
+    return d.selesai(kakiPdf('Tagihan Iuran Desa · ' + T.title));
+  }
+  function pdfTrf(T) {
+    const d = new M3.Pdf({ arah: 'P' }), MERAH = '#b03232';
+    judulPdf(d, [{ t: 'Lampiran Transfer Iuran Desa BPJS Ketenagakerjaan', uk: 13, tebal: true }, { t: 'PERIODE ' + T.title, uk: 10.5, tebal: true }, { t: 'Kelompok: ' + T.kelompokNama, uk: 8, warna: '#4f4655' }]);
+    const baris = []; let no = 0, gtk = 0, gtot = 0, kosong = 0;
+    ['PU', 'BPU'].forEach(j => {
+      const rows = [].concat(...T.groups.filter(g => g.jenis === j).map(g => g.rows));
+      if (!rows.length) return;
+      baris.push({ jenis: 'grup', sel: [j === 'PU' ? 'PENERIMA UPAH (PU)' : 'BUKAN PENERIMA UPAH (BPU)'] });
+      let tk = 0, tot = 0;
+      rows.forEach(r => {
+        const kb = r.kodeBayar || '';
+        if (!kb) kosong++;
+        baris.push({ sel: [++no, r.npp, r.nama, num(r.months[0].tk), kb || 'BELUM DIISI', num(r.total)], warna: [null, null, null, null, kb ? null : '#b3261e'] });
+        tk += r.months[0].tk; tot += r.total;
+      });
+      baris.push({ jenis: 'sub', sel: ['', '', 'Subtotal ' + j, num(tk), '', num(tot)] });
+      gtk += tk; gtot += tot;
+    });
+    baris.push({ jenis: 'total', sel: ['', '', 'TOTAL KESELURUHAN', num(gtk), '', num(gtot)] });
+    d.tabel({ uk: 7.5, warnaJudul: MERAH, warnaGrup: '#f6e3e3', warnaSub: '#faf1f1', warnaTotal: '#f0d6d6', kolom: [{ judul: 'No', lebar: 24, rata: 'tengah' }, { judul: 'NPP', lebar: 52, rata: 'tengah' }, { judul: 'Nama Badan Usaha', lebar: 0, bungkus: 2 },
+      { judul: 'Jumlah TK', lebar: 44, rata: 'kanan' }, { judul: 'Kode Pembayaran', lebar: 100, rata: 'tengah' }, { judul: 'Total Tagihan', lebar: 72, rata: 'kanan' }], baris });
+    d.y += 10;
+    d.ruang(30);
+    d.teks(d.m.l, d.y, 'Total transfer ' + rp(gtot) + ' · ' + num(no) + ' NPP · ' + num(gtk) + ' TK', { uk: 9, tebal: true });
+    d.y += 12;
+    d.teks(d.m.l, d.y, 'Terbilang: ' + (T.terbilang || ''), { uk: 8, warna: '#4f4655', lebar: d.lebarIsi });
+    if (kosong) { d.y += 12; d.teks(d.m.l, d.y, kosong + ' NPP BPU belum punya kode bayar (BELUM DIISI): lengkapi di Pengaturan › NPP.', { uk: 8, warna: '#b3261e' }); }
+    return d.selesai(kakiPdf('Trf Bank Jatim · ' + T.title));
+  }
+  /** Buat PDF lalu tawarkan Bagikan / Unduh (ketukan pengguna diperlukan untuk Bagikan di iPhone). */
+  async function siapkanPdf(buat, nama) {
+    busy('Membuat PDF…');
+    let blob;
+    try { await new Promise(r => setTimeout(r, 30)); blob = buat(); } catch (e) { return fail(e); }
+    busy(false);
+    const sentuh = window.matchMedia('(pointer: coarse)').matches;
+    if (!sentuh) { M3.unduh(blob, nama); toast('PDF diunduh: ' + nama); return; }
+    sheet('<h2>PDF siap</h2><p class="small muted" style="margin:0">' + esc(nama) + ' · ' + Math.max(1, Math.round(blob.size / 1024)) + ' KB</p>' +
+      '<button class="btn p block" id="pdf-bagi">Bagikan / simpan ke File</button><button class="btn block" id="pdf-unduh">Unduh</button><button class="btn ghost block" data-close>Tutup</button>',
+      (sh, close) => {
+        $('#pdf-bagi', sh).onclick = async () => { const r = await M3.bagikanPdf(blob, nama); if (r !== 'batal') close(); };
+        $('#pdf-unduh', sh).onclick = () => { M3.unduh(blob, nama); close(); };
+      });
+  }
+  function pdfLokal(jenis, T) {
+    if (!T) return pdfSheet(jenis); // belum ada tagihan di layar: PDF dari sheet terakhir di spreadsheet
+    if (jenis === 'Tagihan') return siapkanPdf(() => pdfTagihan(T), 'Tagihan Iuran Desa (' + T.title + ').pdf');
+    if (jenis === 'Trf Bank Jatim') return siapkanPdf(() => pdfTrf(T), 'Trf Bank Jatim (' + T.title + ').pdf');
+    return pdfSheet(jenis);
+  }
+
   async function pdfSheet(name) {
     busy('Membuat PDF ' + name + '…', 'Perubahan dikirim dulu ke spreadsheet. Perlu sinyal.');
     try {
@@ -4687,14 +5164,14 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
       '<div class="hero-total"><div class="l">Total tagihan · ' + esc(T.title) + '</div><div class="v">' + rp(T.totals.total) + '</div><div class="l">' + esc(T.kelompokNama) + ' · ' + num(T.totals.npp) + ' NPP · ' + num(T.totals.tk) + ' TK</div></div>' +
       (T.tanpaNpp ? '<div class="note warn">' + num(T.tanpaNpp) + ' peserta tidak ikut tagihan karena belum punya NPP.</div>' : '') +
       '<div class="btns"><button class="btn p" data-pdf="Tagihan">PDF Tagihan</button>' + (tri ? '<button class="btn" data-pdf="Lampiran Triwulan">PDF Lampiran</button>' : '<button class="btn" data-pdf="Trf Bank Jatim">PDF Trf Bank Jatim</button>') + '</div>' +
-      (T.archive ? '<a class="btn ghost" href="' + esc(T.archive.fileUrl) + '" target="_blank" rel="noopener">Buka arsip: ' + esc(T.archive.fileName) + '</a>' : '<button class="btn ghost" id="t-ars">Simpan arsip .xlsx ke Drive</button>') +
+      (T.archive ? '<a class="btn ghost block arsip" href="' + esc(T.archive.fileUrl) + '" target="_blank" rel="noopener"><span>Buka arsip .xlsx di Drive</span><small>' + esc(T.archive.fileName) + '</small></a>' : '<button class="btn ghost block" id="t-ars">Simpan arsip .xlsx ke Drive</button>') +
       acc('Ringkasan', 'Normal ' + rp(T.totals.normal) + (T.totals.ker ? ' · keringanan −' + rp(T.totals.ker) : '') + ' · saldo −' + rp(T.totals.saldo),
         '<dl class="kv"><dt>Iuran normal</dt><dd>' + rp(T.totals.normal) + '</dd><dt>Keringanan</dt><dd>− ' + rp(T.totals.ker) + '</dd><dt>Saldo IJT</dt><dd>− ' + rp(T.totals.saldo) + '</dd><dt>Program 2P / 3P / 4P</dt><dd>' + T.program['2P'] + ' / ' + T.program['3P'] + ' / ' + T.program['4P'] + '</dd><dt>Peserta Bebas JP</dt><dd>' + T.bebasJP + '</dd>' +
         T.keringanan.map(k => '<dt>' + esc(k.nama) + '</dt><dd>− ' + rp(k.total) + '</dd>').join('') + '</dl>' + (tri ? '<p class="small muted">Jumlah TK memakai bulan terakhir triwulan.</p>' : '')) +
       T.groups.map((g, gi) => acc(esc(g.nama), num(g.rows.length) + ' NPP · ' + num(g.sub.tk) + ' TK · <b class="num" style="color:var(--ink)">' + rp(g.sub.total) + '</b>',
-        g.rows.slice(0, 40).map((r, i) => '<button class="row" data-g="' + gi + '" data-i="' + i + '"><span class="m"><span class="t1" style="display:block">' + esc(r.desa) + ', ' + esc(r.kec) + '</span><span class="t2" style="display:block">NPP ' + esc(r.npp) + ' · ' + esc(r.program) + ' · ' + r.months[r.months.length - 1].tk + ' TK</span></span><b class="num">' + rp(r.total) + '</b></button>').join('') +
+        g.rows.slice(0, 40).map((r, i) => '<button class="row" data-g="' + gi + '" data-i="' + i + '"><span class="m"><span class="t1" style="display:block">' + (r.desa ? lokTeks(r) : 'Kecamatan ' + esc(r.kec)) + '</span><span class="t2" style="display:block">NPP ' + esc(r.npp) + ' · ' + esc(r.program) + ' · ' + r.months[r.months.length - 1].tk + ' TK</span></span><b class="num">' + rp(r.total) + '</b></button>').join('') +
         (g.rows.length > 40 ? '<div class="empty">' + (g.rows.length - 40) + ' NPP lainnya ada di sheet Tagihan.</div>' : ''), { cls: 'flush', end: '<span class="b ' + (g.jenis === 'BPU' ? 'bpu' : 'pu') + '">' + g.jenis + '</span>' })).join('');
-    $$('[data-pdf]', el).forEach(b => b.onclick = () => pdfSheet(b.dataset.pdf));
+    $$('[data-pdf]', el).forEach(b => b.onclick = () => pdfLokal(b.dataset.pdf, T));
     const ars = $('#t-ars', el); if (ars) ars.onclick = () => arsipTagihan(true);
     $$('[data-g]', el).forEach(b => b.onclick = () => {
       const r = T.groups[+b.dataset.g].rows[+b.dataset.i];
@@ -4727,7 +5204,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   async function vPeserta(v) {
     setTitle('Peserta');
     const f = LS.get('pf', { status: 'Aktif', kel: '', kec: '', desa: '', bebasJP: false });
-    v.innerHTML = '<input type="search" id="p-q" placeholder="Cari nama atau NIK">' +
+    v.innerHTML = '<button class="btn block" id="p-wil">Profil per desa / kecamatan</button><input type="search" id="p-q" placeholder="Cari nama atau NIK">' +
       acc('Filter', '<span id="p-fs"></span>',
         '<div class="seg" id="p-st">' + ['Semua', 'Aktif', 'Nonaktif'].map(s => '<button data-s="' + s + '" class="' + (f.status === s ? 'on' : '') + '">' + s + '</button>').join('') + '</div>' +
         '<select id="p-kel">' + opt(K().map(k => ({ v: k.kode, t: k.nama })), f.kel, 'Semua kelompok') + '</select>' +
@@ -4751,6 +5228,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
         $$('[data-id]', v).forEach(b => b.onclick = () => go('detail', { id: b.dataset.id }));
       } catch (e) { if (my === seq) $('#p-info', v).textContent = e.message; }
     };
+    $('#p-wil', v).onclick = () => go('wilayah', f.kec ? { kec: f.kec, desa: f.desa } : {});
     $('#p-q', v).oninput = debounce(load, 400);
     $$('#p-st button', v).forEach(b => b.onclick = () => { $$('#p-st button', v).forEach(x => x.classList.toggle('on', x === b)); load(); });
     $('#p-kel', v).onchange = load; $('#p-desa', v).onchange = load; $('#p-bjp', v).onchange = load;
@@ -4820,7 +5298,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   const MENU = [
     ['Kelompok & Iuran', 'Kelompok · NPP · Keringanan · Target', [['kelompok', 'Kelompok kepesertaan', 'Acuan upah, tarif JKK, program per kelompok'], ['npp', 'Data NPP', 'Ubah satu atau beberapa NPP sekaligus'], ['keringanan', 'Keringanan iuran', 'Per kelompok dengan periode berlaku'], ['target', 'Target per desa', 'Opsional, untuk persentase di laporan']]],
     ['Peserta', 'Bebas JP · Impor', [['bebasjp', 'Bebas JP (usia pensiun)', 'JP tidak ditagih, JHT tetap'], ['impornpp', 'Impor massal per NPP', 'PDF Daftar Upah TK dari sistem · NPP baru otomatis'], ['impor', 'Impor peserta', 'Template Excel + pemeriksaan per baris']]],
-    ['Tagihan & Bank', 'Batas JP · Penandatangan · Kode bayar · IBR', [['bank', 'Batas upah JP, penandatangan, kode bayar', 'Berlaku untuk semua tagihan'], ['ibr', 'Data IBR (saldo iuran)', 'Impor file IBR'], ['npp-bpu', 'NPP BPU tanpa kode bayar', 'Lengkapi kode bayar Bank Jatim']]],
+    ['Tagihan & Bank', 'Batas JP · Judul · Kode bayar · IBR', [['bank', 'Batas upah JP, judul, kode bayar', 'Berlaku untuk semua tagihan'], ['ibr', 'Data IBR (saldo iuran)', 'Impor file IBR'], ['npp-bpu', 'NPP BPU tanpa kode bayar', 'Lengkapi kode bayar Bank Jatim']]],
     ['Dokumen & Aktivitas', 'Arsip · Riwayat & batalkan', [['arsip', 'Arsip tagihan di Drive', 'Perlu sinyal'], ['riwayat', 'Riwayat aktivitas', 'Batalkan perubahan sampai 30 hari']]],
     ['Aplikasi', 'Data & sinkron · PIN · cadangan · akses', [['data', 'Data & sinkron', 'Spreadsheet, PIN, cadangan, perangkat'], ['aplikasi', 'Akses & alamat aplikasi', 'Alamat untuk HP/komputer, tampilan Apps Script lama'], ['cache', 'Hapus cache daftar desa', 'Setelah mengubah sheet dropdown']]]
   ];
@@ -4848,13 +5326,21 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     const dasar = S.boot.batasJP > 0 ? Math.min(upah, S.boot.batasJP) : upah;
     return [['2P', p2], ['3P', p3], ['4P', p3 + r(dasar * t.PU_JP / 100)]];
   }
+  /** Label acuan di daftar kelompok: merah hanya bila ada NPP yang benar-benar tidak punya acuan upah. */
+  function labelAcuan(k) {
+    if (k.upah) return rp(k.upah);
+    if (!k.npp) return '<span class="muted">acuan kelompok kosong</span>';
+    const kurang = k.npp - (k.upahNpp || 0);
+    if (kurang <= 0) return '<span class="muted">acuan per NPP</span>';
+    return '<span style="color:var(--danger)">' + kurang + ' NPP tanpa acuan</span>';
+  }
   async function vKelompok(v) {
     setTitle('Kelompok kepesertaan', 'Pengaturan › Kelompok & Iuran');
     const L = await api('kelompokList');
     v.innerHTML = L.map(k => acc(esc(k.nama),
-      (k.upah ? rp(k.upah) : '<span style="color:var(--danger)">acuan belum diisi</span>') + (k.jenis === 'PU' ? ' · JKK ' + String(k.tarifJKK).replace('.', ',') + '%' : '') + ' · ' + k.npp + ' NPP · ' + num(k.aktif) + ' TK',
+      labelAcuan(k) + (k.jenis === 'PU' ? ' · JKK ' + String(k.tarifJKK).replace('.', ',') + '%' : '') + ' · ' + k.npp + ' NPP · ' + num(k.aktif) + ' TK',
       '<dl class="kv"><dt>Jenis kepesertaan</dt><dd>' + (k.jenis === 'BPU' ? 'Bukan penerima upah' : 'Penerima upah') + '</dd><dt>Program awal NPP baru</dt><dd>' + esc(k.programAwal) + '</dd>' +
-      '<dt>Acuan upah</dt><dd>' + (k.upah ? rp(k.upah) : 'belum diisi') + '</dd>' + (k.jenis === 'PU' ? '<dt>Tarif JKK</dt><dd>' + String(k.tarifJKK).replace('.', ',') + '%</dd>' : '') +
+      '<dt>Acuan upah kelompok</dt><dd>' + (k.upah ? rp(k.upah) : 'kosong') + '</dd>' + (!k.upah && k.npp ? '<dd style="grid-column:1/-1" class="small muted">' + (k.upahNpp >= k.npp ? 'Semua ' + k.npp + ' NPP sudah punya acuan sendiri (mis. dari impor PDF), jadi tetap tertagih. Isi acuan kelompok hanya bila ingin satu nilai untuk NPP berikutnya.' : (k.npp - (k.upahNpp || 0)) + ' NPP belum punya acuan upah sendiri, jadi iurannya belum bisa dihitung: isi acuan kelompok atau atur per NPP.') + '</dd>' : '') + (k.jenis === 'PU' ? '<dt>Tarif JKK</dt><dd>' + String(k.tarifJKK).replace('.', ',') + '%</dd>' : '') +
       '<dt>NPP aktif</dt><dd>' + k.npp + (k.khusus ? ' · ' + k.khusus + ' punya nilai khusus' : '') + '</dd><dt>Peserta aktif</dt><dd>' + num(k.aktif) + '</dd>' +
       k.keringanan.map(x => '<dt>Keringanan</dt><dd>' + esc(x.nama) + ' ' + x.pct + '% ' + esc(x.komponen.join('+')) + '</dd>').join('') + '</dl>' +
       (k.nanti.length ? '<div class="note info">Terjadwal: ' + k.nanti.map(n => esc(n.jenis) + ' ' + (n.jenis === 'Upah' ? rp(n.nilai) : String(n.nilai).replace('.', ',') + '%') + ' mulai ' + blnID(n.mulai)).join('; ') + '</div>' : '') +
@@ -5009,7 +5495,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   async function vTarget(v, p) {
     setTitle('Target per desa', 'Opsional · untuk persentase cakupan');
     const kec = p.kec || LS.get('tKec', W().kecamatan[0] || '');
-    v.innerHTML = '<div class="note info">Target diisi per desa per kelompok. Selama kosong, laporan hanya menampilkan jumlah peserta.</div><select id="tg-k">' + opt(W().kecamatan, kec) + '</select><div id="tg-b"><div class="skeleton"></div></div>';
+    v.innerHTML = '<div class="note info">Target diisi per desa per kelompok. Selama kosong, laporan hanya menampilkan jumlah peserta.</div><select id="tg-k">' + opt(W().kecamatan, kec) + '</select><div id="tg-b" class="tumpuk"><div class="skeleton"></div></div>';
     $('#tg-k', v).onchange = e => { LS.set('tKec', e.target.value); S.params = { kec: e.target.value }; render(); };
     if (!kec) return;
     const r = await api('target', { kec });
@@ -5027,7 +5513,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   async function vBebasJP(v) {
     setTitle('Bebas JP (usia pensiun)', 'JP tidak ditagih · JHT tetap');
     const list = await api('daftarBebasJP');
-    v.innerHTML = acc('Tandai peserta', 'Cari nama atau NIK', '<input type="search" id="bj-q" placeholder="Minimal 3 huruf/angka"><div id="bj-r"></div>', { open: true }) +
+    v.innerHTML = acc('Tandai peserta', 'Cari nama atau NIK', '<input type="search" id="bj-q" placeholder="Minimal 3 huruf/angka"><div id="bj-r" class="tumpuk"></div>', { open: true }) +
       acc('Sudah ditandai', list.length + ' peserta aktif', list.map(p => '<button class="row" data-id="' + esc(p.id) + '"><span class="m"><span class="t1" style="display:block">' + esc(p.nama) + '</span><span class="t2" style="display:block">' + esc(p.kelNama) + ' · ' + esc(p.desa) + ' · ' + esc(p.ketBebasJP) + '</span></span><span class="b warn">sejak ' + esc(blnID(p.bebasJP)) + '</span></button>').join('') || '<div class="empty">Belum ada.</div>', { open: true, cls: 'flush' });
     $('#bj-q', v).oninput = debounce(async e => {
       const q = e.target.value.trim(); const box = $('#bj-r', v);
@@ -5054,7 +5540,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     v.innerHTML =
       acc('1 · Unduh template', 'Berisi daftar kelompok, kecamatan, dan desa terbaru', '<button class="btn block" id="i-t">Buat template Excel di Drive</button><button class="btn ghost block" id="i-csv">Unduh template CSV (tanpa sinyal)</button><div id="i-tl"></div>', { open: true }) +
       acc('2 · Pilih file yang sudah diisi', 'Format .xlsx atau .csv', '<label class="btn block" for="i-f">Pilih file</label><input type="file" id="i-f" accept=".xlsx,.csv,.txt" hidden><div id="i-fn" class="small muted"></div>', { open: true }) +
-      '<div id="i-res"></div>';
+      '<div id="i-res" class="tumpuk"></div>';
     $('#i-t', v).onclick = async () => {
       busy('Membuat template…');
       try { const r = await api('templateImpor'); busy(false); $('#i-tl', v).innerHTML = '<a class="btn p block" href="' + esc(r.url) + '" target="_blank" rel="noopener">Buka ' + esc(r.name) + '</a><p class="small muted">Di Drive: Unduh, isi di Excel/Google Sheets, lalu pilih di langkah 2.</p>'; }
@@ -5111,14 +5597,13 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     const f = (k, l, ph) => '<div class="field"><label for="s-' + k + '">' + l + '</label><input type="text" id="s-' + k + '" value="' + esc(s[k]) + '" placeholder="' + esc(ph || '') + '"></div>';
     v.innerHTML =
       acc('Batas upah JP', s.BATAS_UPAH_JP ? rp(s.BATAS_UPAH_JP) : 'Belum diisi · tanpa batas', f('BATAS_UPAH_JP', 'Batas upah JP (Rp)', 'mis. 10.547.400') + '<small class="muted">Iuran JP dihitung dari acuan upah, paling tinggi sebesar batas ini.</small>', { open: true }) +
-      acc('Penandatangan', esc(s.TTD1_NAMA) + ' · ' + esc(s.TTD2_NAMA), '<div class="sec" style="margin:0">Kiri</div>' + f('TTD1_JUDUL', 'Judul') + f('TTD1_NAMA', 'Nama') + f('TTD1_JABATAN', 'Jabatan') + '<div class="sec" style="margin:4px 0 0">Kanan</div>' + f('TTD2_JUDUL', 'Judul') + f('TTD2_NAMA', 'Nama') + f('TTD2_JABATAN', 'Jabatan')) +
       acc('Kode bayar Bank Jatim', 'PU: ' + esc(s.KODE_BAYAR_AWALAN) + ' + NPP + ' + esc(s.KODE_BAYAR_AKHIRAN) + ' · BPU diisi per NPP', '<div class="row2">' + f('KODE_BAYAR_AWALAN', 'Awalan') + f('KODE_BAYAR_AKHIRAN', 'Akhiran') + '</div><button class="btn ghost" id="s-bpu">NPP BPU tanpa kode bayar</button>') +
       acc('Judul dokumen', '', f('JUDUL_TAGIHAN', 'Judul sheet Tagihan') + f('JUDUL_LAPORAN', 'Judul laporan cakupan') + f('UNIT', 'Unit kerja')) +
       '<button class="btn p block" id="s-save">Simpan pengaturan</button>';
     $('#s-bpu', v).onclick = () => go('npp', { bpuTanpaKode: true });
     $('#s-save', v).onclick = async () => {
       const d = {};
-      ['BATAS_UPAH_JP', 'TTD1_JUDUL', 'TTD1_NAMA', 'TTD1_JABATAN', 'TTD2_JUDUL', 'TTD2_NAMA', 'TTD2_JABATAN', 'KODE_BAYAR_AWALAN', 'KODE_BAYAR_AKHIRAN', 'JUDUL_TAGIHAN', 'JUDUL_LAPORAN', 'UNIT'].forEach(k => { d[k] = $('#s-' + k, v).value; });
+      ['BATAS_UPAH_JP', 'KODE_BAYAR_AWALAN', 'KODE_BAYAR_AKHIRAN', 'JUDUL_TAGIHAN', 'JUDUL_LAPORAN', 'UNIT'].forEach(k => { d[k] = $('#s-' + k, v).value; });
       const r = await write('simpanPengaturan', [d]); if (r) render();
     };
   }
@@ -5128,7 +5613,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     setTitle('Data IBR', 'Saldo iuran (IJT) per NPP');
     const i = S.boot.ibr || {};
     v.innerHTML = '<div class="card pad"><dl class="kv"><dt>Baris di sheet IBR</dt><dd>' + num(i.rows) + '</dd><dt>Impor terakhir</dt><dd>' + (i.lastImport ? waktuID(i.lastImport.at) + '<br><span class="small muted">' + esc(i.lastImport.file) + '</span>' : 'belum pernah lewat aplikasi') + '</dd></dl></div>' +
-      acc('Impor file IBR', 'Isi sheet IBR diganti · bisa dibatalkan', '<p class="small muted" style="margin:0">Baris 1 judul, <b>kolom B = NPP</b>, <b>kolom J = IJT</b>. Sama seperti sheet IBR sekarang.</p><label class="btn block" for="ib-f">Pilih file IBR</label><input type="file" id="ib-f" accept=".xlsx,.csv,.txt" hidden><div id="ib-p"></div>', { open: true });
+      acc('Impor file IBR', 'Isi sheet IBR diganti · bisa dibatalkan', '<p class="small muted" style="margin:0">Baris 1 judul, <b>kolom B = NPP</b>, <b>kolom J = IJT</b>. Sama seperti sheet IBR sekarang.</p><label class="btn block" for="ib-f">Pilih file IBR</label><input type="file" id="ib-f" accept=".xlsx,.csv,.txt" hidden><div id="ib-p" class="tumpuk"></div>', { open: true });
     $('#ib-f', v).onchange = async e => {
       const file = e.target.files[0]; if (!file) return;
       busy('Membaca file…');
@@ -5195,92 +5680,184 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     S.lap = R;
     setTitle('Laporan cakupan', 'Posisi ' + tglID(R.posisi) + ' · ' + R.kelompokNama);
     const metric = LS.get('lapMetric', '');
-    const val = (x, m) => m ? (x.grp[m] || 0) : x.n;
+    const GK = R.grupKec || [];
+    // Persentase terhadap target hanya memakai peserta desa (kelompok tingkat kecamatan tidak punya target desa)
+    const val = (x, m) => m ? (x.grp[m] || 0) : (x.target && x.nDesa !== undefined ? x.nDesa : x.n);
     const tval = (x, m) => x.target ? (m ? x.target.grp[m] : x.target.total) : 0;
     const max = Math.max(1, ...R.kec.map(k => val(k, metric)));
     const anyT = R.kec.some(k => tval(k, metric) > 0);
     const kecSorted = R.kec.slice().sort((a, b) => anyT ? ((tval(a, metric) ? val(a, metric) / tval(a, metric) : 2) - (tval(b, metric) ? val(b, metric) / tval(b, metric) : 2)) : val(a, metric) - val(b, metric));
-    const gname = k => (R.grup.find(g => g.key === k) || {}).nama || k;
+    const gname = k => (R.grup.concat(GK).find(g => g.key === k) || {}).nama || k;
+    const tkTeks = (k, g) => k.tkNpp && k.tkNpp[g.key] && k.tkNpp[g.key].length ? num(k.tk.grp[g.key] || 0) + ' peserta' : '';
     const cellsOf = x => R.grup.map(g => '<span class="' + (x.grp[g.key] ? '' : 'z') + '">' + esc(g.nama) + ' ' + (x.grp[g.key] || 0) + (x.target && x.target.grp[g.key] ? '/' + x.target.grp[g.key] : '') + '</span>').join('');
     v.innerHTML =
       acc('Filter', 'Posisi ' + tglID(R.posisi) + ' · ' + esc(R.kelompokNama),
         '<div class="field"><label for="lp-d">Posisi tanggal</label><input type="date" id="lp-d" value="' + esc(R.posisi) + '"></div>' + kelChips(sel) + '<button class="btn p block" id="lp-go">Terapkan</button>', { id: 'lp-f' }) +
       '<div class="kpis"><div class="kpi hero"><div class="l">Peserta aktif</div><div class="v">' + num(R.kab.n) + '</div></div><div class="kpi"><div class="l">Desa</div><div class="v">' + num(R.kab.desa) + '</div></div><div class="kpi"><div class="l">Desa tanpa peserta</div><div class="v" style="color:var(--danger)">' + num(R.kab.desaKosong) + '</div></div></div>' +
+      GK.map(g => '<div class="note info"><b>' + esc(g.nama) + '</b> (tingkat kecamatan, tidak ikut kelengkapan desa): ada di ' + (R.kab.kecTk[g.key] || 0) + ' dari ' + R.kec.length + ' kecamatan · ' + num(R.kab.tk.grp[g.key] || 0) + ' peserta.</div>').join('') +
       (R.tanpaNpp ? '<div class="note warn">' + R.tanpaNpp + ' peserta belum punya NPP (tetap dihitung di laporan).</div>' : '') +
       acc('Peserta per kecamatan', anyT ? 'Persentase terhadap target · terendah di atas' : 'Jumlah peserta · paling sedikit di atas',
-        '<div class="chips" id="lp-m"><button class="chip' + (!metric ? ' on' : '') + '" data-mm="">Semua</button>' + R.grup.map(g => '<button class="chip' + (metric === g.key ? ' on' : '') + '" data-mm="' + esc(g.key) + '">' + esc(g.nama) + '</button>').join('') + '</div>' +
+        '<div class="chips" id="lp-m"><button class="chip' + (!metric ? ' on' : '') + '" data-mm="">Semua</button>' + R.grup.map(g => '<button class="chip' + (metric === g.key ? ' on' : '') + '" data-mm="' + esc(g.key) + '">' + esc(g.nama) + '</button>').join('') + GK.map(g => '<button class="chip' + (metric === g.key ? ' on' : '') + '" data-mm="' + esc(g.key) + '">' + esc(g.nama) + ' (kec.)</button>').join('') + '</div>' +
         (anyT ? '' : '<div class="note info">Target belum diisi, jadi grafik menampilkan jumlah. <button class="link" id="lp-t">Isi target</button></div>') +
         '<div class="bars">' + kecSorted.map(k => { const n = val(k, metric), t = tval(k, metric); const w = t ? Math.min(100, n / t * 100) : n / max * 100; return '<div class="bar" data-k="' + esc(k.nama) + '"><span>' + esc(k.nama) + '</span><div class="tr"><div class="fi" style="width:' + w.toFixed(1) + '%"></div></div><span class="v">' + (t ? pct(n / t * 100) : num(n)) + '</span></div>'; }).join('') + '</div>', { open: true }) +
       '<div class="sec">Rincian per kecamatan</div>' +
-      kecSorted.map(k => acc(esc(k.nama), k.desa + ' desa · ' + (k.desaKosong ? '<span style="color:var(--danger)">' + k.desaKosong + ' tanpa peserta</span>' : 'semua ada peserta'),
+      kecSorted.map(k => acc(esc(k.nama), k.desa + ' desa · ' + (k.desaKosong ? '<span style="color:var(--danger)">' + k.desaKosong + ' tanpa peserta</span>' : 'semua ada peserta') + GK.map(g => ' · ' + (tkTeks(k, g) ? esc(g.nama) + ' ' + tkTeks(k, g) : '<span style="color:var(--danger)">belum ada ' + esc(g.nama) + '</span>')).join(''),
+        GK.map(g => '<div class="row" style="cursor:default;display:block;background:var(--surface-2)"><b>' + esc(g.nama) + ' (tingkat kecamatan)</b> · ' + (k.tkNpp[g.key].length ? 'NPP ' + esc(k.tkNpp[g.key].join(', ')) + ' · <b>' + num(k.tk.grp[g.key] || 0) + '</b> peserta' : '<span style="color:var(--danger)">belum ada</span>') + '</div>').join('') +
         '<div class="badges" style="padding:10px 16px 6px;margin:0"><span class="b pu">2P ' + k.prog['2P'] + '</span><span class="b pu">3P ' + k.prog['3P'] + '</span><span class="b pu">4P ' + k.prog['4P'] + '</span>' + R.grup.map(g => '<span class="b">' + esc(g.nama) + ' ' + (k.grp[g.key] || 0) + '</span>').join('') + '</div>' +
-        k.desaList.map(d => '<div class="row" style="cursor:default;display:block"><div style="display:flex;justify-content:space-between;gap:8px"><b style="' + (d.n ? '' : 'color:var(--danger)') + '">' + esc(d.nama) + (d.n ? '' : ' · belum ada peserta') + '</b><span class="num small"><b>' + d.n + '</b>' + (d.target ? ' / ' + d.target.total + ' (' + pct(d.n / d.target.total * 100) + ')' : '') + ' · ' + d.terisi + '/' + R.lengkap + ' kelompok</span></div><div class="cells">' + cellsOf(d) + '</div></div>').join(''),
+        k.desaList.map(d => '<button class="row" data-wk="' + esc(k.nama) + '" data-wd="' + esc(d.nama) + '" style="display:block;width:100%;text-align:left"><div style="display:flex;justify-content:space-between;gap:8px"><b style="' + (d.n ? '' : 'color:var(--danger)') + '">' + esc(d.nama) + (d.n ? '' : ' · belum ada peserta') + '</b><span class="num small"><b>' + d.n + '</b>' + (d.target ? ' / ' + d.target.total + ' (' + pct(d.n / d.target.total * 100) + ')' : '') + ' · ' + d.terisi + '/' + R.lengkap + ' kelompok</span></div><div class="cells">' + cellsOf(d) + '</div></button>').join('') +
+        '<div style="padding:10px 16px 12px"><button class="btn sm block" data-wk="' + esc(k.nama) + '" data-wd="">Profil Kecamatan ' + esc(k.nama) + '</button></div>',
         { cls: 'flush', end: '<b class="num">' + num(k.n) + '</b>', id: 'k-' + k.nama.replace(/\W/g, '') })).join('') +
-      '<button class="btn p block" id="lp-pdf">Cetak / simpan PDF A4</button><p class="small muted" style="text-align:center;margin:-4px 0 0">Ringkasan kabupaten + satu halaman per kecamatan · pilih "Simpan sebagai PDF" di dialog cetak</p>';
+      '<button class="btn p block" id="lp-pdf">Simpan PDF A4</button><p class="small muted" style="text-align:center;margin:0">Ringkasan kabupaten + satu halaman per kecamatan · dibuat di perangkat, juga tanpa sinyal</p>';
     bindKelChips($('#lp-f', v), sel, () => {});
     $('#lp-go', v).onclick = () => { LS.set('kelLap', Array.from(sel)); LS.set('posisi', $('#lp-d', v).value); S.params = { posisi: $('#lp-d', v).value }; render(); };
     $$('[data-mm]', v).forEach(c => c.onclick = () => { LS.set('lapMetric', c.dataset.mm); render(); });
     const t = $('#lp-t', v); if (t) t.onclick = () => go('target');
     $$('.bar', v).forEach(b => b.onclick = () => { const d = $('#k-' + b.dataset.k.replace(/\W/g, ''), v); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
-    $('#lp-pdf', v).onclick = () => cetakLaporan(R, gname);
+    $('#lp-pdf', v).onclick = () => siapkanPdf(() => pdfLaporan(R), 'Laporan Cakupan (' + tglID(R.posisi) + ').pdf');
+    $$('[data-wk]', v).forEach(b => b.onclick = () => go('wilayah', { kec: b.dataset.wk, desa: b.dataset.wd }));
+  }
+
+  // ---------- Profil desa / kecamatan ----------
+  async function vWilayah(v, p) {
+    const simpan = LS.get('wil', { kec: '', desa: '' });
+    const kec = p.kec !== undefined ? p.kec : simpan.kec, desa = p.kec !== undefined ? (p.desa || '') : simpan.desa;
+    setTitle(desa ? 'Profil desa' : 'Profil kecamatan', 'Nama peserta aktif per kelompok');
+    const pilih = '<div class="card pad tumpuk"><div class="row2"><div class="field"><label for="w-kec">Kecamatan</label><select id="w-kec">' + opt(W().kecamatan, kec, 'Pilih…') + '</select></div>' +
+      '<div class="field"><label for="w-desa">Desa</label><select id="w-desa">' + opt([{ v: '', t: 'Seluruh kecamatan' }].concat((W().desa[kec] || []).map(x => ({ v: x, t: x }))), desa) + '</select></div></div></div>';
+    v.innerHTML = pilih + '<div id="w-isi" class="tumpuk">' + (kec ? '<div class="empty">Memuat…</div>' : '<div class="empty">Pilih kecamatan, lalu desa (atau seluruh kecamatan).</div>') + '</div>';
+    $('#w-kec', v).onchange = e => go('wilayah', { kec: e.target.value, desa: '' }, true);
+    $('#w-desa', v).onchange = e => go('wilayah', { kec: $('#w-kec', v).value, desa: e.target.value }, true);
+    if (!kec) return;
+    LS.set('wil', { kec, desa });
+    const R = await api('profilWilayah', { kec, desa });
+    const isi = $('#w-isi', v); if (!isi) return;
+    const orangRow = o => '<button class="row" data-id="' + esc(o.id) + '"><span class="m"><span class="t1" style="display:block">' + esc(o.nama) + '</span><span class="t2" style="display:block">' + esc(o.nik) + ' · ' + esc(o.program || '-') + (o.bebasJP ? ' · Bebas JP' : '') + '</span></span><span class="chev"></span></button>';
+    const nppBaris = n => '<div class="small" style="padding:10px 16px 4px;color:var(--muted)">NPP <b style="color:var(--ink)">' + esc(n.npp) + '</b> · ' + esc(n.nama) + ' · ' + esc(n.program || '-') + ' · ' + n.tk + ' TK</div>';
+    if (desa) {
+      setTitle('Desa ' + R.desa, 'Kec. ' + R.kec + ' · ' + num(R.total) + ' peserta aktif');
+      const kosong = R.kelompok.filter(k => k.lengkap && !k.peserta.length);
+      isi.innerHTML =
+        '<div class="kpis k3"><div class="kpi hero"><div class="l">Peserta aktif</div><div class="v">' + num(R.total) + '</div></div><div class="kpi"><div class="l">Kelompok terisi</div><div class="v">' + R.terisi + '/' + R.lengkap + '</div></div><div class="kpi"><div class="l">2P / 3P / 4P</div><div class="v" style="font-size:16px">' + R.program['2P'] + ' / ' + R.program['3P'] + ' / ' + R.program['4P'] + '</div></div></div>' +
+        (kosong.length ? '<div class="note warn">Belum ada peserta: <b>' + kosong.map(k => esc(k.nama)).join(', ') + '</b>. Tujuannya setiap kelompok di desa ini terdaftar.</div>' : '<div class="note ok">Semua kelompok sudah ada peserta.</div>') +
+        R.kelompok.filter(k => k.peserta.length || k.npp.length).map(k => acc(esc(k.nama), k.peserta.length + ' orang' + (k.npp.length ? ' · NPP ' + k.npp.map(n => esc(n.npp)).join(', ') : ' · belum ada NPP'),
+          k.npp.map(nppBaris).join('') + (k.peserta.map(orangRow).join('') || '<div class="empty">Belum ada peserta aktif di NPP ini.</div>'),
+          { cls: 'flush', open: true, end: k.jenis ? '<span class="b ' + (k.jenis === 'BPU' ? 'bpu' : 'pu') + '">' + k.jenis + '</span>' : '' })).join('') +
+        (R.nppKec.length ? '<div class="note info">Kecamatan ' + esc(R.kec) + ' juga punya NPP tingkat kecamatan: ' + R.nppKec.map(n => esc(n.kelNama) + ' ' + esc(n.npp) + ' (' + n.tk + ' TK)').join(', ') + '. <button class="link" data-wk="' + esc(R.kec) + '">Lihat profil kecamatan</button></div>' : '') +
+        '<div class="btns"><button class="btn" id="w-salin">Salin daftar nama</button><button class="btn" data-wk="' + esc(R.kec) + '">Seluruh Kec. ' + esc(R.kec) + '</button></div>';
+      $('#w-salin', v).onclick = async () => {
+        const t = 'Desa ' + R.desa + ', Kec. ' + R.kec + ' · ' + R.total + ' peserta aktif\n' + R.kelompok.filter(k => k.peserta.length).map(k => '\n' + k.nama + ' (' + k.peserta.length + ')\n' + k.peserta.map((o, i) => (i + 1) + '. ' + o.nama).join('\n')).join('\n') + (kosong.length ? '\n\nBelum ada peserta: ' + kosong.map(k => k.nama).join(', ') : '');
+        try { await navigator.clipboard.writeText(t); toast('Daftar nama disalin (tanpa NIK).'); } catch (e) { window.prompt('Salin daftar nama:', t); }
+      };
+    } else {
+      setTitle('Kecamatan ' + R.kec, num(R.total) + ' peserta aktif · ' + R.desaList.length + ' desa');
+      const wajib = R.kelompok.filter(g => g.lengkap);
+      isi.innerHTML =
+        '<div class="kpis k3"><div class="kpi hero"><div class="l">Peserta aktif</div><div class="v">' + num(R.total) + '</div></div><div class="kpi"><div class="l">Desa</div><div class="v">' + R.desaList.length + '</div></div><div class="kpi"><div class="l">Desa tanpa peserta</div><div class="v"' + (R.desaKosong ? ' style="color:var(--danger)"' : '') + '>' + R.desaKosong + '</div></div></div>' +
+        '<div class="badges" style="margin:0">' + R.kelompok.map(g => '<span class="b' + (R.grp[g.kode] ? '' : ' z') + '">' + esc(g.nama) + ' ' + num(R.grp[g.kode]) + '</span>').join('') + '</div>' +
+        '<div class="sec" style="margin:0">Per desa · ketuk untuk melihat nama</div>' +
+        '<div class="card">' + R.desaList.map(d => {
+          const blm = wajib.filter(g => !d.grp[g.kode]);
+          return '<button class="row" data-wd="' + esc(d.nama) + '"><span class="m"><span class="t1" style="display:block' + (d.n ? '' : ';color:var(--danger)') + '">' + esc(d.nama) + '</span><span class="t2" style="display:block;white-space:normal">' + d.terisi + '/' + R.lengkap + ' kelompok' + (blm.length ? ' · <span style="color:var(--danger)">belum: ' + blm.map(g => esc(g.nama)).join(', ') + '</span>' : '') + '</span></span><b class="num">' + num(d.n) + '</b><span class="chev"></span></button>';
+        }).join('') + '</div>' +
+        '<div class="sec" style="margin:0">Tingkat kecamatan</div>' +
+        (R.nppKec.length ? R.nppKec.map(n => acc(esc(n.kelNama) + ' · ' + esc(n.nama), 'NPP ' + esc(n.npp) + ' · ' + esc(n.program || '-') + ' · ' + n.tk + ' orang',
+          n.peserta.map(orangRow).join('') || '<div class="empty">Belum ada peserta aktif.</div>', { cls: 'flush' })).join('')
+          : '<div class="note info">Belum ada NPP tingkat kecamatan (mis. BUMDesma). NPP dengan kolom Desa kosong dan Kecamatan ' + esc(R.kec) + ' akan tampil di sini.</div>');
+      $$('[data-wd]', isi).forEach(b => b.onclick = () => go('wilayah', { kec: R.kec, desa: b.dataset.wd }));
+    }
+    $$('[data-wk]', isi).forEach(b => b.onclick = () => go('wilayah', { kec: b.dataset.wk, desa: '' }));
+    $$('[data-id]', isi).forEach(b => b.onclick = () => go('detail', { id: b.dataset.id }));
   }
 
   /**
-   * Laporan cakupan A4 tegak lewat dialog cetak browser (Simpan sebagai PDF). Dibuat di perangkat, tanpa pustaka
-   * luar dan tanpa sinyal. Aturan tata letak sama dengan PDF 2.0: judul tabel berulang tiap halaman, baris tidak
-   * terpotong, lebar kolom dipaskan ke A4, satu halaman per kecamatan.
+   * Laporan cakupan PDF A4 tegak, dibuat di perangkat (juga di iPhone & tanpa sinyal): logo BPJS Ketenagakerjaan,
+   * ringkasan kabupaten + satu halaman per kecamatan. Judul tabel berulang, baris tidak terpotong.
    */
-  function cetakLaporan(R) {
-    const G = R.grup;
-    const anyT = R.kec.some(k => k.target);
-    const n = x => nf.format(x || 0);
-    const pc = (a, b) => b ? pct(a / b * 100) : '';
+  function pdfLaporan(R) {
+    const UNGU = '#5b2a6e', MERAH = '#b3261e', G = R.grup, GK = R.grupKec || [], anyT = R.kec.some(k => k.target);
+    const n = x => num(x), pc = (a, t) => t ? pct(a / t * 100) : '-';
+    const nD = x => x.nDesa !== undefined ? x.nDesa : x.n; // cakupan target hanya peserta desa
+    const tkSel = (k, g) => k.tkNpp && k.tkNpp[g.key] && k.tkNpp[g.key].length ? n(k.tk.grp[g.key] || 0) : 'belum';
+    const d = new M3.Pdf({ arah: 'P' }), L = M3.logo();
     const filter = 'Posisi ' + tglID(R.posisi) + ' · ' + R.kelompokNama + (anyT ? '' : ' · target belum diisi');
-    const z = (x, t) => '<td class="' + (x ? '' : 'nol') + '">' + n(x) + (t ? '/' + n(t) : '') + '</td>';
-    const bars = rows => {
-      const mx = Math.max(1, ...rows.map(r => r.v));
-      return '<table class="c-bar">' + rows.map(r => '<tr><td class="lb' + (r.zero ? ' nol' : '') + '">' + esc(r.label) + '</td><td class="tr"><span style="width:' + (Math.min(r.v / (r.t || mx), 1) * 100).toFixed(1) + '%"></span></td><td class="vl">' + (r.t ? pct(r.v / r.t * 100) : n(r.v)) + '</td></tr>').join('') + '</table>';
+    const kepala = (label, judul, sub) => {
+      const lw = 112, lh = lw * L.h / L.w;
+      d.jpeg(L.data, L.w, L.h, d.W - d.m.r - lw, d.y - 4, lw, lh);
+      d.teks(d.m.l, d.y, label, { uk: 7.5, tebal: true, warna: UNGU }); d.y += 11;
+      d.teks(d.m.l, d.y, judul, { uk: 15, tebal: true, lebar: d.lebarIsi - lw - 10 }); d.y += 19;
+      d.teks(d.m.l, d.y, sub, { uk: 8, warna: '#4f4655', lebar: d.lebarIsi - lw - 10 }); d.y += 12;
+      d.garis(d.m.l, d.y, d.W - d.m.r, d.y, { warna: UNGU, tebal: 1.2 }); d.y += 10;
     };
-    const head2 = (first, extra) => '<thead><tr><th rowspan="2" class="kiri">' + first + '</th><th rowspan="2"' + (first === 'No' ? ' class="kiri"' : '') + '>Desa</th><th rowspan="2">Peserta</th><th colspan="3">Program</th><th colspan="' + G.length + '">Kelompok</th>' +
-      extra.map(x => '<th rowspan="2">' + x + '</th>').join('') + '</tr><tr><th>2P</th><th>3P</th><th>4P</th>' + G.map(g => '<th>' + esc(g.nama) + '</th>').join('') + '</tr></thead>';
+    const kpi = (isi) => {
+      const w = (d.lebarIsi - 8 * (isi.length - 1)) / isi.length;
+      isi.forEach((k, i) => {
+        const x = d.m.l + i * (w + 8);
+        d.kotak(x, d.y, w, 38, { isi: i === 0 ? UNGU : '#f2eef4' });
+        d.teks(x + 7, d.y + 6, k[0], { uk: 7, warna: i === 0 ? '#eadcf0' : '#4f4655', lebar: w - 12 });
+        d.teks(x + 7, d.y + 17, k[1], { uk: 13, tebal: true, warna: i === 0 ? '#ffffff' : (k[2] ? MERAH : '#1d1620'), lebar: w - 12 });
+      });
+      d.y += 48;
+    };
+    const batang = (rows) => {
+      const mx = Math.max(1, ...rows.map(r => r.v)), lbl = 92, nil = 50, tr = d.lebarIsi - lbl - nil - 8;
+      rows.forEach(r => {
+        d.ruang(11);
+        d.teks(d.m.l, d.y, r.label, { uk: 7, lebar: lbl - 4, warna: r.zero ? MERAH : '#1d1620', tebal: r.zero });
+        d.kotak(d.m.l + lbl, d.y - 0.5, tr, 6.5, { isi: '#f2eef4' });
+        const w = Math.min(r.v / (r.t || mx), 1) * tr; if (w > 0) d.kotak(d.m.l + lbl, d.y - 0.5, w, 6.5, { isi: UNGU });
+        d.teks(d.m.l + lbl + tr + 4, d.y, r.t ? pct(r.v / r.t * 100) : n(r.v), { uk: 7, tebal: true, rata: 'kanan', lebar: nil });
+        d.y += 10.5;
+      });
+      d.y += 6;
+    };
+    const sub3 = t => { d.ruang(30); d.teks(d.m.l, d.y, t, { uk: 9.5, tebal: true }); d.y += 14; };
+    const kolomDasar = (pertama, lebarPertama) => [{ judul: pertama, lebar: lebarPertama, rata: pertama === 'No' ? 'tengah' : 'kiri' }]
+      .concat(pertama === 'No' ? [{ judul: 'Desa', lebar: 0, bungkus: 2 }] : [{ judul: 'Desa', lebar: 26, rata: 'kanan' }],
+        [{ judul: 'Peserta', lebar: 34, rata: 'kanan' }, { judul: '2P', lebar: 26, rata: 'kanan' }, { judul: '3P', lebar: 22, rata: 'kanan' }, { judul: '4P', lebar: 22, rata: 'kanan' }],
+        G.map(g => ({ judul: g.nama.replace('Lembaga Adat Desa', 'LAD'), lebar: 34, rata: 'kanan' })));
+    const merahNol = (vals, mulai) => vals.map((v, i) => i >= mulai && i < mulai + G.length && v === '0' ? MERAH : null);
+
+    // Halaman 1: kabupaten
+    kepala('LAPORAN CAKUPAN KEPESERTAAN · EKOSISTEM DESA', R.judul, filter + ' · ' + R.unit);
+    kpi([['Peserta aktif', n(R.kab.n)], ['Program 2P / 3P / 4P', n(R.kab.prog['2P']) + ' / ' + n(R.kab.prog['3P']) + ' / ' + n(R.kab.prog['4P'])], ['Desa', n(R.kab.desa)], ['Desa tanpa peserta', n(R.kab.desaKosong), R.kab.desaKosong > 0]]
+      .concat(GK.map(g => ['Kecamatan ada ' + g.nama, (R.kab.kecTk[g.key] || 0) + ' / ' + R.kec.length, (R.kab.kecTk[g.key] || 0) < R.kec.length])));
+    sub3(anyT ? 'Cakupan peserta per kecamatan terhadap target' : 'Peserta aktif per kecamatan');
+    batang(R.kec.slice().sort((a, b) => a.n - b.n).map(k => ({ label: k.nama, v: anyT && k.target ? nD(k) : k.n, t: anyT && k.target ? k.target.total : 0, zero: !k.n })));
+    sub3('Rangkuman per kecamatan');
     const kecRows = R.kec.slice().sort((a, b) => a.nama.localeCompare(b.nama));
-    let h = '<section class="c-hal">' +
-      '<div class="c-kepala"><div><div class="c-label">LAPORAN CAKUPAN KEPESERTAAN</div><div class="c-judul">' + esc(R.judul) + '</div><div class="c-sub">' + esc(filter) + '</div></div><div class="c-unit">' + esc(R.unit) + '<br>MyTagihan Desa</div></div>' +
-      '<div class="c-kpi">' + [['Peserta aktif', n(R.kab.n)], ['Program 2P / 3P / 4P', n(R.kab.prog['2P']) + ' / ' + n(R.kab.prog['3P']) + ' / ' + n(R.kab.prog['4P'])], ['Desa', n(R.kab.desa)], ['Desa tanpa peserta', n(R.kab.desaKosong)]]
-        .map((x, i) => '<div><span>' + x[0] + '</span><b' + (i === 3 ? ' class="nol"' : '') + '>' + x[1] + '</b></div>').join('') + '</div>' +
-      '<h3>' + (anyT ? 'Cakupan peserta per kecamatan terhadap target' : 'Peserta aktif per kecamatan') + '</h3>' +
-      bars(R.kec.slice().sort((a, b) => a.n - b.n).map(k => ({ label: k.nama, v: k.n, t: anyT && k.target ? k.target.total : 0, zero: !k.n }))) +
-      '<h3>Rangkuman per kecamatan</h3><table class="c-tbl">' + head2('Kecamatan', ['Desa tanpa peserta'].concat(anyT ? ['Target', 'Cakupan'] : [])) + '<tbody>' +
-      kecRows.map(k => '<tr><td class="kiri">' + esc(k.nama) + '</td><td>' + k.desa + '</td><td><b>' + n(k.n) + '</b></td><td>' + n(k.prog['2P']) + '</td><td>' + n(k.prog['3P']) + '</td><td>' + n(k.prog['4P']) + '</td>' +
-        G.map(g => z(k.grp[g.key])).join('') + '<td class="' + (k.desaKosong ? 'nol' : '') + '">' + k.desaKosong + '</td>' +
-        (anyT ? '<td>' + (k.target ? n(k.target.total) : '-') + '</td><td>' + (k.target ? pc(k.n, k.target.total) : '-') + '</td>' : '') + '</tr>').join('') +
-      '<tr class="jml"><td class="kiri">Jumlah</td><td>' + R.kab.desa + '</td><td>' + n(R.kab.n) + '</td><td>' + n(R.kab.prog['2P']) + '</td><td>' + n(R.kab.prog['3P']) + '</td><td>' + n(R.kab.prog['4P']) + '</td>' +
-        G.map(g => '<td>' + n(R.kab.grp[g.key]) + '</td>').join('') + '<td>' + R.kab.desaKosong + '</td>' +
-        (anyT ? '<td>' + (R.kab.target ? n(R.kab.target.total) : '-') + '</td><td>' + (R.kab.target ? pc(R.kab.n, R.kab.target.total) : '-') + '</td>' : '') + '</tr></tbody></table>' +
-      '<p class="c-cat">LKD = Kader Posyandu, Kader PKK, Karang Taruna, RT/RW. Angka 0 merah = belum ada peserta. Rincian desa per kecamatan di halaman berikutnya.</p></section>';
-    kecRows.forEach(k => {
-      const ds = k.desaList.slice().sort((a, b) => a.nama.localeCompare(b.nama));
-      h += '<section class="c-hal baru"><div class="c-label">KECAMATAN</div><div class="c-baris"><div class="c-judul">' + esc(k.nama) + '</div><div class="c-sub">' + n(k.n) + ' peserta aktif · ' + k.desa + ' desa · ' + k.desaKosong + ' tanpa peserta' + (k.target ? ' · cakupan ' + pc(k.n, k.target.total) : '') + '</div></div>' +
-        '<div class="c-sub">2P ' + n(k.prog['2P']) + ' · 3P ' + n(k.prog['3P']) + ' · 4P ' + n(k.prog['4P']) + ' · ' + G.map(g => esc(g.nama) + ' ' + n(k.grp[g.key])).join(' · ') + '</div>' +
-        (ds.length <= 30 ? '<h3>Peserta aktif per desa' + (anyT ? ' (persen terhadap target bila diisi)' : '') + '</h3>' + bars(k.desaList.map(d => ({ label: d.nama, v: d.n, t: anyT && d.target ? d.target.total : 0, zero: !d.n }))) : '') +
-        '<table class="c-tbl">' + head2('No', ['Kel. terisi'].concat(anyT ? ['Target', 'Cakupan'] : [])) + '<tbody>' +
-        ds.map((d, i) => '<tr class="' + (d.n ? '' : 'kosong') + '"><td class="tengah">' + (i + 1) + '</td><td class="kiri' + (d.n ? '' : ' nol') + '">' + esc(d.nama) + '</td><td><b>' + n(d.n) + '</b></td><td>' + n(d.prog['2P']) + '</td><td>' + n(d.prog['3P']) + '</td><td>' + n(d.prog['4P']) + '</td>' +
-          G.map(g => z(d.grp[g.key], d.target && d.target.grp[g.key])).join('') + '<td class="tengah">' + d.terisi + '/' + R.lengkap + '</td>' +
-          (anyT ? '<td>' + (d.target ? n(d.target.total) : '-') + '</td><td>' + (d.target ? pc(d.n, d.target.total) : '-') + '</td>' : '') + '</tr>').join('') +
-        '<tr class="jml"><td></td><td class="kiri">Jumlah ' + esc(k.nama) + '</td><td>' + n(k.n) + '</td><td>' + n(k.prog['2P']) + '</td><td>' + n(k.prog['3P']) + '</td><td>' + n(k.prog['4P']) + '</td>' +
-          G.map(g => '<td>' + n(k.grp[g.key]) + '</td>').join('') + '<td></td>' + (anyT ? '<td>' + (k.target ? n(k.target.total) : '-') + '</td><td>' + (k.target ? pc(k.n, k.target.total) : '-') + '</td>' : '') + '</tr></tbody></table></section>';
+    const kol1 = kolomDasar('Kecamatan', 0).map((k, i) => i === 0 ? Object.assign(k, { lebar: 0, bungkus: 2 }) : k)
+      .concat(GK.map(g => ({ judul: g.nama + ' (kec.)', lebar: 44, rata: 'kanan' })), [{ judul: 'Desa tanpa peserta', lebar: 34, rata: 'kanan' }], anyT ? [{ judul: 'Target', lebar: 36, rata: 'kanan' }, { judul: 'Cakupan', lebar: 34, rata: 'kanan' }] : []);
+    const b1 = kecRows.map(k => {
+      const v = [k.nama, String(k.desa), n(k.n), n(k.prog['2P']), n(k.prog['3P']), n(k.prog['4P'])].concat(G.map(g => n(k.grp[g.key])), GK.map(g => tkSel(k, g)), [String(k.desaKosong)], anyT ? [k.target ? n(k.target.total) : '-', k.target ? pc(nD(k), k.target.total) : '-'] : []);
+      const w = merahNol(v, 6); GK.forEach((g, i) => { if (v[6 + G.length + i] === 'belum' || v[6 + G.length + i] === '0') w[6 + G.length + i] = MERAH; }); if (k.desaKosong) w[6 + G.length + GK.length] = MERAH;
+      return { sel: v, warna: w };
     });
-    const box = document.createElement('div');
-    box.id = 'cetak';
-    box.innerHTML = '<style>@page{size:A4 portrait;margin:14mm 14mm 16mm;@bottom-left{content:"Dicetak ' + esc(R.dibuat).replace(/"/g, '') + ' · ' + esc(filter).replace(/"/g, '') + '";font:7pt system-ui;color:#555}@bottom-right{content:"Hal " counter(page) " dari " counter(pages);font:7pt system-ui;color:#555}}</style>' + h;
-    document.querySelectorAll('#cetak').forEach(x => x.remove());
-    document.body.appendChild(box);
-    const lama = document.title;
-    document.title = 'Laporan Cakupan ' + R.posisi;
-    document.documentElement.classList.add('mencetak');
-    const selesai = () => { document.documentElement.classList.remove('mencetak'); box.remove(); document.title = lama; window.removeEventListener('afterprint', selesai); };
-    window.addEventListener('afterprint', selesai);
-    setTimeout(() => window.print(), 60);
+    b1.push({ jenis: 'total', sel: ['Jumlah', String(R.kab.desa), n(R.kab.n), n(R.kab.prog['2P']), n(R.kab.prog['3P']), n(R.kab.prog['4P'])].concat(G.map(g => n(R.kab.grp[g.key])), GK.map(g => n(R.kab.tk.grp[g.key] || 0)), [String(R.kab.desaKosong)], anyT ? [R.kab.target ? n(R.kab.target.total) : '-', R.kab.target ? pc(nD(R.kab), R.kab.target.total) : '-'] : []) });
+    d.tabel({ kolom: kol1, baris: b1, uk: 6.6, warnaJudul: UNGU, warnaTotal: '#ece4f0' });
+    d.y += 4; d.ruang(22);
+    d.teks(d.m.l, d.y, 'LKD = Kader Posyandu, Kader PKK, Karang Taruna, RT/RW · LAD = Lembaga Adat Desa · angka 0 merah = belum ada peserta.', { uk: 6.8, warna: '#4f4655', lebar: d.lebarIsi }); d.y += 9;
+    d.teks(d.m.l, d.y, (GK.length ? '(kec.) = tingkat kecamatan, satu NPP per kecamatan, tidak ikut kelengkapan desa · ' : '') + 'Rincian desa per kecamatan di halaman berikutnya.', { uk: 6.8, warna: '#4f4655', lebar: d.lebarIsi });
+
+    // Satu halaman per kecamatan
+    kecRows.forEach(k => {
+      d.halamanBaru();
+      kepala('KECAMATAN', k.nama, n(k.n) + ' peserta aktif · ' + k.desa + ' desa · ' + k.desaKosong + ' tanpa peserta' + (k.target ? ' · cakupan ' + pc(nD(k), k.target.total) : '') + ' · ' + filter);
+      kpi([['Peserta aktif', n(k.n)], ['2P / 3P / 4P', n(k.prog['2P']) + ' / ' + n(k.prog['3P']) + ' / ' + n(k.prog['4P'])], ['Desa', String(k.desa)], ['Desa tanpa peserta', String(k.desaKosong), k.desaKosong > 0]]
+        .concat(GK.map(g => [g.nama, tkSel(k, g) === 'belum' ? 'Belum ada' : tkSel(k, g) + ' peserta', tkSel(k, g) === 'belum'])));
+      const ds = k.desaList.slice().sort((a, b) => a.nama.localeCompare(b.nama));
+      if (ds.length <= 30) { sub3('Peserta aktif per desa' + (anyT ? ' (persen terhadap target bila diisi)' : '')); batang(ds.slice().sort((a, b) => a.n - b.n).map(x => ({ label: x.nama, v: x.n, t: anyT && x.target ? x.target.total : 0, zero: !x.n }))); }
+      sub3('Rincian per desa');
+      const kol = kolomDasar('No', 18).concat([{ judul: 'Kel. terisi', lebar: 32, rata: 'tengah' }], anyT ? [{ judul: 'Target', lebar: 34, rata: 'kanan' }, { judul: 'Cakupan', lebar: 34, rata: 'kanan' }] : []);
+      const bb = ds.map((x, i) => {
+        const v = [String(i + 1), x.nama, n(x.n), n(x.prog['2P']), n(x.prog['3P']), n(x.prog['4P'])].concat(G.map(g => n(x.grp[g.key]) + (x.target && x.target.grp[g.key] ? '/' + n(x.target.grp[g.key]) : '')), [x.terisi + '/' + R.lengkap], anyT ? [x.target ? n(x.target.total) : '-', x.target ? pc(x.n, x.target.total) : '-'] : []);
+        const w = merahNol(v.map(t => t.split('/')[0]), 6); if (!x.n) w[1] = MERAH;
+        return { sel: v, warna: w, latar: x.n ? null : '#fbe8e6' };
+      });
+      GK.forEach(g => { if (k.tkNpp[g.key].length) bb.push({ jenis: 'sub', sel: ['', g.nama + ' (tingkat kecamatan) · NPP ' + k.tkNpp[g.key].join(', '), n(k.tk.grp[g.key] || 0)].concat(GK.length === 1 ? ['2P', '3P', '4P'].map(x => n(k.tk.prog[x])) : ['', '', '']).concat(G.map(() => ''), [''], anyT ? ['', ''] : []) }); });
+      bb.push({ jenis: 'total', sel: ['', 'Jumlah ' + k.nama, n(k.n), n(k.prog['2P']), n(k.prog['3P']), n(k.prog['4P'])].concat(G.map(g => n(k.grp[g.key])), [''], anyT ? [k.target ? n(k.target.total) : '-', k.target ? pc(nD(k), k.target.total) : '-'] : []) });
+      d.tabel({ kolom: kol, baris: bb, uk: 6.6, warnaJudul: UNGU, warnaTotal: '#ece4f0' });
+    });
+    return d.selesai(kakiPdf('Laporan Cakupan · ' + tglID(R.posisi)));
   }
 
   // =====================================================================
@@ -5320,7 +5897,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
         '<label class="btn p block" for="im-f">Pilih file PDF</label><input type="file" id="im-f" accept=".pdf,application/pdf,.xlsx,.csv" multiple hidden>' +
         '<p class="small muted" style="margin:0">NPP baru dibuat otomatis (kelompok & desa ditebak dari nama badan usaha). Untuk NPP yang sudah ada dan isinya berbeda, Anda memilih <b>Ganti</b> (samakan dengan laporan) atau <b>Tambah saja</b>. Semua perubahan satu kali simpan bisa dibatalkan di Riwayat.</p>',
         { open: !D.items.length }) +
-      '<div id="im-isi"></div><div id="im-bawah"></div>';
+      '<div id="im-isi" class="tumpuk"></div><div id="im-bawah" class="tumpuk"></div>';
     $('#im-f', v).onchange = async e => {
       const files = Array.from(e.target.files || []); e.target.value = '';
       if (!files.length) return;
@@ -5360,9 +5937,9 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
       const daftar = (judul, arr, f) => arr.length ? '<div class="sec" style="margin:8px 0 2px">' + judul + ' (' + arr.length + ')</div><div class="small">' + arr.slice(0, 200).map(f).join('<br>') + (arr.length > 200 ? '<br>…' : '') + '</div>' : '';
       const chip = (n, t, c) => n ? '<span class="b ' + (c || '') + '">' + t + '</span>' : '';
       const lok = it.ada
-        ? '<div class="small">' + esc((K().find(k => k.kode === it.kel) || {}).nama || it.kel) + ' · Desa ' + esc(it.desa) + ', ' + esc(it.kec) + ' <span class="muted">(sudah terdaftar)</span></div>'
-        : '<div class="row3"><select data-f="kel" data-i="' + i + '">' + opt(kelOpt, it.kel, 'Kelompok') + '</select><select data-f="kec" data-i="' + i + '">' + opt(W().kecamatan, it.kec, 'Kecamatan') + '</select><select data-f="desa" data-i="' + i + '">' + opt(W().desa[it.kec] || [], it.desa, 'Desa') + '</select></div>' +
-          (it.tebak && (it.kel || it.desa) ? '<div class="small muted">Ditebak dari nama badan usaha' + (it.kandidat && it.kandidat.length > 1 ? ' · desa lain yang mirip: ' + it.kandidat.filter(k => k.desa !== it.desa).map(k => esc(k.desa + ' (' + k.kec + ')')).join(', ') : '') + '</div>' : '');
+        ? '<div class="small">' + esc((K().find(k => k.kode === it.kel) || {}).nama || it.kel) + (it.desa ? ' · Desa ' + esc(it.desa) + ', ' : ' · Kecamatan ') + esc(it.kec) + ' <span class="muted">(sudah terdaftar)</span></div>'
+        : '<div class="row3"><select data-f="kel" data-i="' + i + '">' + opt(kelOpt, it.kel, 'Kelompok') + '</select><select data-f="kec" data-i="' + i + '">' + opt(W().kecamatan, it.kec, 'Kecamatan') + '</select>' + (diKec(it.kel) ? '<select disabled>' + OPSI_KEC + '</select>' : '<select data-f="desa" data-i="' + i + '">' + opt(W().desa[it.kec] || [], it.desa, 'Desa') + '</select>') + '</div>' +
+          (it.tebak && (it.kel || it.desa) ? '<div class="small muted">Ditebak dari nama badan usaha' + (it.kandidat && it.kandidat.length > 1 && !diKec(it.kel) ? ' · desa lain yang mirip: ' + it.kandidat.filter(k => k.desa !== it.desa).map(k => esc(k.desa + ' (' + k.kec + ')')).join(', ') : '') + '</div>' : '');
       const pilihan = it.ada && (perluPilih(it) || it.mode)
         ? '<div class="seg" role="group" style="margin-top:8px"><button data-mode="ganti" data-i="' + i + '" class="' + (it.mode === 'ganti' ? 'on danger' : '') + '">Ganti (samakan)</button><button data-mode="tambah" data-i="' + i + '" class="' + (it.mode === 'tambah' ? 'on' : '') + '">Tambah saja</button></div>' +
           (it.mode === 'ganti' && a.hilang.length ? '<div class="field" style="margin-top:8px"><label>Tanggal nonaktif untuk ' + a.hilang.length + ' peserta yang tidak ada di laporan</label><input type="date" data-f="tglNonaktif" data-i="' + i + '" value="' + esc(it.tglNonaktif) + '"><small>Tidak ditagih mulai bulan ' + esc(blnID(String(it.tglNonaktif).slice(0, 7))) + '. Bila bulan ini sudah dibayar, pilih tanggal di bulan berikutnya.</small></div>' : '')
@@ -5390,7 +5967,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     const ulang = debounce(() => periksaIm(v), 250);
     $$('select[data-f], input[data-f]', el).forEach(c => c.onchange = () => {
       const it = D.items[+c.dataset.i]; it[c.dataset.f] = c.value;
-      if (c.dataset.f === 'kec') it.desa = '';
+      if (c.dataset.f === 'kec' || (c.dataset.f === 'kel' && diKec(it.kel))) it.desa = '';
       it.tebak = false; it.an = null; gambarIm(v); ulang();
     });
     $$('[data-mode]', el).forEach(b => b.onclick = () => { const it = D.items[+b.dataset.i]; it.mode = b.dataset.mode; it.an = null; gambarIm(v); ulang(); });
@@ -5443,7 +6020,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   }
   function daftarPeserta(judul, list) {
     sheet('<h2>' + esc(judul) + '</h2><div class="card" style="box-shadow:none;border:1px solid var(--line)">' +
-      (list.map(p => '<button class="row" data-id="' + esc(p.id) + '"><span class="m"><span class="t1" style="display:block">' + esc(p.nama) + '</span><span class="t2" style="display:block">' + esc(p.kelNama) + ' · ' + esc(p.desa) + ', ' + esc(p.kec) + '</span></span><span class="small muted">' + tglID(p.tgl) + '</span></button>').join('') || '<div class="empty">Tidak ada.</div>') +
+      (list.map(p => '<button class="row" data-id="' + esc(p.id) + '"><span class="m"><span class="t1" style="display:block">' + esc(p.nama) + '</span><span class="t2" style="display:block">' + esc(p.kelNama) + ' · ' + lokTeks(p) + '</span></span><span class="small muted">' + tglID(p.tgl) + '</span></button>').join('') || '<div class="empty">Tidak ada.</div>') +
       '</div><button class="btn block" data-close>Tutup</button>', (sh, close) => { $$('[data-id]', sh).forEach(b => b.onclick = () => { close(); go('detail', { id: b.dataset.id }); }); });
   }
   async function vDasbor(v) {
@@ -5464,7 +6041,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     const kecUrut = D.kecamatan.slice().sort((a, b2) => a.n - b2.n || b2.desaKosong - a.desaKosong);
     const mxKec = Math.max(1, ...kecUrut.map(k => k.n));
     const kec = kecUrut.length ? '<div class="bars-kec">' + kecUrut.map(k => '<button class="bar-kec" data-lap="1"><span class="n">' + esc(k.nama) + '</span><span class="tr"><span class="fi" style="width:' + (k.n / mxKec * 100).toFixed(1) + '%"></span></span><span class="v"><b>' + num(k.n) + '</b>' +
-        (k.target ? ' · ' + pct(k.n / k.target * 100) : '') + (k.desaKosong ? ' <span class="kosong">' + k.desaKosong + ' desa kosong</span>' : '') + '</span></button>').join('') + '</div>'
+        (k.target ? ' · ' + pct((k.nDesa !== undefined ? k.nDesa : k.n) / k.target * 100) : '') + (k.desaKosong ? ' <span class="kosong">' + k.desaKosong + ' desa kosong</span>' : '') + '</span></button>').join('') + '</div>'
       : '<div class="empty">Daftar kecamatan/desa (sheet dropdown) belum ada.</div>';
     const tg = D.tagihanTerakhir, blnBesar = bln.toUpperCase();
     const tgBlnIni = tg && tg.ket.toUpperCase().indexOf(blnBesar) >= 0;
@@ -5531,7 +6108,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
           '<dl class="kv"><dt>Spreadsheet</dt><dd>' + esc(st.nama || '–') + '</dd><dt>Akun</dt><dd>' + esc(st.pengguna || '–') + '</dd><dt>Mesin di spreadsheet</dt><dd>' + esc(st.versiServer || '–') + '</dd><dt>Belum terkirim</dt><dd>' + st.antre + ' perubahan</dd></dl>' +
           (st.gagal.length ? '<div class="note err"><b>Ditolak spreadsheet</b> (data sudah diubah dari tempat lain; perangkat memakai isi spreadsheet):' + st.gagal.map(x => '<div class="small">' + esc(x.waktu) + ' · ' + esc(x.fn) + ': ' + esc(x.galat) + '</div>').join('') + '</div>' : '') +
           '<button class="btn p block" id="d-sync"><svg class="i" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4"/></svg>Sinkron sekarang</button>' +
-          '<div class="btns"><button class="btn" id="d-kode">Salin kode sambung</button>' + (st.urlSheet ? '<a class="btn" href="' + esc(st.urlSheet) + '" target="_blank" rel="noopener">Buka spreadsheet</a>' : '<span></span>') + '</div>' +
+          (st.urlSheet ? '<div class="btns"><button class="btn" id="d-kode">Salin kode sambung</button><a class="btn" href="' + esc(st.urlSheet) + '" target="_blank" rel="noopener">Buka spreadsheet</a></div>' : '<button class="btn block" id="d-kode">Salin kode sambung</button>') +
           '<button class="btn ghost" id="d-putus" style="color:var(--danger)">Putuskan di perangkat ini</button>' +
           '<p class="small muted" style="margin:0">Otomatis saat aplikasi dibuka, tiap 5 menit, dan beberapa detik setelah setiap perubahan. Tanpa sinyal, perubahan tersimpan di perangkat lalu terkirim saat sinyal kembali (tidak tercatat dua kali). Kode sambung berisi kunci: kirim hanya ke perangkat Anda sendiri.</p>', { open: true })
         : acc('Sambungkan ke spreadsheet', 'agar HP, komputer, dan spreadsheet berisi data yang sama',
@@ -5680,7 +6257,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   const VIEWS = {
     dasbor: vDasbor, data: vData,
     beranda: vBeranda, mutasi: vMutasi, tagihan: vTagihan, peserta: vPeserta, detail: vDetail, pengaturan: vPengaturan,
-    kelompok: vKelompok, npp: vNpp, keringanan: vKeringanan, target: vTarget, bebasjp: vBebasJP, impor: vImpor, impornpp: vImporNpp,
+    kelompok: vKelompok, npp: vNpp, keringanan: vKeringanan, target: vTarget, bebasjp: vBebasJP, impor: vImpor, impornpp: vImporNpp, wilayah: vWilayah,
     bank: vBank, ibr: vIbr, arsip: vArsip, riwayat: vRiwayat, aplikasi: vAplikasi, laporan: vLaporan
   };
   $$('#tabbar button[data-tab]').forEach(b => b.onclick = () => tab(b.dataset.tab));
@@ -5688,7 +6265,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   $('#sync').onclick = sinkronSekarang;
   $('#menu').onclick = e => { e.stopPropagation(); bukaMenu(); };
   document.addEventListener('keydown', e => { if (e.key === 'Escape') { const sc = $('#layer .scrim:last-child'); if (sc) sc.click(); else tutupMenu(); } });
-  window.__mt = { S, go, tab, cetakLaporan, render };
+  window.__mt = { S, go, tab, pdfLaporan, render };
   M3.onStatus(renderStatus);
   M3.onBerubah(segarkan);
   M3.siap().then(() => { renderStatus(); render(); }, e => { $('#view').innerHTML = '<div class="card pad"><p class="note err">' + esc(e.message) + '</p></div>'; });

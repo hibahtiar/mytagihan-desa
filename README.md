@@ -47,8 +47,8 @@ data di spreadsheet tetap utuh.
 
 ## Yang perlu sinyal
 Hitung tagihan, mutasi, impor peserta/IBR, laporan, dan Urungkan jalan di perangkat. Yang dijalankan Google Drive
-(perlu sinyal, perubahan dikirim dulu): **arsip .xlsx tagihan**, **PDF Tagihan / Trf Bank Jatim / Lampiran**,
-**template impor Excel**, dan **daftar arsip**. Setelah tagihan dibuat, arsip ke Drive dibuat otomatis bila ada sinyal;
+(perlu sinyal, perubahan dikirim dulu): **arsip .xlsx tagihan**, **template impor Excel**, **daftar arsip**, dan **PDF Lampiran Triwulan** (lanskap). PDF Tagihan, Trf Bank Jatim, dan
+Laporan cakupan dibuat di perangkat (juga di iPhone dan tanpa sinyal). Setelah tagihan dibuat, arsip ke Drive dibuat otomatis bila ada sinyal;
 bila tidak, tekan **Simpan arsip .xlsx ke Drive** nanti.
 
 ## Impor massal per NPP (BUMDes, LKD, LAD, Rentan, …)
@@ -58,10 +58,22 @@ sekaligus. NPP baru dibuat otomatis lengkap dengan program, acuan upah, dan tari
 ditebak dari nama badan usaha dan bisa dikoreksi. NPP yang sudah ada dan berbeda: pilih **Ganti** (samakan dengan
 laporan, peserta yang tidak ada dinonaktifkan per tanggal pilihan) atau **Tambah saja**. Satu kali simpan = satu
 aktivitas di Riwayat (bisa dibatalkan). Unduhan Excel/CSV sistem memotong NIK, jadi barisnya ditolak.
+PDF Pekerja Rentan (**Rincian Tenaga Kerja Aktif per Wadah**, tanpa kolom upah) juga terbaca; iurannya memakai acuan
+upah kelompok Pekerja Rentan. Nomor HP di PDF itu tidak disimpan.
+
+## Profil desa / kecamatan
+Peserta › **Profil per desa / kecamatan** (atau ketuk desa di Laporan cakupan). Satu desa: nama peserta aktif per
+kelompok (Aparat, BPD, BUMDes, LKD, …) dengan NPP, plus kelompok yang belum terdaftar; **Salin daftar nama** (tanpa NIK).
+Seluruh kecamatan: angka per desa dan **NPP tingkat kecamatan** (BUMDesma).
+
+## BUMDesma (tingkat kecamatan)
+Kelompok **BUMDesma**: satu NPP per kecamatan, tanpa desa (pilihan Desa terkunci "— tingkat kecamatan —" di Mutasi
+dan NPP). Tidak ikut kelengkapan desa; di Laporan cakupan tampil per kecamatan (ada / belum, jumlah peserta).
 
 ## Laporan cakupan PDF
-Laporan › **Cetak / simpan PDF A4** → dialog cetak → pilih *Simpan sebagai PDF*. A4 tegak, judul tabel berulang,
-baris tidak terpotong, satu halaman per kecamatan. Dibuat di perangkat tanpa pustaka luar (pdfmake tidak dipakai lagi).
+Laporan › **Simpan PDF A4**. A4 tegak dengan logo BPJS Ketenagakerjaan, ringkasan kabupaten + satu halaman per
+kecamatan, judul tabel berulang, baris tidak terpotong. Dibuat di perangkat (juga iPhone, tanpa sinyal); di HP muncul
+pilihan **Bagikan / simpan ke File** atau **Unduh**.
 
 ## Tanpa sinkron (opsional)
 Spreadsheet → **File › Download › Microsoft Excel (.xlsx)** → Data & sinkron › Pindahkan data. Hapus file unduhan
