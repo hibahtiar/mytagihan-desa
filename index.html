@@ -11,7 +11,7 @@
 <link rel="icon" href="ikon-192.png">
 <link rel="apple-touch-icon" href="ikon-192.png">
 <title>MyTagihan Desa · BPJS Ketenagakerjaan KC Pamekasan</title>
-<!-- MyTagihan Desa 3.3.0 · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi bila PIN dipasang). -->
+<!-- MyTagihan Desa 3.3.2 · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi bila PIN dipasang). -->
 <style>
 /* MyTagihan Desa 3.0 — warna pembeda: UNGU TERONG (plum) + aksen kuning padi.
    LENSA PK = petrol #0E5A5F (master) · Monitor SPPG = biru · MyTagihan Desa = ungu terong #5B2A6E. */
@@ -480,6 +480,14 @@ input[type=date]::-webkit-date-and-time-value, input[type=month]::-webkit-date-a
 .ps-sorot b { font-size: 1.35em; font-weight: 650; }
 #pres .bk-n { white-space: normal; }
 @media (max-width: 760px), (orientation: portrait) { .ps-sorot > div { grid-template-columns: minmax(0, 1fr); gap: .2em; } }
+/* PC: peta kecamatan tidak terlalu besar; presentasi: judul kolom heatmap terbaca dari jauh */
+@media (min-width: 760px) { #view .peta { max-width: 560px; margin: 0 auto; } }
+#pres .hm thead th { font-size: 1em; font-weight: 700; color: var(--ink); padding: .4em .3em; white-space: normal; line-height: 1.15; }
+#pres .hm thead th.d { font-size: 1em; }
+#pres .hm tfoot th, #pres .hm tfoot td { font-size: 1em; }
+/* Presentasi: kolom kelompok sama lebar supaya heatmap rapi seperti kisi */
+#pres .hm { table-layout: fixed; width: 100%; }
+#pres .hm thead th.d { width: 8.5em; }
 
 </style>
 </head>
@@ -4093,7 +4101,7 @@ var LOGO_BPJSTK = { w: 480, h: 111, b64: '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAw
  *  antrean sinkron. Bila PIN dipasang, isi disandikan AES-GCM 256 dengan kunci turunan PIN
  *  (PBKDF2-SHA256); tanpa PIN yang benar data tidak terbaca. (Sama dengan LENSA PK 2.0.)
  * ---------------------------------------------------------------------- */
-var VERSI_APP = '3.3.0';
+var VERSI_APP = '3.3.2';
 var NAMA_DB = 'mytagihan_desa_3';
 var ID_HALAMAN = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 var SIMPAN = { db: null, jenis: 'memori', tertunda: null, galat: '', terakhir: '', dimuat: 0, kunci: null, garam: null, setelahMuatUlang: null, rekTerkunci: null };
@@ -5830,14 +5838,14 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     opsi = opsi || {};
     const ds = k.desaList.slice().sort((a, b) => a.nama.localeCompare(b.nama));
     const sel = (n, t, judul) => { const tk = tingkatSel(n, t); return '<td style="background:' + isiWarna(tk) + ';color:' + tintaWarna(tk) + '" title="' + esc(judul) + '">' + num(n) + (t ? '<small>/' + num(t) + '</small>' : '') + '</td>'; };
-    return '<div class="hm-w"><table class="hm"><thead><tr><th class="d">Desa</th>' + cols.map(c => '<th title="' + esc(c.nama) + '">' + esc(c.pendek) + '</th>').join('') + '<th>Jml</th></tr></thead><tbody>' +
+    return '<div class="hm-w"><table class="hm"><thead><tr><th class="d">Desa</th>' + cols.map(c => '<th title="' + esc(c.nama) + '">' + esc(opsi.panjang ? (c.key === 'ADAT' ? 'LAD' : c.nama) : c.pendek) + '</th>').join('') + '<th>' + (opsi.panjang ? 'Jumlah' : 'Jml') + '</th></tr></thead><tbody>' +
       ds.map(d => '<tr' + (opsi.klik ? ' data-wk="' + esc(k.nama) + '" data-wd="' + esc(d.nama) + '"' : '') + '><th class="d' + (d.n ? '' : ' z') + '">' + esc(d.nama) + '</th>' +
         cols.map(c => sel(c.n(d), c.t(d), d.nama + ' · ' + c.nama + ': ' + c.n(d) + ' peserta' + (c.t(d) ? ' dari target ' + c.t(d) : ''))).join('') + '<td class="j">' + num(d.n) + '</td></tr>').join('') +
       '</tbody><tfoot><tr><th class="d">Jumlah</th>' + cols.map(c => '<td>' + num(c.n(k)) + '</td>').join('') + '<td class="j">' + num(k.nDesa !== undefined ? k.nDesa : k.n) + '</td></tr></tfoot></table></div>';
   }
   /** Batang "desa yang sudah punya peserta" per kelompok. */
   function batangKelompok(cols, perKol, desa) {
-    return '<div class="bk">' + cols.map((c, i) => { const p = desa ? perKol[i] / desa * 100 : 0; return '<div class="bk-r"><span class="bk-n">' + esc(c.nama) + '</span><span class="bk-t"><span style="width:' + p.toFixed(1) + '%"></span></span><span class="bk-v"><b>' + perKol[i] + '</b>/' + desa + ' desa</span></div>'; }).join('') + '</div>';
+    return '<div class="bk">' + cols.map((c, i) => { const p = desa ? perKol[i] / desa * 100 : 0; return '<div class="bk-r"><span class="bk-n" title="' + esc(c.nama) + '">' + esc(c.key === 'ADAT' ? 'LAD' : c.nama) + '</span><span class="bk-t"><span style="width:' + p.toFixed(1) + '%"></span></span><span class="bk-v"><b>' + perKol[i] + '</b>/' + desa + ' desa</span></div>'; }).join('') + '</div>';
   }
 
   async function vLaporan(v, p) {
@@ -5908,7 +5916,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     const satuKec = x => {
       const k = x.k;
       slides.push(kepala('KECAMATAN ' + k.nama.toUpperCase(), 'Keterisian ' + pct(x.isi) + ' · ' + x.lengkap + ' dari ' + x.desa + ' desa lengkap', posisi) +
-        '<div class="ps-b ps-2"><div>' + heatmapHtml(k, cols) + legendaHtml(anyT) + '</div><div>' +
+        '<div class="ps-b ps-2"><div>' + heatmapHtml(k, cols, { panjang: window.innerWidth >= 760 }) + legendaHtml(anyT) + '</div><div>' +
         kpi([['Peserta aktif', num(k.n)], ['Desa tanpa peserta', num(k.desaKosong), k.desaKosong > 0]].concat(GK.map(g => [g.nama, k.tkNpp[g.key].length ? num(k.tk.grp[g.key] || 0) + ' org' : 'Belum', !k.tkNpp[g.key].length]))) +
         '<h3>Desa yang sudah punya peserta</h3>' + batangKelompok(cols, x.perKol, x.desa) + '</div></div>');
       if (o.lingkup && x.belum.length) slides.push(kepala('KECAMATAN ' + k.nama.toUpperCase(), 'Kelompok yang belum ada pesertanya', posisi) +
