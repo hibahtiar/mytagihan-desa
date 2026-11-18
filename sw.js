@@ -3,7 +3,7 @@
 // Tidak pernah menyimpan permintaan ke server sinkron (Google) — data hanya di IndexedDB perangkat.
 // Hanya menghapus simpanan miliknya sendiri (awalan mytagihan-desa-), bukan milik LENSA PK / Monitor SPPG di akun GitHub yang sama.
 const AWALAN = 'mytagihan-desa-';
-const SIMPANAN = AWALAN + 'v3.2.1';
+const SIMPANAN = AWALAN + 'v3.3.0';
 const BERKAS = ['./', './index.html', './manifest.webmanifest', './ikon-192.png', './ikon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(SIMPANAN).then(c => c.addAll(BERKAS))); self.skipWaiting(); });
 self.addEventListener('activate', e => {

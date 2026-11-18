@@ -11,7 +11,7 @@
 <link rel="icon" href="ikon-192.png">
 <link rel="apple-touch-icon" href="ikon-192.png">
 <title>MyTagihan Desa · BPJS Ketenagakerjaan KC Pamekasan</title>
-<!-- MyTagihan Desa 3.2.1 · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi bila PIN dipasang). -->
+<!-- MyTagihan Desa 3.3.0 · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi bila PIN dipasang). -->
 <style>
 /* MyTagihan Desa 3.0 — warna pembeda: UNGU TERONG (plum) + aksen kuning padi.
    LENSA PK = petrol #0E5A5F (master) · Monitor SPPG = biru · MyTagihan Desa = ungu terong #5B2A6E. */
@@ -404,6 +404,82 @@ input[type=date]::-webkit-date-and-time-value, input[type=month]::-webkit-date-a
 .btn { line-height: 1.2; text-align: center; }
 .badges .b.z { background: #fbe8e6; color: var(--danger); }
 @media (min-width: 760px) { .kpis.k3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+
+/* ---------- Laporan cakupan: peta, heatmap, batang kelompok, legenda ---------- */
+.peta { width: 100%; height: auto; display: block; font-family: inherit; }
+.peta .pt { cursor: pointer; }
+.peta .pt:hover rect { stroke: var(--brand); }
+.lgd { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; color: var(--muted); }
+.lgd span { display: inline-flex; align-items: center; gap: 5px; }
+.lgd i { width: 14px; height: 10px; border-radius: 3px; display: inline-block; border: 1px solid rgba(0,0,0,.08); }
+.hm-w { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.hm { border-collapse: separate; border-spacing: 2px; font-size: 12.5px; font-variant-numeric: tabular-nums; min-width: 100%; }
+.hm th, .hm td { padding: 6px 4px; text-align: center; border-radius: 5px; white-space: nowrap; }
+.hm thead th { font-size: 11px; font-weight: 650; color: var(--muted); }
+.hm th.d { text-align: left; font-weight: 600; color: var(--ink); position: sticky; left: 0; background: var(--surface); max-width: 128px; overflow: hidden; text-overflow: ellipsis; padding-left: 10px; }
+.hm th.d.z { color: var(--danger); }
+.hm td { min-width: 34px; font-weight: 650; }
+.hm td small { font-weight: 500; opacity: .8; }
+.hm td.j, .hm tfoot td { color: var(--ink); font-weight: 700; background: var(--surface-2); }
+.hm tfoot th { background: var(--surface-2); }
+.hm tbody tr[data-wd] { cursor: pointer; }
+.hm tbody tr[data-wd]:hover th.d { color: var(--brand); text-decoration: underline; }
+.bk { display: flex; flex-direction: column; gap: 8px; }
+.bk-r { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr) 92px; gap: 10px; align-items: center; font-size: 13px; }
+.bk-n { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bk-t { height: 10px; background: #f2eef4; border-radius: 5px; overflow: hidden; display: block; }
+.bk-t > span { display: block; height: 100%; background: var(--brand); border-radius: 5px; }
+.bk-v { text-align: right; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bk-v b { color: var(--ink); }
+
+/* ---------- Mode presentasi ---------- */
+#pres { position: fixed; inset: 0; z-index: 95; background: #ffffff; color: var(--ink); display: flex; flex-direction: column; font-size: clamp(12px, min(1.25vw, 2.2vh), 22px); }
+.ps-slide { flex: 1; overflow: auto; padding: 2.2em 3em 1em; display: flex; flex-direction: column; gap: 1.4em; }
+.ps-h { display: flex; justify-content: space-between; align-items: flex-start; gap: 2em; border-bottom: 3px solid var(--brand); padding-bottom: .9em; }
+.ps-h img { height: 3.2em; width: auto; }
+.ps-l { color: var(--brand); font-weight: 700; font-size: .9em; letter-spacing: .03em; }
+.ps-h h1 { font-size: 2.3em; line-height: 1.15; margin: .15em 0; }
+.ps-s { color: var(--muted); font-size: .95em; }
+.ps-b { display: flex; flex-direction: column; gap: 1.2em; }
+.ps-2 { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 2.4em; align-items: start; }
+.ps-2 h3 { font-size: 1.15em; margin: 0 0 .6em; }
+.ps-k { display: grid; grid-template-columns: repeat(auto-fit, minmax(9em, 1fr)); gap: .9em; }
+.ps-k > div { background: #f2eef4; border-radius: .7em; padding: .9em 1.1em; display: flex; flex-direction: column; gap: .2em; }
+.ps-k > div.hero { background: var(--brand); color: #fff; }
+.ps-k span { font-size: .9em; opacity: .85; }
+.ps-k b { font-size: 2.4em; font-weight: 750; font-variant-numeric: tabular-nums; }
+.ps-k b small { font-size: .5em; opacity: .7; }
+.ps-k > div.merah b { color: var(--danger); }
+.ps-c { font-size: 1.1em; color: var(--muted); margin: 0; }
+#pres .hm { font-size: 1em; }
+#pres .hm th.d { max-width: 14em; }
+#pres .hm td { min-width: 2.6em; }
+#pres .lgd { font-size: .85em; margin-top: .6em; }
+#pres .bk-r { font-size: 1em; grid-template-columns: minmax(0, 1.1fr) minmax(0, 2fr) 7em; }
+#pres .bk-t { height: .8em; }
+.ps-rank { display: flex; flex-direction: column; gap: .45em; }
+.ps-rank > div { display: grid; grid-template-columns: 9em minmax(0, 1fr) 4em; gap: .7em; align-items: center; font-size: .95em; }
+.ps-rank b { text-align: right; font-variant-numeric: tabular-nums; }
+.ps-belum { display: grid; grid-template-columns: repeat(auto-fill, minmax(18em, 1fr)); gap: .6em 1.6em; }
+.ps-belum > div { display: flex; flex-direction: column; border-left: 4px solid var(--danger); padding: .2em 0 .2em .7em; }
+.ps-belum span { color: var(--danger); font-size: .95em; }
+.ps-nav { display: flex; align-items: center; justify-content: center; gap: 1em; padding: .6em 1em calc(.6em + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--line); background: var(--surface); }
+.ps-nav button { width: 2.6em; height: 2.6em; min-width: 44px; min-height: 44px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); font-size: 1.3em; cursor: pointer; color: var(--ink); }
+.ps-nav button:disabled { opacity: .35; cursor: default; }
+.ps-nav .ps-x { position: absolute; left: 1em; }
+.ps-nav span { min-width: 5em; text-align: center; color: var(--muted); font-variant-numeric: tabular-nums; }
+@media (max-width: 760px), (orientation: portrait) {
+  #pres { font-size: clamp(11px, 3.2vw, 16px); }
+  .ps-slide { padding: 1.2em 1.1em .8em; }
+  .ps-2 { grid-template-columns: minmax(0, 1fr); }
+  .ps-h h1 { font-size: 1.7em; }
+}
+.ps-sorot { display: flex; flex-direction: column; gap: .7em; margin-top: .6em; }
+.ps-sorot > div { display: grid; grid-template-columns: 12em minmax(0, 1fr); gap: 1em; align-items: baseline; border-top: 1px solid var(--line); padding-top: .7em; }
+.ps-sorot span { color: var(--muted); }
+.ps-sorot b { font-size: 1.35em; font-weight: 650; }
+#pres .bk-n { white-space: normal; }
+@media (max-width: 760px), (orientation: portrait) { .ps-sorot > div { grid-template-columns: minmax(0, 1fr); gap: .2em; } }
 
 </style>
 </head>
@@ -2578,7 +2654,7 @@ function apiLaporan(d) {
   const grup = semuaGrup.filter(g => g.tingkat !== 'Kecamatan'), grupKec = semuaGrup.filter(g => g.tingkat === 'Kecamatan');
   const lengkapKeys = grup.filter(g => g.lengkap).map(g => g.key);
 
-  const blank = () => ({ n: 0, prog: { '2P': 0, '3P': 0, '4P': 0 }, grp: {} });
+  const blank = () => ({ n: 0, prog: { '2P': 0, '3P': 0, '4P': 0 }, grp: {}, kel: {} });
   const kec = {};
   const ensure = (k, ds) => {
     if (!kec[k]) kec[k] = { nama: k, desa: {} };
@@ -2599,7 +2675,7 @@ function apiLaporan(d) {
     const k = p.kec || '(tanpa kecamatan)';
     if (tingkatKec_(M, kel)) {
       const K = ensure(k); K.tk = K.tk || blank();
-      K.tk.n++; if (K.tk.prog[prog] !== undefined) K.tk.prog[prog]++; K.tk.grp[g] = (K.tk.grp[g] || 0) + 1;
+      K.tk.n++; if (K.tk.prog[prog] !== undefined) K.tk.prog[prog]++; K.tk.grp[g] = (K.tk.grp[g] || 0) + 1; K.tk.kel[kel] = (K.tk.kel[kel] || 0) + 1;
       return;
     }
     const ds = p.desa || '(tanpa desa)';
@@ -2607,12 +2683,14 @@ function apiLaporan(d) {
     x.n++;
     if (x.prog[prog] !== undefined) x.prog[prog]++;
     x.grp[g] = (x.grp[g] || 0) + 1;
+    x.kel[kel] = (x.kel[kel] || 0) + 1;
   });
 
   const sumInto = (acc, x) => {
     acc.n += x.n;
     Object.keys(x.prog).forEach(p => { acc.prog[p] = (acc.prog[p] || 0) + x.prog[p]; });
     Object.keys(x.grp).forEach(g => { acc.grp[g] = (acc.grp[g] || 0) + x.grp[g]; });
+    Object.keys(x.kel || {}).forEach(g => { acc.kel[g] = (acc.kel[g] || 0) + x.kel[g]; });
   };
   const tgt = (k, ds) => {
     const o = {}; let tot = 0, ada = false;
@@ -2654,6 +2732,8 @@ function apiLaporan(d) {
 
   return {
     posisi: ymd_(end), kelompok: codes, kelompokNama: kelLabel_(M, codes).nama, grup, grupKec, lengkap: lengkapKeys.length,
+    // Kelompok tingkat desa satu per satu (untuk tampilan LKD dipecah)
+    kelDesa: M.kelList.filter(k => sel[k.kode] && k.tingkat !== 'Kecamatan').map(k => ({ kode: k.kode, nama: k.nama, induk: k.induk, grup: k.grup, lengkap: k.lengkap })),
     kab, kec: kecList, tanpaNpp, judul: M.set.JUDUL_LAPORAN || 'Pemerintah Desa', unit: M.set.UNIT || '',
     dibuat: Utilities.formatDate(new Date(), tz_(), 'd MMM yyyy, HH.mm')
   };
@@ -3191,7 +3271,7 @@ function terapkanNpp_(tx, M, h) {
  * =====================================================================
  */
 
-const APP_VERSION = '2.3.1';
+const APP_VERSION = '2.4.0';
 
 function onOpen() {
   SpreadsheetApp.getUi()
@@ -3911,7 +3991,7 @@ PdfBaru.prototype = {
   /** Pastikan ada ruang setinggi t; bila tidak, halaman baru. Hasil: true bila berganti halaman. */
   ruang: function (t) { if (this.y + t > this.bawah) { this.halamanBaru(); return true; } return false; },
   /**
-   * Tabel. kolom: [{judul, lebar (0 = sisa), rata, bungkus}], baris: [{sel:[...], jenis:''|'grup'|'sub'|'total', warna:[...]}].
+   * Tabel. kolom: [{judul, lebar (0 = sisa), rata, bungkus}], baris: [{sel:[...], jenis:''|'grup'|'sub'|'total', warna:[...], latar, latarSel:[...]}].
    * Judul kolom digambar di awal dan di setiap halaman baru (hanya bila masih ada baris di bawahnya).
    */
   tabel: function (o) {
@@ -3943,7 +4023,8 @@ PdfBaru.prototype = {
       var latar = r.jenis === 'grup' ? (o.warnaGrup || '#e2efe4') : r.jenis === 'sub' ? (o.warnaSub || '#f1f4f0') : r.jenis === 'total' ? (o.warnaTotal || '#d9ead3') : r.latar || null;
       var x = x0;
       isiSel.forEach(function (c, i) {
-        self.kotak(x, self.y, c.k.lebar, tinggi, latar ? { isi: latar, garis: gar } : { garis: gar });
+        var lt = (r.latarSel && r.latarSel[i]) || latar;
+        self.kotak(x, self.y, c.k.lebar, tinggi, lt ? { isi: lt, garis: gar } : { garis: gar });
         c.t.forEach(function (t, j) {
           self.teks(x + pad, self.y + pad + j * (uk + 1.5), t, { uk: uk, tebal: tebal, rata: c.k.rata || 'kiri', lebar: c.k.lebar - 2 * pad, warna: (r.warna && r.warna[i]) || '#1d1620' });
         });
@@ -4012,7 +4093,7 @@ var LOGO_BPJSTK = { w: 480, h: 111, b64: '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAw
  *  antrean sinkron. Bila PIN dipasang, isi disandikan AES-GCM 256 dengan kunci turunan PIN
  *  (PBKDF2-SHA256); tanpa PIN yang benar data tidak terbaca. (Sama dengan LENSA PK 2.0.)
  * ---------------------------------------------------------------------- */
-var VERSI_APP = '3.2.1';
+var VERSI_APP = '3.3.0';
 var NAMA_DB = 'mytagihan_desa_3';
 var ID_HALAMAN = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 var SIMPAN = { db: null, jenis: 'memori', tertunda: null, galat: '', terakhir: '', dimuat: 0, kunci: null, garam: null, setelahMuatUlang: null, rekTerkunci: null };
@@ -4542,6 +4623,7 @@ window.__mt3 = {
   bacaLaporanUpah: bacaLaporanUpah,
   Pdf: PdfBaru,
   logo: function () { return { w: LOGO_BPJSTK.w, h: LOGO_BPJSTK.h, data: dariB64(LOGO_BPJSTK.b64) }; },
+  logoUrl: function () { return 'data:image/jpeg;base64,' + LOGO_BPJSTK.b64; },
   bagikanPdf: bagikanPdf,
   unduh: unduhBlob,
   infoPerangkat: function () { return { sheet: GAS.tab.map(function (s) { return { nama: s.nama, baris: Math.max(0, s.getLastRow() - 1) }; }) }; }
@@ -5672,6 +5754,92 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   // =====================================================================
   //  LAPORAN CAKUPAN
   // =====================================================================
+  // ---------- Cakupan: kolom kelompok, peta kecamatan, heatmap desa × kelompok ----------
+  // Satu rona ungu terang → gelap (besaran); merah muda + angka merah = belum ada peserta (selalu dengan angka/teks).
+  const SEQ = ['#f3ecf6', '#dcc6e5', '#b98fcb', '#8a559f', '#5b2a6e'];
+  const SEQ_INK = ['#1d1620', '#1d1620', '#1d1620', '#ffffff', '#ffffff'];
+  const NOL = '#fbe8e6', NOL_INK = '#b3261e';
+  // Peta petak Kab. Pamekasan (atas = utara, kiri = barat)
+  const PETA = { batumarmar: [0.5, 0], pasean: [1.5, 0], waru: [2.5, 0], palengaan: [0, 1], pegantenan: [1, 1], kadur: [2, 1], pakong: [3, 1],
+    proppo: [0, 2], pamekasan: [1, 2], 'kota pamekasan': [1, 2], larangan: [2, 2], galis: [3, 2], tlanakan: [0, 3], pademawu: [1, 3] };
+  const PENDEK = { APARAT: 'Aparat', BPD: 'BPD', BUMDES: 'BUMDes', LKD: 'LKD', 'LKD-POSYANDU': 'Posyandu', 'LKD-PKK': 'PKK', 'LKD-KARTAR': 'Kartar', 'LKD-RTRW': 'RT/RW', ADAT: 'LAD', RENTAN: 'Rentan' };
+
+  /** Kolom kelompok tingkat desa: LKD digabung (per grup) atau dipecah (per kelompok). */
+  function kolomCakupan(R, pecah) {
+    if (pecah && R.kelDesa) return R.kelDesa.map(k => ({ key: k.kode, nama: k.nama, pendek: PENDEK[k.kode] || k.nama, lengkap: k.lengkap,
+      n: x => (x.kel || {})[k.kode] || 0, t: x => x.target && k.grup === k.kode ? (x.target.grp[k.kode] || 0) : 0 }));
+    return R.grup.map(g => ({ key: g.key, nama: g.nama, pendek: PENDEK[g.key] || g.nama, lengkap: g.lengkap,
+      n: x => (x.grp || {})[g.key] || 0, t: x => x.target ? (x.target.grp[g.key] || 0) : 0 }));
+  }
+  /** Keterisian: porsi pasangan desa × kelompok (yang dihitung kelengkapannya) yang sudah punya peserta. */
+  function ringkasKec(k, cols) {
+    const L = cols.filter(c => c.lengkap), ds = k.desaList;
+    const isi = ds.reduce((s, d) => s + L.filter(c => c.n(d) > 0).length, 0);
+    const lengkap = ds.filter(d => L.length && L.every(c => c.n(d) > 0)).length;
+    const perKol = cols.map(c => ds.filter(d => c.n(d) > 0).length);
+    return { isi: ds.length && L.length ? isi / (ds.length * L.length) * 100 : 0, lengkap, desa: ds.length, perKol, nL: L.length,
+      belum: ds.map(d => ({ nama: d.nama, kurang: L.filter(c => !c.n(d)).map(c => c.pendek) })).filter(x => x.kurang.length) };
+  }
+  function ringkasKab(R, cols) {
+    const per = R.kec.map(k => Object.assign({ nama: k.nama, n: k.n, k }, ringkasKec(k, cols)));
+    const desa = per.reduce((s, x) => s + x.desa, 0);
+    const isiTot = per.reduce((s, x) => s + x.isi / 100 * x.desa * x.nL, 0), nL = per[0] ? per[0].nL : 0;
+    return { per, desa, lengkap: per.reduce((s, x) => s + x.lengkap, 0), isi: desa && nL ? isiTot / (desa * nL) * 100 : 0,
+      perKol: cols.map((c, i) => per.reduce((s, x) => s + x.perKol[i], 0)) };
+  }
+  const tingkatPct = p => p <= 0 ? -1 : p < 20 ? 0 : p < 40 ? 1 : p < 60 ? 2 : p < 80 ? 3 : 4;
+  const tingkatN = n => n <= 0 ? -1 : n <= 2 ? 1 : n <= 5 ? 2 : n <= 10 ? 3 : 4;
+  const isiWarna = t => t < 0 ? NOL : SEQ[t];
+  const tintaWarna = t => t < 0 ? NOL_INK : SEQ_INK[t];
+  /** Tingkat warna satu sel heatmap: persen target bila ada, selain itu jumlah orang. */
+  const tingkatSel = (n, t) => t > 0 ? (n <= 0 ? -1 : tingkatPct(n / t * 100)) : tingkatN(n);
+  function legendaHtml(target) {
+    const sel = [[-1, '0 · belum ada']].concat(target ? [[0, '< 20%'], [1, '20–39%'], [2, '40–59%'], [3, '60–79%'], [4, '≥ 80%']] : [[1, '1–2'], [2, '3–5'], [3, '6–10'], [4, '11+']]);
+    return '<div class="lgd">' + sel.map(s => '<span><i style="background:' + isiWarna(s[0]) + '"></i>' + s[1] + '</span>').join('') + '</div>';
+  }
+  function legendaPeta() {
+    return '<div class="lgd"><span><i style="background:' + NOL + '"></i>0%</span>' + ['1–19%', '20–39%', '40–59%', '60–79%', '80–100%'].map((t, i) => '<span><i style="background:' + SEQ[i] + '"></i>' + t + '</span>').join('') + '</div>';
+  }
+  /** Nilai petak peta per kecamatan menurut ukuran yang dipilih. */
+  function nilaiPeta(x, ukuran, maxN) {
+    if (ukuran === 'n') return { t: tingkatPct(x.n / maxN * 100), besar: num(x.n), kecil: 'peserta · ' + x.lengkap + '/' + x.desa + ' desa lengkap' };
+    if (ukuran === 'target') { const tg = x.k.target ? x.k.target.total : 0, p = tg ? x.k.nDesa / tg * 100 : 0; return { t: tg ? tingkatPct(p) : -1, besar: tg ? pct(p) : '–', kecil: tg ? num(x.k.nDesa) + ' / ' + num(tg) + ' target' : 'target belum diisi' }; }
+    return { t: tingkatPct(x.isi), besar: pct(x.isi), kecil: x.lengkap + '/' + x.desa + ' desa lengkap' };
+  }
+  /** Peta petak kecamatan (SVG). */
+  function petaSvg(RK, ukuran, opsi) {
+    opsi = opsi || {};
+    const W = 132, H = 86, G = 8, maxN = Math.max(1, ...RK.per.map(x => x.n));
+    let lain = 0;
+    const pos = RK.per.map(x => { const p = PETA[x.nama.toLowerCase()]; return p ? p : [2 + (lain % 2), 3 + Math.floor(lain++ / 2)]; });
+    const baris = Math.max(4, ...pos.map(p => p[1] + 1));
+    const kotak = RK.per.map((x, i) => {
+      const v = nilaiPeta(x, ukuran, maxN), [cx, cy] = pos[i], X = cx * (W + G), Y = cy * (H + G), ink = tintaWarna(v.t);
+      return '<g class="pt" data-k="' + esc(x.nama) + '"><title>' + esc(x.nama) + ': ' + esc(v.besar + ' · ' + v.kecil) + '</title>' +
+        '<rect x="' + X + '" y="' + Y + '" width="' + W + '" height="' + H + '" rx="10" fill="' + isiWarna(v.t) + '" stroke="#ffffff" stroke-width="2"/>' +
+        '<text x="' + (X + 10) + '" y="' + (Y + 22) + '" font-size="15" font-weight="650" fill="' + ink + '">' + esc(x.nama) + '</text>' +
+        '<text x="' + (X + 10) + '" y="' + (Y + 52) + '" font-size="26" font-weight="750" fill="' + ink + '">' + esc(v.besar) + '</text>' +
+        '<text x="' + (X + 10) + '" y="' + (Y + 74) + '" font-size="11.5" fill="' + ink + '" opacity=".9">' + esc(v.kecil.length > 21 ? v.kecil.slice(0, 20) + '…' : v.kecil) + '</text></g>';
+    }).join('');
+    const lebar = 4 * W + 3 * G, tinggi = baris * H + (baris - 1) * G;
+    return '<svg class="peta" viewBox="-2 -2 ' + (lebar + 4) + ' ' + (tinggi + 4) + '" role="img" aria-label="Peta cakupan per kecamatan"' + (opsi.gaya ? ' style="' + opsi.gaya + '"' : '') + '>' +
+      '<text x="' + (lebar - 4) + '" y="' + (3 * (H + G) + 14) + '" font-size="11" fill="#645a69" text-anchor="end">↑ utara</text>' + kotak + '</svg>';
+  }
+  /** Heatmap desa × kelompok untuk satu kecamatan (HTML). */
+  function heatmapHtml(k, cols, opsi) {
+    opsi = opsi || {};
+    const ds = k.desaList.slice().sort((a, b) => a.nama.localeCompare(b.nama));
+    const sel = (n, t, judul) => { const tk = tingkatSel(n, t); return '<td style="background:' + isiWarna(tk) + ';color:' + tintaWarna(tk) + '" title="' + esc(judul) + '">' + num(n) + (t ? '<small>/' + num(t) + '</small>' : '') + '</td>'; };
+    return '<div class="hm-w"><table class="hm"><thead><tr><th class="d">Desa</th>' + cols.map(c => '<th title="' + esc(c.nama) + '">' + esc(c.pendek) + '</th>').join('') + '<th>Jml</th></tr></thead><tbody>' +
+      ds.map(d => '<tr' + (opsi.klik ? ' data-wk="' + esc(k.nama) + '" data-wd="' + esc(d.nama) + '"' : '') + '><th class="d' + (d.n ? '' : ' z') + '">' + esc(d.nama) + '</th>' +
+        cols.map(c => sel(c.n(d), c.t(d), d.nama + ' · ' + c.nama + ': ' + c.n(d) + ' peserta' + (c.t(d) ? ' dari target ' + c.t(d) : ''))).join('') + '<td class="j">' + num(d.n) + '</td></tr>').join('') +
+      '</tbody><tfoot><tr><th class="d">Jumlah</th>' + cols.map(c => '<td>' + num(c.n(k)) + '</td>').join('') + '<td class="j">' + num(k.nDesa !== undefined ? k.nDesa : k.n) + '</td></tr></tfoot></table></div>';
+  }
+  /** Batang "desa yang sudah punya peserta" per kelompok. */
+  function batangKelompok(cols, perKol, desa) {
+    return '<div class="bk">' + cols.map((c, i) => { const p = desa ? perKol[i] / desa * 100 : 0; return '<div class="bk-r"><span class="bk-n">' + esc(c.nama) + '</span><span class="bk-t"><span style="width:' + p.toFixed(1) + '%"></span></span><span class="bk-v"><b>' + perKol[i] + '</b>/' + desa + ' desa</span></div>'; }).join('') + '</div>';
+  }
+
   async function vLaporan(v, p) {
     setTitle('Laporan cakupan', 'Memuat…');
     const sel = new Set(LS.get('kelLap', K().map(k => k.kode)).filter(c => K().some(k => k.kode === c)));
@@ -5679,42 +5847,255 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     const R = await api('laporan', { posisi, kelompok: Array.from(sel) });
     S.lap = R;
     setTitle('Laporan cakupan', 'Posisi ' + tglID(R.posisi) + ' · ' + R.kelompokNama);
-    const metric = LS.get('lapMetric', '');
+    const pecah = LS.get('lapPecah', false), ukuran = LS.get('lapUkuran', 'isi');
     const GK = R.grupKec || [];
-    // Persentase terhadap target hanya memakai peserta desa (kelompok tingkat kecamatan tidak punya target desa)
-    const val = (x, m) => m ? (x.grp[m] || 0) : (x.target && x.nDesa !== undefined ? x.nDesa : x.n);
-    const tval = (x, m) => x.target ? (m ? x.target.grp[m] : x.target.total) : 0;
-    const max = Math.max(1, ...R.kec.map(k => val(k, metric)));
-    const anyT = R.kec.some(k => tval(k, metric) > 0);
-    const kecSorted = R.kec.slice().sort((a, b) => anyT ? ((tval(a, metric) ? val(a, metric) / tval(a, metric) : 2) - (tval(b, metric) ? val(b, metric) / tval(b, metric) : 2)) : val(a, metric) - val(b, metric));
-    const gname = k => (R.grup.concat(GK).find(g => g.key === k) || {}).nama || k;
+    const anyT = R.kec.some(k => k.target);
+    const cols = kolomCakupan(R, pecah), RK = ringkasKab(R, cols);
+    const urut = RK.per.slice().sort((a, b) => a.isi - b.isi || a.n - b.n);
     const tkTeks = (k, g) => k.tkNpp && k.tkNpp[g.key] && k.tkNpp[g.key].length ? num(k.tk.grp[g.key] || 0) + ' peserta' : '';
-    const cellsOf = x => R.grup.map(g => '<span class="' + (x.grp[g.key] ? '' : 'z') + '">' + esc(g.nama) + ' ' + (x.grp[g.key] || 0) + (x.target && x.target.grp[g.key] ? '/' + x.target.grp[g.key] : '') + '</span>').join('');
+    const lingkup = LS.get('lapLingkup', '');
     v.innerHTML =
-      acc('Filter', 'Posisi ' + tglID(R.posisi) + ' · ' + esc(R.kelompokNama),
-        '<div class="field"><label for="lp-d">Posisi tanggal</label><input type="date" id="lp-d" value="' + esc(R.posisi) + '"></div>' + kelChips(sel) + '<button class="btn p block" id="lp-go">Terapkan</button>', { id: 'lp-f' }) +
-      '<div class="kpis"><div class="kpi hero"><div class="l">Peserta aktif</div><div class="v">' + num(R.kab.n) + '</div></div><div class="kpi"><div class="l">Desa</div><div class="v">' + num(R.kab.desa) + '</div></div><div class="kpi"><div class="l">Desa tanpa peserta</div><div class="v" style="color:var(--danger)">' + num(R.kab.desaKosong) + '</div></div></div>' +
+      acc('Filter', 'Posisi ' + tglID(R.posisi) + ' · ' + esc(R.kelompokNama) + ' · LKD ' + (pecah ? 'dipecah' : 'digabung'),
+        '<div class="field"><label for="lp-d">Posisi tanggal</label><input type="date" id="lp-d" value="' + esc(R.posisi) + '"></div>' + kelChips(sel) +
+        '<div class="field"><span class="lbl">Tampilan LKD</span><div class="seg" id="lp-lkd"><button data-p="0" class="' + (pecah ? '' : 'on') + '">Digabung</button><button data-p="1" class="' + (pecah ? 'on' : '') + '">Dipecah (Posyandu, PKK, …)</button></div></div>' +
+        '<button class="btn p block" id="lp-go">Terapkan</button>', { id: 'lp-f' }) +
+      '<div class="kpis"><div class="kpi hero"><div class="l">Peserta aktif</div><div class="v">' + num(R.kab.n) + '</div></div><div class="kpi"><div class="l">Desa lengkap</div><div class="v">' + num(RK.lengkap) + '<small class="muted" style="font-size:13px">/' + num(RK.desa) + '</small></div></div><div class="kpi"><div class="l">Keterisian kelompok</div><div class="v">' + pct(RK.isi) + '</div></div></div>' +
+      (R.kab.desaKosong ? '<div class="note warn">' + R.kab.desaKosong + ' desa belum punya peserta sama sekali.</div>' : '') +
       GK.map(g => '<div class="note info"><b>' + esc(g.nama) + '</b> (tingkat kecamatan, tidak ikut kelengkapan desa): ada di ' + (R.kab.kecTk[g.key] || 0) + ' dari ' + R.kec.length + ' kecamatan · ' + num(R.kab.tk.grp[g.key] || 0) + ' peserta.</div>').join('') +
       (R.tanpaNpp ? '<div class="note warn">' + R.tanpaNpp + ' peserta belum punya NPP (tetap dihitung di laporan).</div>' : '') +
-      acc('Peserta per kecamatan', anyT ? 'Persentase terhadap target · terendah di atas' : 'Jumlah peserta · paling sedikit di atas',
-        '<div class="chips" id="lp-m"><button class="chip' + (!metric ? ' on' : '') + '" data-mm="">Semua</button>' + R.grup.map(g => '<button class="chip' + (metric === g.key ? ' on' : '') + '" data-mm="' + esc(g.key) + '">' + esc(g.nama) + '</button>').join('') + GK.map(g => '<button class="chip' + (metric === g.key ? ' on' : '') + '" data-mm="' + esc(g.key) + '">' + esc(g.nama) + ' (kec.)</button>').join('') + '</div>' +
-        (anyT ? '' : '<div class="note info">Target belum diisi, jadi grafik menampilkan jumlah. <button class="link" id="lp-t">Isi target</button></div>') +
-        '<div class="bars">' + kecSorted.map(k => { const n = val(k, metric), t = tval(k, metric); const w = t ? Math.min(100, n / t * 100) : n / max * 100; return '<div class="bar" data-k="' + esc(k.nama) + '"><span>' + esc(k.nama) + '</span><div class="tr"><div class="fi" style="width:' + w.toFixed(1) + '%"></div></div><span class="v">' + (t ? pct(n / t * 100) : num(n)) + '</span></div>'; }).join('') + '</div>', { open: true }) +
-      '<div class="sec">Rincian per kecamatan</div>' +
-      kecSorted.map(k => acc(esc(k.nama), k.desa + ' desa · ' + (k.desaKosong ? '<span style="color:var(--danger)">' + k.desaKosong + ' tanpa peserta</span>' : 'semua ada peserta') + GK.map(g => ' · ' + (tkTeks(k, g) ? esc(g.nama) + ' ' + tkTeks(k, g) : '<span style="color:var(--danger)">belum ada ' + esc(g.nama) + '</span>')).join(''),
-        GK.map(g => '<div class="row" style="cursor:default;display:block;background:var(--surface-2)"><b>' + esc(g.nama) + ' (tingkat kecamatan)</b> · ' + (k.tkNpp[g.key].length ? 'NPP ' + esc(k.tkNpp[g.key].join(', ')) + ' · <b>' + num(k.tk.grp[g.key] || 0) + '</b> peserta' : '<span style="color:var(--danger)">belum ada</span>') + '</div>').join('') +
-        '<div class="badges" style="padding:10px 16px 6px;margin:0"><span class="b pu">2P ' + k.prog['2P'] + '</span><span class="b pu">3P ' + k.prog['3P'] + '</span><span class="b pu">4P ' + k.prog['4P'] + '</span>' + R.grup.map(g => '<span class="b">' + esc(g.nama) + ' ' + (k.grp[g.key] || 0) + '</span>').join('') + '</div>' +
-        k.desaList.map(d => '<button class="row" data-wk="' + esc(k.nama) + '" data-wd="' + esc(d.nama) + '" style="display:block;width:100%;text-align:left"><div style="display:flex;justify-content:space-between;gap:8px"><b style="' + (d.n ? '' : 'color:var(--danger)') + '">' + esc(d.nama) + (d.n ? '' : ' · belum ada peserta') + '</b><span class="num small"><b>' + d.n + '</b>' + (d.target ? ' / ' + d.target.total + ' (' + pct(d.n / d.target.total * 100) + ')' : '') + ' · ' + d.terisi + '/' + R.lengkap + ' kelompok</span></div><div class="cells">' + cellsOf(d) + '</div></button>').join('') +
-        '<div style="padding:10px 16px 12px"><button class="btn sm block" data-wk="' + esc(k.nama) + '" data-wd="">Profil Kecamatan ' + esc(k.nama) + '</button></div>',
-        { cls: 'flush', end: '<b class="num">' + num(k.n) + '</b>', id: 'k-' + k.nama.replace(/\W/g, '') })).join('') +
-      '<button class="btn p block" id="lp-pdf">Simpan PDF A4</button><p class="small muted" style="text-align:center;margin:0">Ringkasan kabupaten + satu halaman per kecamatan · dibuat di perangkat, juga tanpa sinyal</p>';
+      acc('Peta kecamatan', 'Ketuk kecamatan untuk rinciannya',
+        '<div class="chips" id="lp-u"><button class="chip' + (ukuran === 'isi' ? ' on' : '') + '" data-u="isi">Keterisian kelompok</button><button class="chip' + (ukuran === 'n' ? ' on' : '') + '" data-u="n">Peserta</button>' + (anyT ? '<button class="chip' + (ukuran === 'target' ? ' on' : '') + '" data-u="target">Cakupan target</button>' : '') + '</div>' +
+        petaSvg(RK, ukuran) + (ukuran === 'n' ? '<p class="small muted" style="margin:0">Warna: jumlah peserta dibanding kecamatan terbanyak.</p>' : legendaPeta()) +
+        '<p class="small muted" style="margin:0">Keterisian = porsi pasangan desa × kelompok yang sudah punya peserta (' + cols.filter(c => c.lengkap).map(c => c.pendek).join(', ') + '). Desa lengkap = semua kelompok itu sudah ada pesertanya.' + (anyT ? '' : ' Target belum diisi: <button class="link" id="lp-t">isi target</button> bila perlu.') + '</p>', { open: true }) +
+      acc('Desa yang sudah punya peserta, per kelompok', 'Seluruh kabupaten · ' + RK.desa + ' desa', batangKelompok(cols, RK.perKol, RK.desa)) +
+      '<div class="sec">Rincian per kecamatan · keterisian terendah di atas</div>' +
+      urut.map(x => { const k = x.k; return acc(esc(k.nama), x.lengkap + '/' + x.desa + ' desa lengkap · keterisian ' + pct(x.isi) + (k.desaKosong ? ' · <span style="color:var(--danger)">' + k.desaKosong + ' tanpa peserta</span>' : '') + GK.map(g => ' · ' + (tkTeks(k, g) ? esc(g.nama) + ' ' + tkTeks(k, g) : '<span style="color:var(--danger)">belum ada ' + esc(g.nama) + '</span>')).join(''),
+        heatmapHtml(k, cols, { klik: true }) +
+        GK.map(g => '<div class="small" style="padding:8px 12px 0"><b>' + esc(g.nama) + ' (tingkat kecamatan)</b> · ' + (k.tkNpp[g.key].length ? 'NPP ' + esc(k.tkNpp[g.key].join(', ')) + ' · <b>' + num(k.tk.grp[g.key] || 0) + '</b> peserta' : '<span style="color:var(--danger)">belum ada</span>') + '</div>').join('') +
+        '<div style="padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px">' + legendaHtml(anyT) + '<button class="btn sm block" data-wk="' + esc(k.nama) + '" data-wd="">Profil Kecamatan ' + esc(k.nama) + '</button></div>',
+        { cls: 'flush', end: '<b class="num">' + num(k.n) + '</b>', id: 'k-' + k.nama.replace(/\W/g, '') }); }).join('') +
+      '<div class="card pad tumpuk"><div class="field"><label for="lp-l">Lingkup PDF & presentasi</label><select id="lp-l">' + opt([{ v: '', t: 'Seluruh kabupaten' }].concat(R.kec.map(k => k.nama).sort().map(n => ({ v: n, t: 'Kecamatan ' + n }))), lingkup) + '</select>' +
+      '<small>Pilih satu kecamatan untuk rapat atau lampiran surat camat.</small></div>' +
+      '<div class="btns"><button class="btn" id="lp-pres">Mode presentasi</button><button class="btn p" id="lp-pdf">Simpan PDF A4</button></div>' +
+      '<p class="small muted" style="margin:0;text-align:center">Dibuat di perangkat, juga tanpa sinyal · logo BPJS Ketenagakerjaan, tanpa kop dan tanda tangan</p></div>';
     bindKelChips($('#lp-f', v), sel, () => {});
-    $('#lp-go', v).onclick = () => { LS.set('kelLap', Array.from(sel)); LS.set('posisi', $('#lp-d', v).value); S.params = { posisi: $('#lp-d', v).value }; render(); };
-    $$('[data-mm]', v).forEach(c => c.onclick = () => { LS.set('lapMetric', c.dataset.mm); render(); });
+    let pecahBaru = pecah;
+    $$('#lp-lkd button', v).forEach(b => b.onclick = () => { pecahBaru = b.dataset.p === '1'; $$('#lp-lkd button', v).forEach(x => x.classList.toggle('on', x === b)); });
+    $('#lp-go', v).onclick = () => { LS.set('kelLap', Array.from(sel)); LS.set('posisi', $('#lp-d', v).value); LS.set('lapPecah', pecahBaru); S.params = { posisi: $('#lp-d', v).value }; render(); };
+    $$('[data-u]', v).forEach(c => c.onclick = () => { LS.set('lapUkuran', c.dataset.u); render(true); });
     const t = $('#lp-t', v); if (t) t.onclick = () => go('target');
-    $$('.bar', v).forEach(b => b.onclick = () => { const d = $('#k-' + b.dataset.k.replace(/\W/g, ''), v); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
-    $('#lp-pdf', v).onclick = () => siapkanPdf(() => pdfLaporan(R), 'Laporan Cakupan (' + tglID(R.posisi) + ').pdf');
+    $$('.peta .pt', v).forEach(g => g.onclick = () => { const d = $('#k-' + g.dataset.k.replace(/\W/g, ''), v); if (d) { d.open = true; d.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
+    $('#lp-l', v).onchange = e => LS.set('lapLingkup', e.target.value);
+    const opsi = () => ({ pecah, lingkup: $('#lp-l', v).value });
+    $('#lp-pdf', v).onclick = () => { const o = opsi(); siapkanPdf(() => pdfLaporan(R, o), 'Laporan Cakupan ' + (o.lingkup ? 'Kec. ' + o.lingkup : 'Kab. Pamekasan') + ' (' + tglID(R.posisi) + ').pdf'); };
+    $('#lp-pres', v).onclick = () => presentasi(R, opsi());
     $$('[data-wk]', v).forEach(b => b.onclick = () => go('wilayah', { kec: b.dataset.wk, desa: b.dataset.wd }));
+  }
+
+  // ---------- Mode presentasi (layar penuh, untuk rapat) ----------
+  function presentasi(R, o) {
+    const cols = kolomCakupan(R, o.pecah), RK = ringkasKab(R, cols), GK = R.grupKec || [], anyT = R.kec.some(k => k.target);
+    const kepala = (label, judul, sub) => '<div class="ps-h"><div><div class="ps-l">' + esc(label) + '</div><h1>' + esc(judul) + '</h1><div class="ps-s">' + esc(sub) + '</div></div><img src="' + M3.logoUrl() + '" alt="BPJS Ketenagakerjaan"></div>';
+    const kpi = isi => '<div class="ps-k">' + isi.map((x, i) => '<div class="' + (i === 0 ? 'hero' : '') + (x[2] ? ' merah' : '') + '"><span>' + esc(x[0]) + '</span><b>' + x[1] + '</b></div>').join('') + '</div>';
+    const posisi = 'Posisi ' + tglID(R.posisi) + ' · ' + R.kelompokNama + ' · LKD ' + (o.pecah ? 'dipecah' : 'digabung');
+    const slides = [];
+    // Sorotan: kelompok paling merata & paling tertinggal (berdasar jumlah desa yang sudah punya peserta)
+    const sorot = (perKol, desa, tambahan) => {
+      const ix = cols.map((c, i) => i).filter(i => cols[i].lengkap), hi = ix.slice().sort((a, b) => perKol[b] - perKol[a]), lo = ix.slice().sort((a, b) => perKol[a] - perKol[b]);
+      const baris = (hi.length ? [['Paling merata', cols[hi[0]].nama + ': ' + perKol[hi[0]] + ' dari ' + desa + ' desa'], ['Paling tertinggal', lo.slice(0, 3).map(i => cols[i].nama + ' (' + perKol[i] + ' desa)').join(', ')]] : []).concat(tambahan || []);
+      return '<div class="ps-sorot">' + baris.map(b => '<div><span>' + esc(b[0]) + '</span><b>' + esc(b[1]) + '</b></div>').join('') + '</div>';
+    };
+    const satuKec = x => {
+      const k = x.k;
+      slides.push(kepala('KECAMATAN ' + k.nama.toUpperCase(), 'Keterisian ' + pct(x.isi) + ' · ' + x.lengkap + ' dari ' + x.desa + ' desa lengkap', posisi) +
+        '<div class="ps-b ps-2"><div>' + heatmapHtml(k, cols) + legendaHtml(anyT) + '</div><div>' +
+        kpi([['Peserta aktif', num(k.n)], ['Desa tanpa peserta', num(k.desaKosong), k.desaKosong > 0]].concat(GK.map(g => [g.nama, k.tkNpp[g.key].length ? num(k.tk.grp[g.key] || 0) + ' org' : 'Belum', !k.tkNpp[g.key].length]))) +
+        '<h3>Desa yang sudah punya peserta</h3>' + batangKelompok(cols, x.perKol, x.desa) + '</div></div>');
+      if (o.lingkup && x.belum.length) slides.push(kepala('KECAMATAN ' + k.nama.toUpperCase(), 'Kelompok yang belum ada pesertanya', posisi) +
+        '<div class="ps-b"><div class="ps-belum">' + x.belum.map(b => '<div><b>' + esc(b.nama) + '</b><span>' + b.kurang.map(esc).join(' · ') + '</span></div>').join('') + '</div>' +
+        '<p class="ps-c">Tujuannya setiap desa mendaftarkan pekerja dari setiap kelompok.</p></div>');
+    };
+    if (o.lingkup) {
+      const x = RK.per.find(p => p.nama === o.lingkup);
+      if (!x) return toast('Kecamatan tidak ditemukan.', 'err');
+      slides.push(kepala('LAPORAN CAKUPAN KEPESERTAAN · EKOSISTEM DESA', 'Kecamatan ' + x.nama, posisi) +
+        '<div class="ps-b">' + kpi([['Peserta aktif', num(x.k.n)], ['Desa lengkap', x.lengkap + '<small>/' + x.desa + '</small>'], ['Keterisian kelompok', pct(x.isi)], ['Desa tanpa peserta', num(x.k.desaKosong), x.k.desaKosong > 0]]) +
+        sorot(x.perKol, x.desa, [['Peringkat keterisian', (RK.per.slice().sort((a, b) => b.isi - a.isi).findIndex(p => p.nama === x.nama) + 1) + ' dari ' + RK.per.length + ' kecamatan (kabupaten ' + pct(RK.isi) + ')']]) + '</div>');
+      satuKec(x);
+    } else {
+      const urut = RK.per.slice().sort((a, b) => b.isi - a.isi);
+      slides.push(kepala('LAPORAN CAKUPAN KEPESERTAAN · EKOSISTEM DESA', R.judul, posisi + (R.unit ? ' · ' + R.unit : '')) +
+        '<div class="ps-b">' + kpi([['Peserta aktif', num(R.kab.n)], ['Desa lengkap', num(RK.lengkap) + '<small>/' + num(RK.desa) + '</small>'], ['Keterisian kelompok', pct(RK.isi)], ['Desa tanpa peserta', num(R.kab.desaKosong), R.kab.desaKosong > 0]]
+          .concat(GK.map(g => ['Kecamatan ada ' + g.nama, (R.kab.kecTk[g.key] || 0) + '<small>/' + R.kec.length + '</small>', (R.kab.kecTk[g.key] || 0) < R.kec.length]))) +
+          sorot(RK.perKol, RK.desa, [['Keterisian kecamatan', 'tertinggi ' + urut[0].nama + ' ' + pct(urut[0].isi) + ' · terendah ' + urut[urut.length - 1].nama + ' ' + pct(urut[urut.length - 1].isi)]]) + '</div>');
+      slides.push(kepala('PETA KECAMATAN', 'Keterisian kelompok per kecamatan', 'Tertinggi ' + urut[0].nama + ' ' + pct(urut[0].isi) + ' · terendah ' + urut[urut.length - 1].nama + ' ' + pct(urut[urut.length - 1].isi)) +
+        '<div class="ps-b ps-2"><div>' + petaSvg(RK, 'isi', { gaya: 'max-height:62vh' }) + legendaPeta() + '</div><div><h3>Peringkat</h3><div class="ps-rank">' +
+        urut.map((x, i) => '<div><span>' + (i + 1) + '. ' + esc(x.nama) + '</span><span class="bk-t"><span style="width:' + x.isi.toFixed(1) + '%"></span></span><b>' + pct(x.isi) + '</b></div>').join('') + '</div></div></div>');
+      slides.push(kepala('SELURUH KABUPATEN', 'Desa yang sudah punya peserta, per kelompok', RK.desa + ' desa · ' + posisi) + '<div class="ps-b">' + batangKelompok(cols, RK.perKol, RK.desa) + '</div>');
+      RK.per.slice().sort((a, b) => a.nama.localeCompare(b.nama)).forEach(satuKec);
+    }
+    tutupPresentasi();
+    const el = document.createElement('div');
+    el.id = 'pres';
+    el.innerHTML = '<div class="ps-slide" id="ps-isi"></div><div class="ps-nav"><button class="ps-x" id="ps-x" aria-label="Tutup">✕</button><button id="ps-p" aria-label="Sebelumnya">‹</button><span id="ps-n"></span><button id="ps-nx" aria-label="Berikutnya">›</button></div>';
+    document.body.appendChild(el);
+    let i = 0;
+    const tampil = () => { $('#ps-isi', el).innerHTML = slides[i]; $('#ps-n', el).textContent = (i + 1) + ' / ' + slides.length; $('#ps-p', el).disabled = !i; $('#ps-nx', el).disabled = i === slides.length - 1; };
+    const geser = d => { const j = Math.max(0, Math.min(slides.length - 1, i + d)); if (j !== i) { i = j; tampil(); } };
+    $('#ps-p', el).onclick = () => geser(-1); $('#ps-nx', el).onclick = () => geser(1); $('#ps-x', el).onclick = tutupPresentasi;
+    let x0 = null;
+    el.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+    el.addEventListener('touchend', e => { if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; if (Math.abs(dx) > 50) geser(dx < 0 ? 1 : -1); x0 = null; });
+    presentasi.kunci = e => { if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); geser(1); } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); geser(-1); } else if (e.key === 'Escape') tutupPresentasi(); };
+    document.addEventListener('keydown', presentasi.kunci, true);
+    try { if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {}); } catch (e) { /* tidak didukung (iPhone) */ }
+    tampil();
+  }
+  function tutupPresentasi() {
+    const el = $('#pres'); if (!el) return;
+    el.remove();
+    if (presentasi.kunci) document.removeEventListener('keydown', presentasi.kunci, true);
+    try { if (document.fullscreenElement) document.exitFullscreen(); } catch (e) { /* abaikan */ }
+  }
+
+  /**
+   * Laporan cakupan PDF A4 tegak, dibuat di perangkat (juga di iPhone & tanpa sinyal), logo BPJS Ketenagakerjaan.
+   * Lingkup kabupaten: ringkasan + peta kecamatan + tabel, lalu satu halaman per kecamatan (heatmap desa × kelompok).
+   * Lingkup satu kecamatan: untuk rapat / lampiran surat camat, termasuk daftar kelompok yang belum ada pesertanya.
+   */
+  function pdfLaporan(R, o) {
+    o = o || {};
+    const UNGU = '#5b2a6e', MERAH = '#b3261e', GK = R.grupKec || [], anyT = R.kec.some(k => k.target);
+    const cols = kolomCakupan(R, o.pecah), RK = ringkasKab(R, cols);
+    const n = x => num(x), pc = (a, t) => t ? pct(a / t * 100) : '-';
+    const nD = x => x.nDesa !== undefined ? x.nDesa : x.n; // cakupan target hanya peserta desa
+    const tkSel = (k, g) => k.tkNpp && k.tkNpp[g.key] && k.tkNpp[g.key].length ? n(k.tk.grp[g.key] || 0) : 'belum';
+    const d = new M3.Pdf({ arah: 'P' }), L = M3.logo();
+    const filter = 'Posisi ' + tglID(R.posisi) + ' · ' + R.kelompokNama + ' · LKD ' + (o.pecah ? 'dipecah' : 'digabung') + (anyT ? '' : ' · target belum diisi');
+    const kepala = (label, judul, sub) => {
+      const lw = 112, lh = lw * L.h / L.w;
+      d.jpeg(L.data, L.w, L.h, d.W - d.m.r - lw, d.y - 4, lw, lh);
+      d.teks(d.m.l, d.y, label, { uk: 7.5, tebal: true, warna: UNGU }); d.y += 11;
+      d.teks(d.m.l, d.y, judul, { uk: 15, tebal: true, lebar: d.lebarIsi - lw - 10 }); d.y += 19;
+      d.teks(d.m.l, d.y, sub, { uk: 8, warna: '#4f4655', lebar: d.lebarIsi - lw - 10 }); d.y += 12;
+      d.garis(d.m.l, d.y, d.W - d.m.r, d.y, { warna: UNGU, tebal: 1.2 }); d.y += 10;
+    };
+    const kpi = (isi) => {
+      const w = (d.lebarIsi - 8 * (isi.length - 1)) / isi.length;
+      isi.forEach((k, i) => {
+        const x = d.m.l + i * (w + 8);
+        d.kotak(x, d.y, w, 38, { isi: i === 0 ? UNGU : '#f2eef4' });
+        d.teks(x + 7, d.y + 6, k[0], { uk: 7, warna: i === 0 ? '#eadcf0' : '#4f4655', lebar: w - 12 });
+        d.teks(x + 7, d.y + 17, k[1], { uk: 13, tebal: true, warna: i === 0 ? '#ffffff' : (k[2] ? MERAH : '#1d1620'), lebar: w - 12 });
+      });
+      d.y += 48;
+    };
+    const sub3 = t => { d.ruang(30); d.teks(d.m.l, d.y, t, { uk: 9.5, tebal: true }); d.y += 14; };
+    const catatan = t => { d.ruang(10); d.teks(d.m.l, d.y, t, { uk: 6.8, warna: '#4f4655', lebar: d.lebarIsi }); d.y += 9; };
+    const legenda = (isi) => {
+      d.ruang(14); let x = d.m.l;
+      isi.forEach(s => { d.kotak(x, d.y + 0.5, 9, 7, { isi: s[0], garis: '#c9c3cc' }); d.teks(x + 12, d.y, s[1], { uk: 6.8, warna: '#4f4655' }); x += 18 + s[1].length * 3.4; });
+      d.y += 12;
+    };
+    const legendaSel = () => legenda([[NOL, '0 · belum ada']].concat(anyT ? [[SEQ[0], '<20%'], [SEQ[1], '20–39%'], [SEQ[2], '40–59%'], [SEQ[3], '60–79%'], [SEQ[4], '80%+']] : [[SEQ[1], '1–2'], [SEQ[2], '3–5'], [SEQ[3], '6–10'], [SEQ[4], '11+']]));
+    // Peta petak kecamatan
+    const peta = () => {
+      const G = 6, w = (d.lebarIsi - 3 * G) / 4, h = 44;
+      let lain = 0;
+      const pos = RK.per.map(x => PETA[x.nama.toLowerCase()] || [2 + (lain % 2), 3 + Math.floor(lain++ / 2)]);
+      const baris = Math.max(4, ...pos.map(p => p[1] + 1));
+      d.ruang(baris * (h + G) + 30);
+      const y0 = d.y;
+      RK.per.forEach((x, i) => {
+        const v = nilaiPeta(x, 'isi', 1), X = d.m.l + pos[i][0] * (w + G), Y = y0 + pos[i][1] * (h + G), ink = tintaWarna(v.t);
+        d.kotak(X, Y, w, h, { isi: isiWarna(v.t) });
+        d.teks(X + 6, Y + 5, x.nama, { uk: 7.5, tebal: true, warna: ink, lebar: w - 10 });
+        d.teks(X + 6, Y + 15, v.besar, { uk: 13, tebal: true, warna: ink, lebar: w - 10 });
+        d.teks(X + 6, Y + 32, v.kecil, { uk: 6.5, warna: ink, lebar: w - 10 });
+      });
+      d.teks(d.m.l + d.lebarIsi - 60, y0 + 3 * (h + G) + 4, '(atas = utara)', { uk: 6.8, warna: '#645a69', rata: 'kanan', lebar: 58 });
+      d.y = y0 + baris * (h + G) + 2;
+      legenda([[NOL, '0%'], [SEQ[0], '1–19%'], [SEQ[1], '20–39%'], [SEQ[2], '40–59%'], [SEQ[3], '60–79%'], [SEQ[4], '80–100%']]);
+    };
+    // Batang desa terisi per kelompok
+    const batangKel = (perKol, desa) => {
+      const lbl = 110, nil = 60, tr = d.lebarIsi - lbl - nil - 8;
+      cols.forEach((c, i) => {
+        d.ruang(11);
+        d.teks(d.m.l, d.y, c.nama, { uk: 7.2, lebar: lbl - 4 });
+        d.kotak(d.m.l + lbl, d.y - 0.5, tr, 6.5, { isi: '#f2eef4' });
+        const w = desa ? perKol[i] / desa * tr : 0; if (w > 0) d.kotak(d.m.l + lbl, d.y - 0.5, w, 6.5, { isi: UNGU });
+        d.teks(d.m.l + lbl + tr + 4, d.y, perKol[i] + '/' + desa + ' desa', { uk: 7.2, tebal: true, rata: 'kanan', lebar: nil, warna: perKol[i] ? '#1d1620' : MERAH });
+        d.y += 10.5;
+      });
+      d.y += 6;
+    };
+    // Heatmap desa × kelompok (tabel berwarna)
+    const heatmap = (k) => {
+      const ds = k.desaList.slice().sort((a, b) => a.nama.localeCompare(b.nama));
+      const wk = Math.min(40, Math.max(28, (d.lebarIsi - 18 - 110 - 34 - 30) / cols.length));
+      const kol = [{ judul: 'No', lebar: 18, rata: 'tengah' }, { judul: 'Desa', lebar: 0, bungkus: 2 }].concat(cols.map(c => ({ judul: c.pendek, lebar: wk, rata: 'tengah' })), [{ judul: 'Jml', lebar: 30, rata: 'kanan' }, { judul: 'Kel. terisi', lebar: 34, rata: 'tengah' }]);
+      const L = cols.filter(c => c.lengkap);
+      const bb = ds.map((x, i) => {
+        const latar = [null, x.n ? null : NOL], warna = [null, x.n ? null : MERAH];
+        const sel = [String(i + 1), x.nama].concat(cols.map(c => { const tk = tingkatSel(c.n(x), c.t(x)); latar.push(isiWarna(tk)); warna.push(tintaWarna(tk)); return n(c.n(x)) + (c.t(x) ? '/' + n(c.t(x)) : ''); }));
+        const ter = L.filter(c => c.n(x) > 0).length;
+        sel.push(n(x.n), ter + '/' + L.length); latar.push(null, null); warna.push(null, ter < L.length ? MERAH : null);
+        return { sel, latarSel: latar, warna };
+      });
+      GK.forEach(g => { if (k.tkNpp[g.key].length) bb.push({ jenis: 'sub', sel: ['', g.nama + ' (tingkat kecamatan) · NPP ' + k.tkNpp[g.key].join(', ')].concat(cols.map(() => ''), [n(k.tk.grp[g.key] || 0), '']) }); });
+      bb.push({ jenis: 'total', sel: ['', 'Jumlah ' + k.nama].concat(cols.map(c => n(c.n(k))), [n(k.n), '']) });
+      d.tabel({ kolom: kol, baris: bb, uk: 6.8, warnaJudul: UNGU, warnaTotal: '#ece4f0', warnaSub: '#f7f3f9' });
+      d.y += 4; legendaSel();
+    };
+    const halKec = (x, lengkap) => {
+      const k = x.k;
+      kepala('KECAMATAN', k.nama, n(k.n) + ' peserta aktif · ' + x.lengkap + '/' + x.desa + ' desa lengkap · keterisian ' + pct(x.isi) + (k.target ? ' · cakupan ' + pc(nD(k), k.target.total) : '') + ' · ' + filter);
+      kpi([['Peserta aktif', n(k.n)], ['Desa lengkap', x.lengkap + ' / ' + x.desa, x.lengkap < x.desa], ['Keterisian kelompok', pct(x.isi)], ['Desa tanpa peserta', String(k.desaKosong), k.desaKosong > 0]]
+        .concat(GK.map(g => [g.nama, tkSel(k, g) === 'belum' ? 'Belum ada' : tkSel(k, g) + ' org', tkSel(k, g) === 'belum'])));
+      if (lengkap) { sub3('Desa yang sudah punya peserta, per kelompok'); batangKel(x.perKol, x.desa); }
+      sub3('Peserta per desa dan kelompok' + (anyT ? ' (angka/target)' : ''));
+      heatmap(k);
+      if (lengkap && x.belum.length) {
+        sub3('Kelompok yang belum ada pesertanya');
+        d.tabel({ kolom: [{ judul: 'Desa', lebar: 130 }, { judul: 'Belum ada peserta', lebar: 0, bungkus: 3 }], baris: x.belum.map(b => ({ sel: [b.nama, b.kurang.join(', ')], warna: [null, MERAH] })), uk: 7.2, warnaJudul: UNGU });
+        d.y += 4; catatan('Tujuannya setiap desa mendaftarkan pekerja dari setiap kelompok' + (anyT ? '' : ' (tanpa target jumlah)') + '.');
+      }
+    };
+
+    if (o.lingkup) {
+      const x = RK.per.find(p => p.nama === o.lingkup);
+      halKec(x, true);
+      catatan('Keterisian = porsi pasangan desa × kelompok (' + cols.filter(c => c.lengkap).map(c => c.pendek).join(', ') + ') yang sudah punya peserta. Kabupaten: ' + pct(RK.isi) + '.');
+      return d.selesai(kakiPdf('Laporan Cakupan Kec. ' + o.lingkup + ' · ' + tglID(R.posisi)));
+    }
+    // Halaman 1: kabupaten
+    kepala('LAPORAN CAKUPAN KEPESERTAAN · EKOSISTEM DESA', R.judul, filter + (R.unit ? ' · ' + R.unit : ''));
+    kpi([['Peserta aktif', n(R.kab.n)], ['Desa lengkap', n(RK.lengkap) + ' / ' + n(RK.desa), RK.lengkap < RK.desa], ['Keterisian kelompok', pct(RK.isi)], ['Desa tanpa peserta', n(R.kab.desaKosong), R.kab.desaKosong > 0]]
+      .concat(GK.map(g => ['Kecamatan ada ' + g.nama, (R.kab.kecTk[g.key] || 0) + ' / ' + R.kec.length, (R.kab.kecTk[g.key] || 0) < R.kec.length])));
+    sub3('Peta keterisian kelompok per kecamatan');
+    peta();
+    sub3('Rangkuman per kecamatan');
+    const kecRows = RK.per.slice().sort((a, b) => a.nama.localeCompare(b.nama));
+    const kol1 = [{ judul: 'Kecamatan', lebar: 0, bungkus: 2 }, { judul: 'Desa', lebar: 24, rata: 'kanan' }, { judul: 'Peserta', lebar: 32, rata: 'kanan' }]
+      .concat(cols.map(c => ({ judul: c.pendek, lebar: o.pecah ? 30 : 34, rata: 'kanan' })), GK.map(g => ({ judul: g.nama + ' (kec.)', lebar: 44, rata: 'kanan' })),
+        [{ judul: 'Desa lengkap', lebar: 34, rata: 'tengah' }, { judul: 'Keter- isian', lebar: 34, rata: 'kanan' }], anyT ? [{ judul: 'Cakupan target', lebar: 36, rata: 'kanan' }] : []);
+    const b1 = kecRows.map(x => {
+      const k = x.k, latar = [null, null, null], warna = [null, null, null];
+      const v = [k.nama, String(k.desa), n(k.n)].concat(cols.map((c, i) => { const tk = tingkatPct(x.desa ? x.perKol[i] / x.desa * 100 : 0); latar.push(isiWarna(tk)); warna.push(tintaWarna(tk)); return n(c.n(k)); }));
+      GK.forEach(g => { const s = tkSel(k, g); v.push(s); latar.push(null); warna.push(s === 'belum' || s === '0' ? MERAH : null); });
+      v.push(x.lengkap + '/' + x.desa, pct(x.isi)); latar.push(null, isiWarna(tingkatPct(x.isi))); warna.push(x.lengkap < x.desa ? MERAH : null, tintaWarna(tingkatPct(x.isi)));
+      if (anyT) { v.push(k.target ? pc(nD(k), k.target.total) : '-'); latar.push(null); warna.push(null); }
+      return { sel: v, latarSel: latar, warna };
+    });
+    b1.push({ jenis: 'total', sel: ['Jumlah', String(R.kab.desa), n(R.kab.n)].concat(cols.map(c => n(c.n(R.kab))), GK.map(g => n(R.kab.tk.grp[g.key] || 0)), [RK.lengkap + '/' + RK.desa, pct(RK.isi)], anyT ? [R.kab.target ? pc(nD(R.kab), R.kab.target.total) : '-'] : []) });
+    d.tabel({ kolom: kol1, baris: b1, uk: 6.6, warnaJudul: UNGU, warnaTotal: '#ece4f0' });
+    d.y += 4;
+    catatan('Angka = peserta aktif. Warna sel kelompok = porsi desa di kecamatan itu yang sudah punya peserta kelompok tersebut (makin gelap makin merata).');
+    catatan('Keterisian = porsi pasangan desa × kelompok (' + cols.filter(c => c.lengkap).map(c => c.pendek).join(', ') + ') yang sudah punya peserta. Desa lengkap = semua kelompok itu ada pesertanya.');
+    catatan('LKD = Kader Posyandu, Kader PKK, Karang Taruna, RT/RW · LAD = Lembaga Adat Desa' + (GK.length ? ' · (kec.) = tingkat kecamatan, tidak ikut kelengkapan desa' : '') + '.');
+    kecRows.forEach(x => { d.halamanBaru(); halKec(x, true); });
+    return d.selesai(kakiPdf('Laporan Cakupan · ' + tglID(R.posisi)));
   }
 
   // ---------- Profil desa / kecamatan ----------
@@ -5767,97 +6148,6 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     }
     $$('[data-wk]', isi).forEach(b => b.onclick = () => go('wilayah', { kec: b.dataset.wk, desa: '' }));
     $$('[data-id]', isi).forEach(b => b.onclick = () => go('detail', { id: b.dataset.id }));
-  }
-
-  /**
-   * Laporan cakupan PDF A4 tegak, dibuat di perangkat (juga di iPhone & tanpa sinyal): logo BPJS Ketenagakerjaan,
-   * ringkasan kabupaten + satu halaman per kecamatan. Judul tabel berulang, baris tidak terpotong.
-   */
-  function pdfLaporan(R) {
-    const UNGU = '#5b2a6e', MERAH = '#b3261e', G = R.grup, GK = R.grupKec || [], anyT = R.kec.some(k => k.target);
-    const n = x => num(x), pc = (a, t) => t ? pct(a / t * 100) : '-';
-    const nD = x => x.nDesa !== undefined ? x.nDesa : x.n; // cakupan target hanya peserta desa
-    const tkSel = (k, g) => k.tkNpp && k.tkNpp[g.key] && k.tkNpp[g.key].length ? n(k.tk.grp[g.key] || 0) : 'belum';
-    const d = new M3.Pdf({ arah: 'P' }), L = M3.logo();
-    const filter = 'Posisi ' + tglID(R.posisi) + ' · ' + R.kelompokNama + (anyT ? '' : ' · target belum diisi');
-    const kepala = (label, judul, sub) => {
-      const lw = 112, lh = lw * L.h / L.w;
-      d.jpeg(L.data, L.w, L.h, d.W - d.m.r - lw, d.y - 4, lw, lh);
-      d.teks(d.m.l, d.y, label, { uk: 7.5, tebal: true, warna: UNGU }); d.y += 11;
-      d.teks(d.m.l, d.y, judul, { uk: 15, tebal: true, lebar: d.lebarIsi - lw - 10 }); d.y += 19;
-      d.teks(d.m.l, d.y, sub, { uk: 8, warna: '#4f4655', lebar: d.lebarIsi - lw - 10 }); d.y += 12;
-      d.garis(d.m.l, d.y, d.W - d.m.r, d.y, { warna: UNGU, tebal: 1.2 }); d.y += 10;
-    };
-    const kpi = (isi) => {
-      const w = (d.lebarIsi - 8 * (isi.length - 1)) / isi.length;
-      isi.forEach((k, i) => {
-        const x = d.m.l + i * (w + 8);
-        d.kotak(x, d.y, w, 38, { isi: i === 0 ? UNGU : '#f2eef4' });
-        d.teks(x + 7, d.y + 6, k[0], { uk: 7, warna: i === 0 ? '#eadcf0' : '#4f4655', lebar: w - 12 });
-        d.teks(x + 7, d.y + 17, k[1], { uk: 13, tebal: true, warna: i === 0 ? '#ffffff' : (k[2] ? MERAH : '#1d1620'), lebar: w - 12 });
-      });
-      d.y += 48;
-    };
-    const batang = (rows) => {
-      const mx = Math.max(1, ...rows.map(r => r.v)), lbl = 92, nil = 50, tr = d.lebarIsi - lbl - nil - 8;
-      rows.forEach(r => {
-        d.ruang(11);
-        d.teks(d.m.l, d.y, r.label, { uk: 7, lebar: lbl - 4, warna: r.zero ? MERAH : '#1d1620', tebal: r.zero });
-        d.kotak(d.m.l + lbl, d.y - 0.5, tr, 6.5, { isi: '#f2eef4' });
-        const w = Math.min(r.v / (r.t || mx), 1) * tr; if (w > 0) d.kotak(d.m.l + lbl, d.y - 0.5, w, 6.5, { isi: UNGU });
-        d.teks(d.m.l + lbl + tr + 4, d.y, r.t ? pct(r.v / r.t * 100) : n(r.v), { uk: 7, tebal: true, rata: 'kanan', lebar: nil });
-        d.y += 10.5;
-      });
-      d.y += 6;
-    };
-    const sub3 = t => { d.ruang(30); d.teks(d.m.l, d.y, t, { uk: 9.5, tebal: true }); d.y += 14; };
-    const kolomDasar = (pertama, lebarPertama) => [{ judul: pertama, lebar: lebarPertama, rata: pertama === 'No' ? 'tengah' : 'kiri' }]
-      .concat(pertama === 'No' ? [{ judul: 'Desa', lebar: 0, bungkus: 2 }] : [{ judul: 'Desa', lebar: 26, rata: 'kanan' }],
-        [{ judul: 'Peserta', lebar: 34, rata: 'kanan' }, { judul: '2P', lebar: 26, rata: 'kanan' }, { judul: '3P', lebar: 22, rata: 'kanan' }, { judul: '4P', lebar: 22, rata: 'kanan' }],
-        G.map(g => ({ judul: g.nama.replace('Lembaga Adat Desa', 'LAD'), lebar: 34, rata: 'kanan' })));
-    const merahNol = (vals, mulai) => vals.map((v, i) => i >= mulai && i < mulai + G.length && v === '0' ? MERAH : null);
-
-    // Halaman 1: kabupaten
-    kepala('LAPORAN CAKUPAN KEPESERTAAN · EKOSISTEM DESA', R.judul, filter + ' · ' + R.unit);
-    kpi([['Peserta aktif', n(R.kab.n)], ['Program 2P / 3P / 4P', n(R.kab.prog['2P']) + ' / ' + n(R.kab.prog['3P']) + ' / ' + n(R.kab.prog['4P'])], ['Desa', n(R.kab.desa)], ['Desa tanpa peserta', n(R.kab.desaKosong), R.kab.desaKosong > 0]]
-      .concat(GK.map(g => ['Kecamatan ada ' + g.nama, (R.kab.kecTk[g.key] || 0) + ' / ' + R.kec.length, (R.kab.kecTk[g.key] || 0) < R.kec.length])));
-    sub3(anyT ? 'Cakupan peserta per kecamatan terhadap target' : 'Peserta aktif per kecamatan');
-    batang(R.kec.slice().sort((a, b) => a.n - b.n).map(k => ({ label: k.nama, v: anyT && k.target ? nD(k) : k.n, t: anyT && k.target ? k.target.total : 0, zero: !k.n })));
-    sub3('Rangkuman per kecamatan');
-    const kecRows = R.kec.slice().sort((a, b) => a.nama.localeCompare(b.nama));
-    const kol1 = kolomDasar('Kecamatan', 0).map((k, i) => i === 0 ? Object.assign(k, { lebar: 0, bungkus: 2 }) : k)
-      .concat(GK.map(g => ({ judul: g.nama + ' (kec.)', lebar: 44, rata: 'kanan' })), [{ judul: 'Desa tanpa peserta', lebar: 34, rata: 'kanan' }], anyT ? [{ judul: 'Target', lebar: 36, rata: 'kanan' }, { judul: 'Cakupan', lebar: 34, rata: 'kanan' }] : []);
-    const b1 = kecRows.map(k => {
-      const v = [k.nama, String(k.desa), n(k.n), n(k.prog['2P']), n(k.prog['3P']), n(k.prog['4P'])].concat(G.map(g => n(k.grp[g.key])), GK.map(g => tkSel(k, g)), [String(k.desaKosong)], anyT ? [k.target ? n(k.target.total) : '-', k.target ? pc(nD(k), k.target.total) : '-'] : []);
-      const w = merahNol(v, 6); GK.forEach((g, i) => { if (v[6 + G.length + i] === 'belum' || v[6 + G.length + i] === '0') w[6 + G.length + i] = MERAH; }); if (k.desaKosong) w[6 + G.length + GK.length] = MERAH;
-      return { sel: v, warna: w };
-    });
-    b1.push({ jenis: 'total', sel: ['Jumlah', String(R.kab.desa), n(R.kab.n), n(R.kab.prog['2P']), n(R.kab.prog['3P']), n(R.kab.prog['4P'])].concat(G.map(g => n(R.kab.grp[g.key])), GK.map(g => n(R.kab.tk.grp[g.key] || 0)), [String(R.kab.desaKosong)], anyT ? [R.kab.target ? n(R.kab.target.total) : '-', R.kab.target ? pc(nD(R.kab), R.kab.target.total) : '-'] : []) });
-    d.tabel({ kolom: kol1, baris: b1, uk: 6.6, warnaJudul: UNGU, warnaTotal: '#ece4f0' });
-    d.y += 4; d.ruang(22);
-    d.teks(d.m.l, d.y, 'LKD = Kader Posyandu, Kader PKK, Karang Taruna, RT/RW · LAD = Lembaga Adat Desa · angka 0 merah = belum ada peserta.', { uk: 6.8, warna: '#4f4655', lebar: d.lebarIsi }); d.y += 9;
-    d.teks(d.m.l, d.y, (GK.length ? '(kec.) = tingkat kecamatan, satu NPP per kecamatan, tidak ikut kelengkapan desa · ' : '') + 'Rincian desa per kecamatan di halaman berikutnya.', { uk: 6.8, warna: '#4f4655', lebar: d.lebarIsi });
-
-    // Satu halaman per kecamatan
-    kecRows.forEach(k => {
-      d.halamanBaru();
-      kepala('KECAMATAN', k.nama, n(k.n) + ' peserta aktif · ' + k.desa + ' desa · ' + k.desaKosong + ' tanpa peserta' + (k.target ? ' · cakupan ' + pc(nD(k), k.target.total) : '') + ' · ' + filter);
-      kpi([['Peserta aktif', n(k.n)], ['2P / 3P / 4P', n(k.prog['2P']) + ' / ' + n(k.prog['3P']) + ' / ' + n(k.prog['4P'])], ['Desa', String(k.desa)], ['Desa tanpa peserta', String(k.desaKosong), k.desaKosong > 0]]
-        .concat(GK.map(g => [g.nama, tkSel(k, g) === 'belum' ? 'Belum ada' : tkSel(k, g) + ' peserta', tkSel(k, g) === 'belum'])));
-      const ds = k.desaList.slice().sort((a, b) => a.nama.localeCompare(b.nama));
-      if (ds.length <= 30) { sub3('Peserta aktif per desa' + (anyT ? ' (persen terhadap target bila diisi)' : '')); batang(ds.slice().sort((a, b) => a.n - b.n).map(x => ({ label: x.nama, v: x.n, t: anyT && x.target ? x.target.total : 0, zero: !x.n }))); }
-      sub3('Rincian per desa');
-      const kol = kolomDasar('No', 18).concat([{ judul: 'Kel. terisi', lebar: 32, rata: 'tengah' }], anyT ? [{ judul: 'Target', lebar: 34, rata: 'kanan' }, { judul: 'Cakupan', lebar: 34, rata: 'kanan' }] : []);
-      const bb = ds.map((x, i) => {
-        const v = [String(i + 1), x.nama, n(x.n), n(x.prog['2P']), n(x.prog['3P']), n(x.prog['4P'])].concat(G.map(g => n(x.grp[g.key]) + (x.target && x.target.grp[g.key] ? '/' + n(x.target.grp[g.key]) : '')), [x.terisi + '/' + R.lengkap], anyT ? [x.target ? n(x.target.total) : '-', x.target ? pc(x.n, x.target.total) : '-'] : []);
-        const w = merahNol(v.map(t => t.split('/')[0]), 6); if (!x.n) w[1] = MERAH;
-        return { sel: v, warna: w, latar: x.n ? null : '#fbe8e6' };
-      });
-      GK.forEach(g => { if (k.tkNpp[g.key].length) bb.push({ jenis: 'sub', sel: ['', g.nama + ' (tingkat kecamatan) · NPP ' + k.tkNpp[g.key].join(', '), n(k.tk.grp[g.key] || 0)].concat(GK.length === 1 ? ['2P', '3P', '4P'].map(x => n(k.tk.prog[x])) : ['', '', '']).concat(G.map(() => ''), [''], anyT ? ['', ''] : []) }); });
-      bb.push({ jenis: 'total', sel: ['', 'Jumlah ' + k.nama, n(k.n), n(k.prog['2P']), n(k.prog['3P']), n(k.prog['4P'])].concat(G.map(g => n(k.grp[g.key])), [''], anyT ? [k.target ? n(k.target.total) : '-', k.target ? pc(nD(k), k.target.total) : '-'] : []) });
-      d.tabel({ kolom: kol, baris: bb, uk: 6.6, warnaJudul: UNGU, warnaTotal: '#ece4f0' });
-    });
-    return d.selesai(kakiPdf('Laporan Cakupan · ' + tglID(R.posisi)));
   }
 
   // =====================================================================
@@ -6246,7 +6536,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
   function segarkan() {
     clearTimeout(tundaSegar);
     const a = document.activeElement;
-    if (!$('#busy').hidden || $('#layer').children.length || $('#menu-pop') || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) { tundaSegar = setTimeout(segarkan, 4000); return; }
+    if (!$('#busy').hidden || $('#layer').children.length || $('#menu-pop') || $('#pres') || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))) { tundaSegar = setTimeout(segarkan, 4000); return; }
     S.boot = null;
     render(true);
   }

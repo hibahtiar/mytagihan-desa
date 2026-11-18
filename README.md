@@ -70,10 +70,17 @@ Seluruh kecamatan: angka per desa dan **NPP tingkat kecamatan** (BUMDesma).
 Kelompok **BUMDesma**: satu NPP per kecamatan, tanpa desa (pilihan Desa terkunci "— tingkat kecamatan —" di Mutasi
 dan NPP). Tidak ikut kelengkapan desa; di Laporan cakupan tampil per kecamatan (ada / belum, jumlah peserta).
 
-## Laporan cakupan PDF
-Laporan › **Simpan PDF A4**. A4 tegak dengan logo BPJS Ketenagakerjaan, ringkasan kabupaten + satu halaman per
-kecamatan, judul tabel berulang, baris tidak terpotong. Dibuat di perangkat (juga iPhone, tanpa sinyal); di HP muncul
-pilihan **Bagikan / simpan ke File** atau **Unduh**.
+## Laporan cakupan (peta, heatmap, PDF, presentasi)
+Beranda › Laporan cakupan.
+- **Peta kecamatan** (atas = utara): warna = keterisian kelompok, yaitu porsi pasangan desa × kelompok yang sudah
+  punya peserta. Bisa diganti ke jumlah peserta atau cakupan target (bila target diisi). Ketuk kecamatan untuk rinciannya.
+- **Heatmap desa × kelompok** per kecamatan: angka = peserta, merah muda + 0 merah = belum ada. Ketuk desa → profil desa.
+- **LKD digabung / dipecah** (Posyandu, PKK, Kartar, RT/RW) di Filter; berlaku untuk tampilan, PDF, dan presentasi.
+- **Lingkup**: seluruh kabupaten atau satu kecamatan (untuk rapat / lampiran surat camat).
+- **Simpan PDF A4**: tegak, logo BPJS Ketenagakerjaan, tanpa kop dan tanda tangan. Kabupaten: ringkasan + peta +
+  tabel, lalu satu halaman per kecamatan (heatmap + kelompok yang belum ada pesertanya). Dibuat di perangkat.
+- **Mode presentasi**: layar penuh, geser / panah kiri-kanan, Esc untuk keluar. Kabupaten: sampul, peta & peringkat,
+  kelompok, lalu tiap kecamatan. Satu kecamatan: sampul, heatmap, daftar kelompok yang belum ada pesertanya.
 
 ## Tanpa sinkron (opsional)
 Spreadsheet → **File › Download › Microsoft Excel (.xlsx)** → Data & sinkron › Pindahkan data. Hapus file unduhan
