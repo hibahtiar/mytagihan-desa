@@ -1,4 +1,6 @@
-# MyTagihan Desa 3.0 · BPJS Ketenagakerjaan KC Pamekasan
+# MyTagihan Desa 3.4 · BPJS Ketenagakerjaan KC Pamekasan
+
+Versi 3.4.0 · butuh skrip spreadsheet `MyTagihan_Desa.gs` 2.5 (satu file).
 
 Iuran pekerja desa Kab. Pamekasan (Aparat, BPD, BUMDes, LKD, Lembaga Adat, Pekerja Rentan): mutasi peserta,
 tagihan bulanan/triwulanan, Trf Bank Jatim, laporan cakupan. Konsepnya sama dengan LENSA PK 2.0.
@@ -23,20 +25,27 @@ spreadsheet MyTagihan milik Anda dan di browser perangkat Anda (tersandi bila PI
 
 Memperbarui: unggah ulang `index.html` (dan `sw.js` bila berubah) → Commit. Data di perangkat tidak hilang.
 
-## 2. Sambungkan ke spreadsheet MyTagihan (sekali)
-Butuh skrip MyTagihan **2.1** (folder `apps-script`) di spreadsheet.
-1. Spreadsheet → menu **MyTagihan Desa › Aplikasi 3.0 (GitHub) › Siapkan sinkron & lihat kunci** → salin KUNCI.
-2. **Ekstensi › Apps Script › Terapkan › Deployment baru** → jenis **Aplikasi web** →
-   Jalankan sebagai: **Saya** · Yang memiliki akses: **Siapa saja** → Terapkan → salin URL `/exec`.
-   (Deployment lama untuk HP biarkan; sejak 2.1 tampilan Apps Script hanya terbuka untuk akun terdaftar.)
-3. Aplikasi → **Data & sinkron** → tempel URL + KUNCI → **Sambungkan**. Sheet MyTagihan ditarik ke perangkat
-   (hanya sheet milik aplikasi: Database, kelompok, npp, acuan_upah, keringanan, tarif, pengaturan, potensi,
-   dropdown, IBR, arsip saldo ibr, log).
-4. Perangkat lain: di perangkat yang sudah tersambung klik **Salin kode sambung**, kirim ke perangkat Anda sendiri,
-   tempel di Data & sinkron › Kode sambung → Sambungkan.
+## 2. Masuk: satu perangkat = satu akses (sejak 3.4)
+Setiap perangkat masuk dengan **kode undangan sekali pakai** yang dibuat di **LENSA PK › Perangkat & pengguna**
+(pilih aplikasi MyTagihan Desa), dan mendapat kunci sendiri sehingga bisa dicabut satu per satu dari LENSA PK.
+Perangkat yang belum terdaftar tidak bisa membuka data.
+
+- **Perangkat lama** (sudah tersambung dengan KUNCI bersama): tidak perlu apa-apa. Setelah `MyTagihan_Desa.gs` 2.5
+  terpasang, perangkat terdaftar otomatis saat sinkron berikutnya. KUNCI lama berlaku 14 hari sejak pembaruan
+  (atau sampai dimatikan dari LENSA PK).
+- **Perangkat baru**: buka alamat aplikasi → tempel pesan / kode undangan (`MTD.…`) → **Masuk**.
+- **Dicabut** dari LENSA PK: data MyTagihan (NIK, nama peserta) di perangkat itu dihapus saat ia tersambung.
+  **Nonaktifkan setelah terkirim** menerima perubahan terakhirnya dulu; **Cabut sekarang** menolak semua kiriman.
+- Perangkat yang **7 hari tidak sinkron** terkunci (data tetap ada) sampai sinkron berhasil.
+- **Keluar**: Data & sinkron › Keluar dari perangkat ini (perubahan dikirim dulu, lalu data dihapus).
+- **Hanya lihat**: perangkat dengan hak lihat tidak bisa mengubah data (ditolak di perangkat dan di spreadsheet).
+- **Log**: setiap perubahan tercatat di sheet **LOG_AKSES** (waktu, pengguna, perangkat, tindakan, hasil);
+  Riwayat aktivitas dan kolom "Dicatat Oleh" memakai nama pengguna perangkat. Daftar perangkat di sheet **PERANGKAT**.
+
+Sambungan ke LENSA PK (sekali, di laptop): menu **MyTagihan Desa › Aplikasi 3.0 (GitHub) › Kunci admin untuk LENSA PK**
+→ di LENSA PK › Perangkat & pengguna › MyTagihan Desa: tempel alamat /exec deployment sinkron + kunci admin itu.
 
 Setelah tersambung: sinkron otomatis saat aplikasi dibuka, tiap 5 menit, dan 3 detik setelah setiap perubahan.
-Tombol **Sinkron sekarang** ada di menu kiri (komputer) dan ikon ⟳ / menu ⋮ (HP).
 Tanpa sinyal: perubahan tersimpan di perangkat dan terkirim saat sinyal kembali (tidak tercatat dua kali; ID peserta
 dan riwayat sama di HP dan spreadsheet, jadi Urungkan tetap berlaku).
 
@@ -82,10 +91,6 @@ Beranda › Laporan cakupan.
 - **Mode presentasi**: layar penuh, geser / panah kiri-kanan, Esc untuk keluar. Kabupaten: sampul, peta & peringkat,
   kelompok, lalu tiap kecamatan. Satu kecamatan: sampul, heatmap, daftar kelompok yang belum ada pesertanya.
 
-## Tanpa sinkron (opsional)
-Spreadsheet → **File › Download › Microsoft Excel (.xlsx)** → Data & sinkron › Pindahkan data. Hapus file unduhan
-sesudahnya (berisi NIK).
-
 ## Catatan
-- Cadangan: Data & sinkron › Unduh cadangan (.json). Kunci sinkron tidak ikut; bila PIN aktif cadangan ikut terkunci.
+- Cadangan: Data & sinkron › Unduh cadangan (.json). Kunci / token perangkat tidak ikut; bila PIN aktif cadangan ikut terkunci.
 - Satu akun GitHub dengan LENSA PK: alamat, simpanan, dan service worker terpisah (`mytagihan-desa-…`).

@@ -3279,7 +3279,7 @@ function terapkanNpp_(tx, M, h) {
  * =====================================================================
  */
 
-const APP_VERSION = '2.4.0';
+const APP_VERSION = '2.5.0';
 
 function onOpen() {
   SpreadsheetApp.getUi()
@@ -4101,12 +4101,12 @@ var LOGO_BPJSTK = { w: 480, h: 111, b64: '/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAQDAw
  *  antrean sinkron. Bila PIN dipasang, isi disandikan AES-GCM 256 dengan kunci turunan PIN
  *  (PBKDF2-SHA256); tanpa PIN yang benar data tidak terbaca. (Sama dengan LENSA PK 2.0.)
  * ---------------------------------------------------------------------- */
-var VERSI_APP = '3.3.2';
+var VERSI_APP = '3.4.0';
 var NAMA_DB = 'mytagihan_desa_3';
 var ID_HALAMAN = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 var SIMPAN = { db: null, jenis: 'memori', tertunda: null, galat: '', terakhir: '', dimuat: 0, kunci: null, garam: null, setelahMuatUlang: null, rekTerkunci: null };
 function appKosong() {
-  return { pengaturan: {}, impor: [], sinkron: { url: '', kunci: '', hash: {}, antre: [], gagal: [], terakhir: '', galat: '', urlSheet: '', versiServer: '', nama: '', pengguna: '' } };
+  return { pengaturan: {}, impor: [], sinkron: { url: '', kunci: '', idp: '', token: '', idKlien: '', akses: null, terakhirOk: 0, hash: {}, antre: [], gagal: [], terakhir: '', galat: '', urlSheet: '', versiServer: '', nama: '', pengguna: '' } };
 }
 var APP = appKosong();
 var PBKDF2_ULANG = 250000;
@@ -4251,7 +4251,7 @@ function unduhBlob(blob, nama) {
 /** Kunci sinkron tidak ikut cadangan. Bila PIN aktif, cadangan ikut terkunci PIN yang sama. */
 async function unduhCadangan() {
   var app = JSON.parse(JSON.stringify(APP));
-  app.sinkron.kunci = ''; app.sinkron.url = '';
+  app.sinkron.kunci = ''; app.sinkron.url = ''; app.sinkron.token = ''; app.sinkron.idp = ''; app.sinkron.idKlien = ''; app.sinkron.akses = null;
   var d = { jenis: 'MyTagihan Desa 3 cadangan', versi: VERSI_APP, waktu: new Date().toISOString(), gas: gasEkspor(), app: app }, isi;
   if (SIMPAN.kunci) {
     var r = await sandikan(d, SIMPAN.kunci, SIMPAN.garam);
@@ -4269,7 +4269,8 @@ async function pulihkanCadangan(file, mintaPin) {
   if (!d || !d.gas || !d.gas.tab) throw new Error('Bukan file cadangan MyTagihan Desa 3.');
   var sink = APP.sinkron;
   pakaiMuatan(d);
-  APP.sinkron.url = sink.url; APP.sinkron.kunci = sink.kunci; APP.sinkron.hash = {}; // tarik berikutnya mengambil ulang semua sheet
+  ['url', 'kunci', 'idp', 'token', 'idKlien', 'akses', 'terakhirOk'].forEach(function (k) { APP.sinkron[k] = sink[k]; });
+  APP.sinkron.hash = {}; // tarik berikutnya mengambil ulang semua sheet
   APP.sinkron.pengguna = sink.pengguna || APP.sinkron.pengguna; GAS.email = APP.sinkron.pengguna || '';
   await simpanSekarang();
 }
@@ -4281,7 +4282,8 @@ async function hapusSemua() {
 
 /* === 35-sinkron.js === */
 /* ----------------------------------------------------------------------
- *  Mesin di perangkat + sinkron dengan spreadsheet MyTagihan (Sinkron.gs, deployment "Siapa saja" + KUNCI).
+ *  Mesin di perangkat + sinkron dengan spreadsheet MyTagihan (2.5+: token per perangkat dari kode undangan LENSA PK;
+ *  perangkat lama ber-KUNCI didaftarkan otomatis; server menjawab cabut=true bila akses dicabut → data perangkat dihapus).
  *  - Setiap tindakan dijalankan di perangkat dulu (langsung tampil, juga tanpa sinyal). Tindakan tulis
  *    dicatat di antrean bersama ID yang dibuatnya, lalu dikirim ke server yang menjalankan FUNGSI YANG
  *    SAMA dengan ID yang sama.
@@ -4297,7 +4299,17 @@ var TAB_APP = ['Database', 'kelompok', 'npp', 'acuan_upah', 'keringanan', 'tarif
   'IBR', 'IBR (sebelumnya)', 'arsip saldo ibr', 'log_aplikasi', 'log_detail'];
 var SINK = { janji: null, tunda: null, setelah: null, saatMulai: null, saatSelesai: null, berjalan: false };
 
-function sinkronAktif() { return !!(APP.sinkron && APP.sinkron.url && APP.sinkron.kunci); }
+function sinkronAktif() { var s = APP.sinkron; return !!(s && s.url && (s.token || s.kunci)); }
+function terdaftar() { var s = APP.sinkron; return !!(s && s.url && s.token); }
+function infoAkses() { return (APP.sinkron && APP.sinkron.akses) || null; }
+function hakLihat() { var a = infoAkses(); return !!(terdaftar() && a && a.hak === 'Lihat'); }
+function idKlienBaru() { return 'K' + Date.now().toString(36) + Math.random().toString(36).slice(2, 10); }
+function labelPerangkat() {
+  var u = navigator.userAgent || '', b = /Edg\//.test(u) ? 'Edge' : /OPR\//.test(u) ? 'Opera' : /SamsungBrowser/.test(u) ? 'Samsung Internet' : /Firefox\//.test(u) ? 'Firefox' : /CriOS|Chrome\//.test(u) ? 'Chrome' : /Safari\//.test(u) ? 'Safari' : 'Browser';
+  var o = /Android/.test(u) ? 'Android' : /iPhone/.test(u) ? 'iPhone' : /iPad/.test(u) ? 'iPad' : /Windows/.test(u) ? 'Windows' : /Mac OS X|Macintosh/.test(u) ? 'macOS' : /CrOS/.test(u) ? 'ChromeOS' : /Linux/.test(u) ? 'Linux' : '';
+  var pwa = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches ? ' · aplikasi' : '';
+  return b + (o ? ' · ' + o : '') + pwa;
+}
 function idOp() { return 'O' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 function adaData() { return !!GAS_SS.getSheetByName('kelompok') && !!GAS_SS.getSheetByName('Database'); }
 
@@ -4310,6 +4322,7 @@ function jalankanLokal(nama, argsJson) {
   if (!fn) return JSON.stringify({ ok: false, error: 'Aksi tidak dikenal: ' + nama });
   var args = argsJson ? JSON.parse(argsJson) : [];
   var tulis = FN_TULIS.indexOf(nama) >= 0 && !(args[0] && args[0].dryRun);
+  if (tulis && hakLihat()) return JSON.stringify({ ok: false, error: 'Akses perangkat ini hanya untuk melihat. Perubahan tidak disimpan.' });
   var ubahAwal = GAS.diubah;
   _UUID_CATAT = [];
   try {
@@ -4337,20 +4350,51 @@ function jadwalSinkron(jeda) {
   SINK.tunda = setTimeout(function () { sinkronkan().catch(function () { /* galat disimpan di APP.sinkron.galat */ }); }, jeda || 0);
 }
 
-async function panggilServer(isi, url, kunci) {
-  var r;
+/** kred: {idp, token} | {kunci} | {} (gabung). Tanpa kred: kredensial perangkat ini. */
+async function panggilServer(isi, url, kred) {
+  var s = APP.sinkron, r;
+  if (!kred) kred = s.token ? { idp: s.idp, token: s.token } : { kunci: s.kunci };
   try {
-    r = await fetch(url || APP.sinkron.url, {
+    r = await fetch(url || s.url, {
       method: 'POST', redirect: 'follow', cache: 'no-store', credentials: 'omit',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(Object.assign({ kunci: kunci || APP.sinkron.kunci, versiApp: VERSI_APP }, isi))
+      body: JSON.stringify(Object.assign({ versiApp: VERSI_APP, perangkat: labelPerangkat(), antre: jumlahAntre() }, kred, isi))
     });
   } catch (e) { throw new Error('Tidak terhubung ke internet / server.'); }
   if (!r.ok) throw new Error('Server sinkron menjawab ' + r.status);
   var teks = await r.text(), j;
   try { j = JSON.parse(teks); } catch (e) { throw new Error(/<html/i.test(teks) ? 'Alamat sinkron salah, atau deployment belum diatur "Siapa saja".' : 'Jawaban server tidak terbaca.'); }
-  if (!j.ok) throw new Error(j.galat || 'Sinkron gagal');
+  if (!j.ok) { var er = new Error(j.galat || 'Sinkron gagal'); if (j.cabut) er.cabut = true; throw er; }
   return j;
+}
+function pakaiAkses(a) {
+  if (!a) return;
+  APP.sinkron.akses = a; APP.sinkron.pengguna = a.pengguna; GAS.email = a.pengguna;
+}
+/** Perangkat lama (KUNCI bersama) → terdaftar dengan token sendiri. Server lama (≤2.4) → tetap KUNCI. */
+async function pastikanTerdaftar() {
+  var s = APP.sinkron;
+  if (s.token || !s.kunci || !s.url) return;
+  if (s.serverLama && Date.now() - s.serverLama < 3 * 3600e3) return;
+  if (!s.idKlien) { s.idKlien = idKlienBaru(); await simpanSekarang(); }
+  try {
+    var j = await panggilServer({ aksi: 'daftar', idKlien: s.idKlien }, s.url, { kunci: s.kunci });
+    s.idp = j.idp; s.token = j.token; s.kunci = ''; s.serverLama = 0; pakaiAkses(j.akses);
+    await simpanSekarang();
+  } catch (e) {
+    if (/Aksi tidak dikenal/.test(e.message)) { s.serverLama = Date.now(); return; } // skrip spreadsheet belum 2.5
+    throw e;
+  }
+}
+/** Akses dicabut (pengelola LENSA PK, masa akses habis, atau keluar): hapus data MyTagihan di perangkat, kembali ke layar masuk. */
+var AKSES_DICABUT = { aktif: false };
+async function aksesDicabut(pesan) {
+  if (AKSES_DICABUT.aktif) return;
+  AKSES_DICABUT.aktif = true;
+  try { clearTimeout(SINK.tunda); } catch (e) { /* diam */ }
+  await hapusSemua();
+  try { sessionStorage.setItem('mt_dicabut', pesan || 'Akses perangkat ini dicabut.'); } catch (e) { /* diam */ }
+  if (AKSES_DICABUT.saatDicabut) AKSES_DICABUT.saatDicabut(pesan); else location.reload();
 }
 
 /** Potong antrean per kiriman (impor bisa besar). */
@@ -4384,6 +4428,7 @@ function sinkronkan() {
   SINK.janji = (async function () {
     var s = APP.sinkron, hasil = { kirim: 0, gagal: 0, tab: 0 };
     try {
+      await pastikanTerdaftar();
       while (s.antre.length) {
         var batch = ambilBatch(s.antre);
         var j = await panggilServer({ aksi: 'jalankan', op: batch });
@@ -4405,11 +4450,13 @@ function sinkronkan() {
       gantiTabDariServer(t);
       hasil.tab = nama.length;
       s.hash = t.hash || {}; s.urlSheet = t.url || ''; s.versiServer = t.versi || '';
-      s.terakhir = gasTanggal(new Date(), '', 'yyyy-MM-dd HH:mm'); s.galat = '';
+      pakaiAkses(t.akses);
+      s.terakhir = gasTanggal(new Date(), '', 'yyyy-MM-dd HH:mm'); s.galat = ''; s.terakhirOk = Date.now();
       await simpanSekarang();
       if (SINK.setelah) SINK.setelah(hasil);
       return hasil;
     } catch (e) {
+      if (e.cabut) { SINK.janji = null; await aksesDicabut(e.message); throw e; }
       s.galat = e.message; simpanNanti();
       throw e;
     } finally {
@@ -4424,35 +4471,78 @@ function sinkronkan() {
 async function panggilLangsung(fn, argsJson) {
   if (!sinkronAktif()) throw new Error('Fitur ini memakai Google Drive: sambungkan dulu ke spreadsheet (Data & sinkron).');
   if (navigator.onLine === false) throw new Error('Perlu sinyal untuk fitur Google Drive ini. Data tetap tersimpan di perangkat.');
-  if (jumlahAntre() || SINK.janji) await sinkronkan();
-  var j = await panggilServer({ aksi: 'panggil', fn: fn, args: argsJson || '[]' });
-  return j.nilai;
+  if (jumlahAntre() || SINK.janji || !terdaftar()) await sinkronkan();
+  try {
+    var j = await panggilServer({ aksi: 'panggil', fn: fn, args: argsJson || '[]' });
+    return j.nilai;
+  } catch (e) { if (e.cabut) await aksesDicabut(e.message); throw e; }
 }
 
-/* ---------- sambung ---------- */
-function buatKodeSambung() { return 'MT3.' + btoa(unescape(encodeURIComponent(JSON.stringify({ u: APP.sinkron.url, k: APP.sinkron.kunci })))); }
+/* ---------- masuk / sambung / keluar ---------- */
+/** Kode undangan MyTagihan dari LENSA PK: "MTD." + base64({u: alamat /exec, c: kode}). Boleh ditempel bersama teks pesan WA. */
+function bacaUndangan(teks) {
+  var m = String(teks || '').match(/MTD\.([A-Za-z0-9+\/=_-]{8,})/);
+  if (!m) return null;
+  try {
+    var o = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/')))));
+    return o && o.u && o.c ? { url: String(o.u), kode: String(o.c) } : null;
+  } catch (e) { return null; }
+}
+var POLA_EXEC = /^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/;
+async function infoSpreadsheet() {
+  try { var j = await panggilServer({ aksi: 'cek' }); APP.sinkron.nama = j.nama || ''; APP.sinkron.versiServer = j.versi || ''; pakaiAkses(j.akses); } catch (e) { /* diam */ }
+}
+/** Masuk dengan kode undangan. Antrean lama di perangkat (bila ada) dikirim dulu, lalu seluruh data ditarik. */
+async function gabungDenganKode(teks) {
+  var o = bacaUndangan(teks);
+  if (!o) throw new Error('Kode undangan tidak dikenali. Tempel seluruh kode yang diawali MTD.');
+  if (!POLA_EXEC.test(o.url)) throw new Error('Kode undangan rusak (alamat server tidak sah).');
+  var s = APP.sinkron;
+  if (!s.idKlien) { s.idKlien = idKlienBaru(); await simpanSekarang(); }
+  var j = await panggilServer({ aksi: 'gabung', kode: o.kode, idKlien: s.idKlien }, o.url, {});
+  s.url = o.url; s.idp = j.idp; s.token = j.token; s.kunci = ''; s.hash = {}; s.galat = ''; s.terakhirOk = Date.now(); pakaiAkses(j.akses);
+  await simpanSekarang();
+  var h = await sinkronkan();
+  await infoSpreadsheet(); await simpanSekarang();
+  return { akses: j.akses, nama: s.nama, hasil: h };
+}
+/** Kode sambung lama (MT3.…) = alamat + KUNCI bersama; hanya untuk masa peralihan. */
 function bacaKodeSambung(kode) {
   try {
     var o = JSON.parse(decodeURIComponent(escape(atob(String(kode).trim().replace(/^MT3\./, '')))));
     return o && o.u && o.k ? { url: o.u, kunci: o.k } : null;
   } catch (e) { return null; }
 }
-/** Uji alamat + kunci, simpan, lalu sinkron penuh (data perangkat diganti data spreadsheet; antrean dikirim dulu). */
+/** Masa peralihan: alamat + KUNCI lama → perangkat didaftarkan otomatis, lalu sinkron penuh (antrean dikirim dulu). */
 async function sambungSinkron(url, kunci) {
   url = String(url || '').trim(); kunci = String(kunci || '').trim();
-  if (!/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(url)) throw new Error('Alamat harus berbentuk https://script.google.com/macros/s/…/exec');
+  if (!POLA_EXEC.test(url)) throw new Error('Alamat harus berbentuk https://script.google.com/macros/s/…/exec');
   if (!kunci) throw new Error('Kunci kosong.');
-  var j = await panggilServer({ aksi: 'cek' }, url, kunci);
-  APP.sinkron.url = url; APP.sinkron.kunci = kunci; APP.sinkron.hash = {}; APP.sinkron.galat = '';
+  var j = await panggilServer({ aksi: 'cek' }, url, { kunci: kunci });
+  APP.sinkron.url = url; APP.sinkron.kunci = kunci; APP.sinkron.token = ''; APP.sinkron.idp = ''; APP.sinkron.hash = {}; APP.sinkron.galat = ''; APP.sinkron.serverLama = 0;
   APP.sinkron.nama = j.nama || ''; APP.sinkron.pengguna = j.pengguna || ''; APP.sinkron.versiServer = j.versi || '';
   GAS.email = APP.sinkron.pengguna;
   await simpanSekarang();
   var h = await sinkronkan();
   return { versi: j.versi, nama: j.nama, hasil: h };
 }
-async function putusSinkron() {
-  APP.sinkron.url = ''; APP.sinkron.kunci = ''; APP.sinkron.hash = {};
-  await simpanSekarang();
+/** Keluar: kirim semua perubahan, beri tahu server, lalu hapus data MyTagihan di perangkat ini. */
+async function keluarPerangkat() {
+  if (!terdaftar()) throw new Error('Perangkat ini belum terdaftar.');
+  await sinkronkan();
+  if (jumlahAntre()) throw new Error('Masih ada ' + jumlahAntre() + ' perubahan yang belum terkirim. Coba lagi saat sinyal bagus.');
+  try { await panggilServer({ aksi: 'keluar' }); } catch (e) { if (!e.cabut) throw e; }
+  AKSES_DICABUT.aktif = true;
+  await hapusSemua();
+}
+/** Terkunci bila 7 hari tidak berhasil sinkron (data tetap ada; terbuka lagi setelah sinkron berhasil). */
+var HARI_KUNCI_SINKRON = 7;
+function terkunciTakSinkron() {
+  if (!sinkronAktif()) return false;
+  var s = APP.sinkron, t = +s.terakhirOk || 0;
+  if (!t && s.terakhir) { var d = new Date(String(s.terakhir).replace(' ', 'T') + ':00'); t = isNaN(d.getTime()) ? 0 : d.getTime(); }
+  if (!t) { s.terakhirOk = Date.now(); simpanNanti(); return false; }
+  return Date.now() - t > HARI_KUNCI_SINKRON * 864e5;
 }
 
 /* ---------- pindah data tanpa sinkron: unduhan spreadsheet (.xlsx semua sheet) ---------- */
@@ -4546,6 +4636,96 @@ function pasangKunciOtomatis() {
 
 
 
+/* === 37-gerbang.js === */
+/* ----------------------------------------------------------------------
+ *  Gerbang akses (MyTagihan 3.4, sama dengan LENSA 2.3): menutupi aplikasi sampai perangkat boleh memakai data.
+ *  - "gabung"   : perangkat belum terdaftar → masukkan kode undangan (atau alamat + KUNCI lama saat peralihan).
+ *  - "dicabut"  : akses dicabut / masa akses habis / keluar → data di perangkat sudah dihapus.
+ *  - "terkunci" : 7 hari tidak berhasil sinkron → terbuka lagi setelah sinkron berhasil (data tetap ada).
+ *  Berdiri sendiri (gaya inline), seperti layar PIN.
+ * ---------------------------------------------------------------------- */
+var GERBANG = { el: null, selesai: null };
+
+function gerbangTombol(teks, utama, attr) {
+  return '<button type="button" ' + (attr || '') + ' style="width:100%;margin-top:10px;padding:12px;font-size:15px;font-weight:700;border-radius:10px;' +
+    (utama ? 'border:0;background:#5B2A6E;color:#fff' : 'border:1px solid #C9CFDA;background:#fff;color:#1B2430') + '">' + teks + '</button>';
+}
+function gerbangHtml(mode, pesan) {
+  var esc = function (t) { return String(t || '').replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+  var judul = { gabung: 'Masuk ke MyTagihan Desa', dicabut: 'Akses dicabut', terkunci: 'Perangkat terkunci' }[mode];
+  var n = jumlahAntre(), isi = '';
+  if (mode === 'terkunci') {
+    var s = APP.sinkron || {};
+    isi = '<p style="margin:6px 0 4px;font-size:14px;color:#5B6470">Perangkat ini sudah lebih dari ' + HARI_KUNCI_SINKRON + ' hari tidak sinkron dengan spreadsheet MyTagihan' +
+      (s.terakhir ? ' (terakhir ' + esc(s.terakhir) + ')' : '') + '. Sambungkan internet, lalu tekan Sinkron sekarang. Data di perangkat tetap ada.</p>' +
+      (n ? '<p style="font-size:13px;color:#8A5A00;margin:6px 0">' + n + ' perubahan menunggu terkirim.</p>' : '') +
+      '<div data-galat style="min-height:20px;margin-top:6px;font-size:13px;color:#BD3B33"></div>' + gerbangTombol('Sinkron sekarang', true, 'data-g="sinkron"');
+  } else {
+    isi = (mode === 'dicabut'
+      ? '<p style="margin:6px 0 4px;font-size:14px;color:#5B6470">' + esc(pesan || 'Akses perangkat ini dicabut.') + '</p><p style="margin:4px 0 12px;font-size:13px;color:#5B6470">Data MyTagihan (NIK, nama peserta) di perangkat ini sudah dihapus. Data di spreadsheet tetap aman. Untuk masuk lagi, minta kode undangan baru.</p>'
+      : '<p style="margin:6px 0 12px;font-size:14px;color:#5B6470">Perangkat ini belum terdaftar. Masukkan <b>kode undangan</b> dari LENSA PK (menu <b>Perangkat &amp; pengguna</b> di perangkat pemilik). Tempel seluruh pesan undangan pun boleh.</p>') +
+      (n ? '<p style="font-size:13px;color:#8A5A00;margin:0 0 8px;background:#FFF6DC;padding:8px 10px;border-radius:8px">' + n + ' perubahan di perangkat ini belum terkirim. Setelah masuk, perubahan itu dikirim lebih dulu ke spreadsheet.</p>' : '') +
+      '<textarea data-f="kode" rows="3" placeholder="MTD.…" aria-label="Kode undangan" style="width:100%;box-sizing:border-box;font:14px ui-monospace,Consolas,monospace;padding:10px;border:1.5px solid #C9CFDA;border-radius:10px;resize:vertical"></textarea>' +
+      '<div data-galat style="min-height:20px;margin-top:6px;font-size:13px;color:#BD3B33"></div>' + gerbangTombol('Masuk', true, 'data-g="gabung"') +
+      '<details style="margin-top:14px;font-size:13px;color:#5B6470"><summary style="cursor:pointer">Masa peralihan: punya alamat + KUNCI lama?</summary>' +
+      '<p style="margin:8px 0">Perangkat lama Anda bisa didaftarkan dengan alamat /exec + KUNCI lama (atau kode sambung lama "MT3.…") selama KUNCI lama masih berlaku.</p>' +
+      '<input data-f="url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off" style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #C9CFDA;border-radius:8px;margin-bottom:6px">' +
+      '<input data-f="kunci" type="password" placeholder="KUNCI atau kode sambung MT3.…" autocomplete="off" style="width:100%;box-sizing:border-box;padding:9px;border:1px solid #C9CFDA;border-radius:8px">' +
+      gerbangTombol('Sambungkan dengan KUNCI lama', false, 'data-g="lama"') + '</details>';
+  }
+  return '<div style="background:#fff;border-radius:16px;padding:24px 22px;width:100%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,.25);color:#1B2430;max-height:92vh;overflow:auto">' +
+    '<div style="font-weight:800;font-size:20px;color:#5B2A6E">MyTagihan Desa</div>' +
+    '<div style="margin-top:10px;font-weight:700;font-size:16px">' + judul + '</div>' + isi +
+    '<div style="margin-top:14px;font-size:11.5px;color:#9AA3B2">Versi ' + VERSI_APP + ' · ' + esc(labelPerangkat()) + '</div></div>';
+}
+
+/** Tampilkan gerbang; selesai (resolve) setelah perangkat boleh memakai data. */
+function tampilkanGerbang(mode, pesan) {
+  return new Promise(function (selesai) {
+    var pasang = function () {
+      if (GERBANG.el) GERBANG.el.remove();
+      var lap = document.createElement('div');
+      lap.id = 'gerbangAkses';
+      lap.setAttribute('role', 'dialog'); lap.setAttribute('aria-modal', 'true'); lap.setAttribute('aria-label', 'Akses MyTagihan Desa');
+      lap.style.cssText = 'position:fixed;inset:0;z-index:99998;background:#3E1C4C;display:flex;align-items:center;justify-content:center;padding:16px;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif';
+      lap.innerHTML = gerbangHtml(mode, pesan);
+      document.body.appendChild(lap);
+      GERBANG.el = lap; GERBANG.mode = mode;
+      var gal = lap.querySelector('[data-galat]'), nilai = function (k) { var x = lap.querySelector('[data-f="' + k + '"]'); return x ? x.value.trim() : ''; };
+      var kerja = async function (tombol, f, sukses) {
+        var semua = lap.querySelectorAll('button'); Array.prototype.forEach.call(semua, function (b) { b.disabled = true; });
+        gal.style.color = '#5B6470'; gal.textContent = 'Menghubungi server… (menarik data bisa 10–60 detik)';
+        try { await f(); gal.textContent = ''; lap.remove(); GERBANG.el = null; selesai(sukses || true); }
+        catch (e) {
+          Array.prototype.forEach.call(semua, function (b) { b.disabled = false; });
+          gal.style.color = '#BD3B33'; gal.textContent = e.message;
+        }
+      };
+      var b;
+      if ((b = lap.querySelector('[data-g="gabung"]'))) b.onclick = function () { kerja(b, function () { return gabungDenganKode(nilai('kode')); }); };
+      if ((b = lap.querySelector('[data-g="lama"]'))) b.onclick = function () {
+        var url = nilai('url'), k = nilai('kunci'), o = /^MT3\./.test(k) ? bacaKodeSambung(k) : null;
+        if (o) { url = o.url; k = o.kunci; }
+        kerja(b, function () { return sambungSinkron(url, k); });
+      };
+      if ((b = lap.querySelector('[data-g="sinkron"]'))) b.onclick = function () { kerja(b, function () { return sinkronkan(); }); };
+      var t = lap.querySelector('textarea'); if (t) setTimeout(function () { t.focus(); }, 50);
+    };
+    if (document.body) pasang(); else document.addEventListener('DOMContentLoaded', pasang);
+  });
+}
+
+/** Dipanggil saat aplikasi dibuka dan setiap kembali tampil. Hasil: true bila gerbang sempat ditampilkan. */
+async function periksaGerbang() {
+  if (window.__MT_UJI_TANPA_GERBANG || GERBANG.el) return false; // uji tampilan lama tanpa server
+  var pesan = null;
+  try { pesan = sessionStorage.getItem('mt_dicabut'); if (pesan) sessionStorage.removeItem('mt_dicabut'); } catch (e) { /* diam */ }
+  if (pesan && !sinkronAktif()) { await tampilkanGerbang('dicabut', pesan); return true; }
+  if (!sinkronAktif()) { await tampilkanGerbang('gabung'); return true; }
+  if (terkunciTakSinkron()) { await tampilkanGerbang('terkunci'); return true; }
+  return false;
+}
+
 /* === 90-jembatan.js === */
 /* ----------------------------------------------------------------------
  *  Tampilan MyTagihan (Js.html yang sama dengan aplikasi Apps Script) di atas mesin perangkat.
@@ -4601,6 +4781,7 @@ function statusSinkron() {
   return {
     aktif: sinkronAktif(), berjalan: !!SINK.berjalan, terakhir: s.terakhir || '', galat: s.galat || '', antre: jumlahAntre(),
     gagal: (s.gagal || []).slice(0, 8), urlSheet: s.urlSheet || '', versiServer: s.versiServer || '', nama: s.nama || '', pengguna: s.pengguna || '',
+    terdaftar: terdaftar(), akses: infoAkses(), hakLihat: hakLihat(), perangkat: labelPerangkat(), serverLama: !!s.serverLama, hariKunci: HARI_KUNCI_SINKRON,
     pin: pinAktif(), simpan: SIMPAN.jenis, simpanGalat: SIMPAN.galat || '', versi: VERSI_APP, mesin: typeof APP_VERSION !== 'undefined' ? APP_VERSION : '',
     online: navigator.onLine !== false, data: adaData()
   };
@@ -4615,8 +4796,8 @@ window.__mt3 = {
   onBerubah: function (f) { JMB.berubah.push(f); },
   sinkron: function () { JMB.picu = Date.now(); return sinkronkan(); },
   sambung: sambungSinkron,
-  putus: async function () { await putusSinkron(); kabarStatus(); },
-  kodeSambung: buatKodeSambung,
+  gabung: async function (teks) { var h = await gabungDenganKode(teks); kabarStatus(); kabarBerubah(); return h; },
+  keluar: async function () { await keluarPerangkat(); try { sessionStorage.setItem('mt_dicabut', 'Anda sudah keluar dari MyTagihan Desa di perangkat ini.'); } catch (e) { /* diam */ } location.reload(); },
   bacaKode: bacaKodeSambung,
   layarPin: layarPin,
   pasangPin: async function (pin) { await pasangPin(pin); kabarStatus(); },
@@ -4639,12 +4820,21 @@ window.__mt3 = {
 
 async function siapkanAplikasi() {
   await bukaPerangkat();
+  // 3.4: data hanya dipakai di perangkat terdaftar (kode undangan) yang sinkron dalam 7 hari terakhir
+  AKSES_DICABUT.saatDicabut = function () { location.reload(); };
+  await periksaGerbang();
+  if (infoAkses()) GAS.email = infoAkses().pengguna;
   SINK.setelah = function (h) { kabarStatus(); if (h.tab) kabarBerubah(); };
   SINK.saatMulai = SINK.saatSelesai = kabarStatus;
   SIMPAN.setelahMuatUlang = function () { kabarStatus(); kabarBerubah(); };
   pasangKunciOtomatis();
   window.addEventListener('online', function () { kabarStatus(); if (sinkronAktif()) jadwalSinkron(500); });
   window.addEventListener('offline', kabarStatus);
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState !== 'visible' || GERBANG.el || window.__MT_UJI_TANPA_GERBANG) return;
+    if (terkunciTakSinkron()) tampilkanGerbang('terkunci').then(function () { kabarStatus(); kabarBerubah(); });
+  });
+  if (sinkronAktif() && !terdaftar()) jadwalSinkron(1500); // perangkat lama ber-KUNCI: daftar otomatis
   setInterval(function () { if (sinkronAktif() && document.visibilityState === 'visible' && navigator.onLine !== false) jadwalSinkron(0); }, 5 * 60000);
   if (location.protocol === 'https:' && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function () { /* diam */ });
 }
@@ -5751,7 +5941,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     v.innerHTML = '<div class="card pad"><dl class="kv"><dt>Aplikasi</dt><dd>MyTagihan Desa ' + esc(st.versi) + '</dd><dt>Mesin di perangkat</dt><dd>' + esc(st.mesin) + '</dd><dt>Mesin di spreadsheet</dt><dd>' + esc(st.versiServer || '–') + '</dd><dt>Akun spreadsheet</dt><dd>' + esc(st.pengguna || '–') + '</dd></dl></div>' +
       acc('Alamat aplikasi', 'Sama untuk HP dan komputer · bisa dipasang ke layar utama',
         '<input type="text" readonly id="ap-u" value="' + esc(alamat) + '"><button class="btn block" id="ap-c">Salin alamat</button>' +
-        '<p class="small muted" style="margin:0">Chrome HP: menu ⋮ › Tambahkan ke layar utama. Chrome/Edge komputer: ikon pasang di bilah alamat. Perangkat baru: sambungkan lewat Data & sinkron › Kode sambung.</p>', { open: true }) +
+        '<p class="small muted" style="margin:0">Chrome HP: menu ⋮ › Tambahkan ke layar utama. Chrome/Edge komputer: ikon pasang di bilah alamat. Perangkat baru: masuk dengan kode undangan dari LENSA PK › Perangkat & pengguna.</p>', { open: true }) +
       acc('Tampilan Apps Script (lama)', s.PENGGUNA ? s.PENGGUNA.split(/[,;\s]+/).filter(Boolean).length + ' email diizinkan' : 'Hanya pemilik spreadsheet',
         '<p class="small muted" style="margin:0">Menu spreadsheet MyTagihan Desa › Buka aplikasi tetap bisa dipakai di laptop. Daftar email ini hanya berlaku untuk tampilan itu; aplikasi ini memakai KUNCI sinkron + PIN.</p>' +
         '<div class="field"><label for="ap-p">Email, pisahkan dengan koma</label><textarea id="ap-p">' + esc(s.PENGGUNA) + '</textarea><small>Kosongkan bila hanya Anda yang memakai. Bila diisi, sertakan email Anda sendiri.</small></div><button class="btn p block" id="ap-s">Simpan</button>');
@@ -6403,50 +6593,41 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     v.innerHTML =
       (st.aktif
         ? acc('Sinkron ke spreadsheet', '<span data-st-teks>' + esc(teksSinkron(st)) + '</span>',
-          '<dl class="kv"><dt>Spreadsheet</dt><dd>' + esc(st.nama || '–') + '</dd><dt>Akun</dt><dd>' + esc(st.pengguna || '–') + '</dd><dt>Mesin di spreadsheet</dt><dd>' + esc(st.versiServer || '–') + '</dd><dt>Belum terkirim</dt><dd>' + st.antre + ' perubahan</dd></dl>' +
+          '<dl class="kv"><dt>Spreadsheet</dt><dd>' + esc(st.nama || '–') + '</dd><dt>Masuk sebagai</dt><dd>' + esc(st.akses ? st.akses.pengguna + ' · ' + (st.akses.hak === 'Lihat' ? 'hanya lihat' : 'boleh mengubah') + (st.akses.berlakuSampai ? ' · s.d. ' + st.akses.berlakuSampai : '') : (st.pengguna || '–')) + '</dd>' + (st.akses ? '<dt>Perangkat ini</dt><dd>' + esc(st.perangkat + ' · ' + st.akses.idp) + '</dd>' : '') + '<dt>Mesin di spreadsheet</dt><dd>' + esc(st.versiServer || '–') + '</dd><dt>Belum terkirim</dt><dd>' + st.antre + ' perubahan</dd></dl>' +
           (st.gagal.length ? '<div class="note err"><b>Ditolak spreadsheet</b> (data sudah diubah dari tempat lain; perangkat memakai isi spreadsheet):' + st.gagal.map(x => '<div class="small">' + esc(x.waktu) + ' · ' + esc(x.fn) + ': ' + esc(x.galat) + '</div>').join('') + '</div>' : '') +
           '<button class="btn p block" id="d-sync"><svg class="i" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4"/></svg>Sinkron sekarang</button>' +
-          (st.urlSheet ? '<div class="btns"><button class="btn" id="d-kode">Salin kode sambung</button><a class="btn" href="' + esc(st.urlSheet) + '" target="_blank" rel="noopener">Buka spreadsheet</a></div>' : '<button class="btn block" id="d-kode">Salin kode sambung</button>') +
-          '<button class="btn ghost" id="d-putus" style="color:var(--danger)">Putuskan di perangkat ini</button>' +
-          '<p class="small muted" style="margin:0">Otomatis saat aplikasi dibuka, tiap 5 menit, dan beberapa detik setelah setiap perubahan. Tanpa sinyal, perubahan tersimpan di perangkat lalu terkirim saat sinyal kembali (tidak tercatat dua kali). Kode sambung berisi kunci: kirim hanya ke perangkat Anda sendiri.</p>', { open: true })
-        : acc('Sambungkan ke spreadsheet', 'agar HP, komputer, dan spreadsheet berisi data yang sama',
-          '<div class="note info">Sekali saja di spreadsheet (laptop): menu <b>MyTagihan Desa › Aplikasi 3.0 › Siapkan sinkron & lihat kunci</b>, lalu <b>Terapkan › Deployment baru › Aplikasi web</b> (Jalankan sebagai: Saya · Akses: <b>Siapa saja</b>). Salin alamat /exec dan kuncinya ke sini.</div>' +
-          '<div class="field"><label for="d-url">Alamat aplikasi web (…/exec)</label><input type="text" id="d-url" placeholder="https://script.google.com/macros/s/…/exec" autocomplete="off"></div>' +
-          '<div class="field"><label for="d-kunci">Kunci sinkron</label><input type="text" id="d-kunci" autocomplete="off" style="-webkit-text-security:disc"></div>' +
-          '<div class="sec" style="margin:2px 0 0">atau dari perangkat yang sudah tersambung</div>' +
-          '<div class="field"><label for="d-kodeisi">Kode sambung</label><input type="text" id="d-kodeisi" placeholder="MT3.…" autocomplete="off"></div>' +
-          '<button class="btn p block" id="d-sambung">Sambungkan</button>' +
-          '<p class="small muted" style="margin:0">Saat tersambung, data di perangkat ini diganti dengan data spreadsheet (perubahan yang belum terkirim dikirim lebih dulu).</p>', { open: true })) +
+          (st.urlSheet && (!st.akses || st.akses.peran === 'Pemilik') ? '<a class="btn block" href="' + esc(st.urlSheet) + '" target="_blank" rel="noopener">Buka spreadsheet</a>' : '') +
+          (st.terdaftar ? '<button class="btn ghost" id="d-keluar" style="color:var(--danger)">Keluar dari perangkat ini</button>' :
+            '<div class="note info">Perangkat ini masih memakai KUNCI lama' + (st.serverLama ? ' karena skrip spreadsheet belum versi 2.5. Pasang MyTagihan_Desa.gs terbaru, lalu perangkat ini terdaftar otomatis.' : '; akan terdaftar otomatis saat sinkron berikutnya.') + '</div>') +
+          '<p class="small muted" style="margin:0">Otomatis saat aplikasi dibuka, tiap 5 menit, dan beberapa detik setelah setiap perubahan. Tanpa sinyal, perubahan tersimpan di perangkat lalu terkirim saat sinyal kembali (tidak tercatat dua kali). Perangkat yang ' + st.hariKunci + ' hari tidak sinkron terkunci sampai sinkron berhasil. Keluar = semua perubahan dikirim dulu, lalu data MyTagihan di perangkat ini dihapus.</p>', { open: true })
+        : acc('Masuk dengan kode undangan', 'perangkat ini belum terdaftar',
+          '<div class="note info">Kode undangan dibuat di LENSA PK › Perangkat &amp; pengguna (aplikasi MyTagihan Desa). Sekali pakai.</div>' +
+          '<div class="field"><label for="d-undangan">Kode undangan</label><textarea id="d-undangan" rows="3" placeholder="MTD.…" autocomplete="off"></textarea></div>' +
+          '<button class="btn p block" id="d-gabung">Masuk</button>', { open: true })) +
       acc('PIN perangkat', st.pin ? 'Aktif · data tersandi AES-256' : '<span style="color:var(--danger)">Belum dipasang</span>',
         '<p class="small" style="margin:0">Dengan PIN, isi data (NIK, nama peserta, kunci sinkron) tersandi di perangkat dan terkunci lagi setelah 15 menit ditinggal. Lupa PIN = hapus data perangkat lalu sambungkan ulang; data di spreadsheet aman. <b>Sangat dianjurkan di HP.</b></p>' +
         (st.pin ? '<div class="btns"><button class="btn" id="d-pin">Ganti PIN</button><button class="btn" id="d-kunci-skrg">Kunci sekarang</button></div><button class="btn ghost" id="d-lepas" style="color:var(--danger)">Lepas PIN</button>'
           : '<button class="btn p block" id="d-pin">Pasang PIN</button>'), { open: !st.pin }) +
-      acc('Pindahkan data tanpa sinkron', 'Dari unduhan spreadsheet (.xlsx)',
-        '<p class="small muted" style="margin:0">Spreadsheet MyTagihan › File › Download › Microsoft Excel (.xlsx), lalu pilih file itu di sini. Hapus file unduhan sesudahnya (berisi NIK).</p><label class="btn block" for="d-xlsx">Pilih unduhan .xlsx</label><input type="file" id="d-xlsx" accept=".xlsx" hidden>') +
       acc('Cadangan', 'File .json berisi seluruh data perangkat ini' + (st.pin ? ' (terkunci PIN yang sama)' : ''),
         '<div class="btns"><button class="btn" id="d-unduh">Unduh cadangan</button><label class="btn" for="d-pulih">Pulihkan</label></div><input type="file" id="d-pulih" accept=".json,application/json" hidden>' +
-        '<p class="small muted" style="margin:0">Kunci sinkron tidak ikut cadangan. Simpan di tempat aman: berisi data peserta.</p>') +
+        '<p class="small muted" style="margin:0">Kunci / token perangkat tidak ikut cadangan. Simpan di tempat aman: berisi data peserta.</p>') +
       acc('Perangkat ini', (st.simpan === 'idb' ? 'Tersimpan di perangkat' : 'Tidak bisa menyimpan') + (db ? ' · ' + num(db.baris) + ' baris Database' : ''),
         '<dl class="kv">' + info.sheet.map(x => '<dt>' + esc(x.nama) + '</dt><dd>' + num(x.baris) + ' baris</dd>').join('') + '</dl>' +
         (st.simpanGalat ? '<div class="note err">' + esc(st.simpanGalat) + '</div>' : '') +
         '<button class="btn ghost" id="d-hapus" style="color:var(--danger)">Hapus semua data di perangkat ini</button>');
     const on = (id, f) => { const el = $(id, v); if (el) el.onclick = f; };
     on('#d-sync', () => sinkronSekarang());
-    on('#d-kode', async () => { const k = M3.kodeSambung(); try { await navigator.clipboard.writeText(k); toast('Kode sambung disalin. Tempel hanya di perangkat Anda sendiri (berisi kunci).'); } catch (e) { window.prompt('Salin kode sambung ini (berisi kunci):', k); } });
-    on('#d-putus', async () => {
-      const st2 = M3.status();
-      if (!await confirmBox({ title: 'Putuskan sinkron di perangkat ini?', danger: true, ok: 'Putuskan', body: '<p>Data di perangkat tetap ada.' + (st2.antre ? ' <b>' + st2.antre + ' perubahan belum terkirim</b> ke spreadsheet dan tidak akan terkirim.' : '') + '</p>' })) return;
-      await M3.putus(); toast('Sinkron diputus di perangkat ini.'); render();
+    on('#d-keluar', async () => {
+      if (!await confirmBox({ title: 'Keluar dari perangkat ini?', danger: true, ok: 'Keluar', body: '<p>Semua perubahan dikirim dulu ke spreadsheet, lalu data MyTagihan (NIK, nama peserta) di perangkat ini dihapus. Untuk masuk lagi perlu kode undangan baru dari LENSA PK.</p>' })) return;
+      busy('Mengirim perubahan terakhir…');
+      try { await M3.keluar(); } catch (e) { fail(e); }
     });
-    on('#d-sambung', async () => {
-      let url = $('#d-url', v).value.trim(), kunci = $('#d-kunci', v).value.trim();
-      const kode = $('#d-kodeisi', v).value.trim();
-      if (kode) { const o = M3.bacaKode(kode); if (!o) return toast('Kode sambung tidak dikenali.', 'err'); url = o.url; kunci = o.kunci; }
-      busy('Menyambungkan…', 'Menarik seluruh data spreadsheet (10–60 detik).');
+    on('#d-gabung', async () => {
+      busy('Masuk…', 'Menarik seluruh data spreadsheet (10–60 detik).');
       try {
-        const h = await M3.sambung(url, kunci);
+        const h = await M3.gabung($('#d-undangan', v).value.trim());
         busy(false); S.boot = null;
-        toast('Tersambung ke ' + (h.nama || 'spreadsheet') + ' (mesin ' + h.versi + ') · ' + h.hasil.tab + ' sheet dimuat.');
+        toast('Masuk sebagai ' + h.akses.pengguna + ' · ' + h.hasil.tab + ' sheet dimuat.');
         if (!M3.status().pin && await confirmBox({ title: 'Pasang PIN sekarang?', body: '<p>Perangkat ini sekarang menyimpan NIK dan nama peserta. PIN menyandikan data dan mengunci aplikasi saat ditinggal.</p>', ok: 'Pasang PIN', cancel: 'Nanti' })) await pasangPinUI();
         render();
       } catch (e) { fail(e); }
@@ -6463,11 +6644,6 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
       if (!await confirmBox({ title: 'Hapus semua data di perangkat ini?', danger: true, ok: 'Hapus', body: '<p>Termasuk PIN dan sambungan sinkron. Spreadsheet MyTagihan tidak ikut terhapus.' + (M3.status().antre ? ' <b>' + M3.status().antre + ' perubahan belum terkirim akan hilang.</b>' : '') + '</p>' })) return;
       await M3.hapusSemua(); S.boot = null; S.tagihan = null; toast('Data di perangkat ini dihapus.'); render();
     });
-    $('#d-xlsx', v).onchange = async e => {
-      const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-      busy('Membaca ' + f.name + '…');
-      try { const n = await M3.pindahXlsx(f); busy(false); S.boot = null; toast(n + ' sheet dipindah ke perangkat.'); render(); } catch (x) { fail(x); }
-    };
     $('#d-pulih', v).onchange = async e => {
       const f = e.target.files[0]; e.target.value = ''; if (!f) return;
       if (!await confirmBox({ title: 'Pulihkan dari cadangan?', body: '<p>Data di perangkat ini diganti isi cadangan. Bila tersambung, sinkron berikutnya menarik ulang data spreadsheet.</p>', ok: 'Pulihkan' })) return;
