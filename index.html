@@ -11,7 +11,7 @@
 <link rel="icon" href="ikon-192.png">
 <link rel="apple-touch-icon" href="ikon-192.png">
 <title>MyTagihan Desa · BPJS Ketenagakerjaan KC Pamekasan</title>
-<!-- MyTagihan Desa 3.3.2 · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi bila PIN dipasang). -->
+<!-- MyTagihan Desa 4.0.0 · LENSA Suite · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi PIN, wajib). -->
 <style>
 /* MyTagihan Desa 3.0 — warna pembeda: UNGU TERONG (plum) + aksen kuning padi.
    LENSA PK = petrol #0E5A5F (master) · Monitor SPPG = biru · MyTagihan Desa = ungu terong #5B2A6E. */
@@ -4095,13 +4095,59 @@ async function bagikanPdf(blob, nama) {
 var LOGO_BPJSTK = { w: 480, h: 111, b64: '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' };
 
 
+/* === kit/sandi.js (LENSA Suite) === */
+/* =====================================================================
+ *  KitSandi — PIN perangkat bersama LENSA Suite (Tahap 3).
+ *  Data di perangkat dikunci dengan PIN: kunci AES-GCM 256 bit diturunkan dari PIN (PBKDF2-SHA256, 250.000 putaran),
+ *  isi dimampatkan (gzip) lalu disandikan. Rumus sama dengan PIN LENSA PK 2.x, sehingga semua aplikasi seragam.
+ *  PIN tidak pernah disimpan; yang tersimpan hanya garam + isi tersandi. Lupa PIN = data di perangkat harus dihapus
+ *  (data di Google Sheet tetap aman), lalu masuk lagi dengan kode undangan.
+ * ===================================================================== */
+var KitSandi = (function () {
+  var ULANG = 250000;
+  function keB64(buf) { var u = buf instanceof Uint8Array ? buf : new Uint8Array(buf), s = ''; for (var i = 0; i < u.length; i += 8192) s += String.fromCharCode.apply(null, u.subarray(i, i + 8192)); return btoa(s); }
+  function dariB64(s) { var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+  function pinSah(pin) { return /^\d{4,12}$/.test(String(pin || '')); }
+  function garamBaru() { return crypto.getRandomValues(new Uint8Array(16)); }
+  async function kunciDariPin(pin, garam) {
+    var dasar = await crypto.subtle.importKey('raw', new TextEncoder().encode(String(pin)), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: garam, iterations: ULANG, hash: 'SHA-256' }, dasar, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  }
+  async function mampat(teks) {
+    var b = new TextEncoder().encode(teks);
+    if (typeof CompressionStream === 'undefined') return { z: 0, b: b };
+    var s = new Blob([b]).stream().pipeThrough(new CompressionStream('gzip'));
+    return { z: 1, b: new Uint8Array(await new Response(s).arrayBuffer()) };
+  }
+  async function urai(b, z) {
+    if (!z) return new TextDecoder().decode(b);
+    var s = new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'));
+    return new Response(s).text();
+  }
+  /** obj → rekaman tersandi { terkunci, garam, iv, z, isi (ArrayBuffer) }. */
+  async function sandikan(obj, kunci, garam) {
+    var m = await mampat(JSON.stringify(obj)), iv = crypto.getRandomValues(new Uint8Array(12));
+    var isi = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, kunci, m.b);
+    return { terkunci: true, garam: keB64(garam), iv: keB64(iv), z: m.z, isi: isi };
+  }
+  /** Rekaman tersandi → obj. PIN salah → melempar galat. isi boleh ArrayBuffer atau teks base64 (file cadangan). */
+  async function bukaSandi(rek, kunci) {
+    var isi = rek.isi instanceof ArrayBuffer || ArrayBuffer.isView(rek.isi) ? rek.isi : dariB64(rek.isi);
+    var b = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: dariB64(rek.iv) }, kunci, isi);
+    return JSON.parse(await urai(new Uint8Array(b), rek.z));
+  }
+  /** Rekaman tersandi untuk disimpan sebagai teks (localStorage / file cadangan). */
+  function keTeks(rek) { return Object.assign({}, rek, { isi: keB64(rek.isi) }); }
+  return { ULANG: ULANG, pinSah: pinSah, garamBaru: garamBaru, kunciDariPin: kunciDariPin, sandikan: sandikan, bukaSandi: bukaSandi, keTeks: keTeks, keB64: keB64, dariB64: dariB64 };
+})();
+
 /* === 20-simpan.js === */
 /* ----------------------------------------------------------------------
  *  Penyimpanan di perangkat: IndexedDB 'mytagihan_desa_3'. Semua sheet + pengaturan aplikasi +
- *  antrean sinkron. Bila PIN dipasang, isi disandikan AES-GCM 256 dengan kunci turunan PIN
- *  (PBKDF2-SHA256); tanpa PIN yang benar data tidak terbaca. (Sama dengan LENSA PK 2.0.)
+ *  antrean sinkron. Isi disandikan AES-GCM 256 dengan kunci turunan PIN (PBKDF2-SHA256); tanpa PIN
+ *  yang benar data tidak terbaca. Mulai 4.0 PIN wajib (lihat pastikanPin di 90-jembatan.js).
  * ---------------------------------------------------------------------- */
-var VERSI_APP = '3.4.0';
+var VERSI_APP = '4.0.0';
 var NAMA_DB = 'mytagihan_desa_3';
 var ID_HALAMAN = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 var SIMPAN = { db: null, jenis: 'memori', tertunda: null, galat: '', terakhir: '', dimuat: 0, kunci: null, garam: null, setelahMuatUlang: null, rekTerkunci: null };
@@ -4137,34 +4183,11 @@ function idbTaruh(k, v) {
   });
 }
 
-/* ---------- sandi ---------- */
-function keB64(buf) { var u = new Uint8Array(buf), s = ''; for (var i = 0; i < u.length; i += 8192) s += String.fromCharCode.apply(null, u.subarray(i, i + 8192)); return btoa(s); }
-function dariB64(s) { var b = atob(s), u = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
-async function kunciDariPin(pin, garam) {
-  var dasar = await crypto.subtle.importKey('raw', new TextEncoder().encode(String(pin)), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: garam, iterations: PBKDF2_ULANG, hash: 'SHA-256' }, dasar, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
-}
-async function mampat(teks) {
-  var b = new TextEncoder().encode(teks);
-  if (typeof CompressionStream === 'undefined') return { z: 0, b: b };
-  var s = new Blob([b]).stream().pipeThrough(new CompressionStream('gzip'));
-  return { z: 1, b: new Uint8Array(await new Response(s).arrayBuffer()) };
-}
-async function urai(b, z) {
-  if (!z) return new TextDecoder().decode(b);
-  var s = new Blob([b]).stream().pipeThrough(new DecompressionStream('gzip'));
-  return new Response(s).text();
-}
-async function sandikan(obj, kunci, garam) {
-  var m = await mampat(JSON.stringify(obj)), iv = crypto.getRandomValues(new Uint8Array(12));
-  var isi = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, kunci, m.b);
-  return { terkunci: true, garam: keB64(garam), iv: keB64(iv), z: m.z, isi: isi };
-}
-async function bukaSandi(rek, kunci) {
-  var isi = rek.isi instanceof ArrayBuffer || ArrayBuffer.isView(rek.isi) ? rek.isi : dariB64(rek.isi);
-  var b = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: dariB64(rek.iv) }, kunci, isi);
-  return JSON.parse(await urai(new Uint8Array(b), rek.z));
-}
+/* ---------- sandi: kit/sandi.js bersama LENSA Suite (4.0) ----------
+ *  Rumus sama persis dengan 3.x (PBKDF2-SHA256 250.000 putaran, AES-GCM 256, gzip), jadi data & cadangan
+ *  yang dikunci versi lama tetap terbuka dengan PIN yang sama. */
+var PBKDF2_ULANG = KitSandi.ULANG;
+var keB64 = KitSandi.keB64, dariB64 = KitSandi.dariB64, kunciDariPin = KitSandi.kunciDariPin, sandikan = KitSandi.sandikan, bukaSandi = KitSandi.bukaSandi;
 function pinAktif() { return !!SIMPAN.kunci; }
 
 /* ---------- muat / simpan ---------- */
@@ -4228,13 +4251,12 @@ async function cekPerubahanLuar() {
 }
 
 async function pasangPin(pin) {
-  if (!/^\d{4,12}$/.test(String(pin))) throw new Error('PIN 4–12 angka.');
-  SIMPAN.garam = crypto.getRandomValues(new Uint8Array(16));
+  if (!KitSandi.pinSah(pin)) throw new Error('PIN 4–12 angka.');
+  SIMPAN.garam = KitSandi.garamBaru();
   SIMPAN.kunci = await kunciDariPin(pin, SIMPAN.garam);
   return simpanSekarang();
 }
-async function lepasPin() { SIMPAN.kunci = null; SIMPAN.garam = null; return simpanSekarang(); }
-/** Periksa PIN tanpa mengganti kunci aktif (dipakai saat melepas PIN). */
+/** Periksa PIN tanpa mengganti kunci aktif. (4.0: PIN wajib, tidak bisa dilepas.) */
 async function cobaPin(pin) {
   var rek = await idbAmbil('mt');
   if (!rek || !rek.terkunci) return true;
@@ -4604,7 +4626,7 @@ function layarPin(opsi) {
       if (!/^\d{4,12}$/.test(pin)) { gal.textContent = 'PIN 4–12 angka.'; return; }
       if (opsi.ulang && inp[1].value.trim() !== pin) { gal.textContent = 'PIN tidak sama.'; return; }
       if (!opsi.cek) return tutup(pin);
-      var tb = f.querySelector('[type=submit]'); tb.disabled = true; gal.textContent = 'Memeriksa…'; gal.style.color = '#5B6470';
+      var tb = f.querySelector('[type=submit]'); tb.disabled = true; gal.textContent = opsi.sedang || 'Memeriksa…'; gal.style.color = '#5B6470';
       var ok = false;
       try { ok = await opsi.cek(pin); } catch (e) { ok = false; }
       if (ok) return tutup(pin);
@@ -4801,7 +4823,7 @@ window.__mt3 = {
   bacaKode: bacaKodeSambung,
   layarPin: layarPin,
   pasangPin: async function (pin) { await pasangPin(pin); kabarStatus(); },
-  lepasPin: async function () { await lepasPin(); kabarStatus(); },
+  wajibPin: async function () { var h = await pastikanPin(); kabarStatus(); return h; },
   cobaPin: cobaPin,
   kunciSekarang: async function () { await simpanSekarang(); location.reload(); },
   unduhCadangan: unduhCadangan,
@@ -4818,11 +4840,25 @@ window.__mt3 = {
   infoPerangkat: function () { return { sheet: GAS.tab.map(function (s) { return { nama: s.nama, baris: Math.max(0, s.getLastRow() - 1) }; }) }; }
 };
 
+/** 4.0 (LENSA Suite Tahap 3): PIN wajib. Perangkat yang sudah masuk tetapi belum ber-PIN harus membuat PIN
+ *  sebelum data tampil (tanpa tombol Batal). Hasil: true bila PIN baru saja dipasang. */
+async function pastikanPin() {
+  if (pinAktif() || !sinkronAktif() || window.__MT_UJI_TANPA_PIN) return false;
+  await layarPin({
+    judul: 'Buat PIN', tombol: 'Pasang PIN', ulang: true, sedang: 'Menyandikan data…',
+    pesan: '<b>Buat PIN perangkat (wajib).</b> Perangkat ini menyimpan NIK dan nama peserta, jadi datanya dikunci PIN 4–12 angka. ' +
+      'Ingat baik-baik: lupa PIN = data di perangkat ini dihapus, lalu masuk lagi dengan kode undangan (data di spreadsheet tetap aman).',
+    cek: async function (pin) { await pasangPin(pin); return true; }
+  });
+  return true;
+}
+
 async function siapkanAplikasi() {
   await bukaPerangkat();
   // 3.4: data hanya dipakai di perangkat terdaftar (kode undangan) yang sinkron dalam 7 hari terakhir
   AKSES_DICABUT.saatDicabut = function () { location.reload(); };
   await periksaGerbang();
+  await pastikanPin(); // 4.0: PIN wajib
   if (infoAkses()) GAS.email = infoAkses().pengguna;
   SINK.setelah = function (h) { kabarStatus(); if (h.tab) kabarBerubah(); };
   SINK.saatMulai = SINK.saatSelesai = kabarStatus;
@@ -6605,8 +6641,8 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
           '<div class="field"><label for="d-undangan">Kode undangan</label><textarea id="d-undangan" rows="3" placeholder="MTD.…" autocomplete="off"></textarea></div>' +
           '<button class="btn p block" id="d-gabung">Masuk</button>', { open: true })) +
       acc('PIN perangkat', st.pin ? 'Aktif · data tersandi AES-256' : '<span style="color:var(--danger)">Belum dipasang</span>',
-        '<p class="small" style="margin:0">Dengan PIN, isi data (NIK, nama peserta, kunci sinkron) tersandi di perangkat dan terkunci lagi setelah 15 menit ditinggal. Lupa PIN = hapus data perangkat lalu sambungkan ulang; data di spreadsheet aman. <b>Sangat dianjurkan di HP.</b></p>' +
-        (st.pin ? '<div class="btns"><button class="btn" id="d-pin">Ganti PIN</button><button class="btn" id="d-kunci-skrg">Kunci sekarang</button></div><button class="btn ghost" id="d-lepas" style="color:var(--danger)">Lepas PIN</button>'
+        '<p class="small" style="margin:0">PIN wajib. Isi data (NIK, nama peserta, kunci sinkron) tersandi di perangkat dan terkunci lagi setelah 15 menit ditinggal. Lupa PIN = hapus data perangkat lalu masuk lagi dengan kode undangan; data di spreadsheet aman.</p>' +
+        (st.pin ? '<div class="btns"><button class="btn" id="d-pin">Ganti PIN</button><button class="btn" id="d-kunci-skrg">Kunci sekarang</button></div>'
           : '<button class="btn p block" id="d-pin">Pasang PIN</button>'), { open: !st.pin }) +
       acc('Cadangan', 'File .json berisi seluruh data perangkat ini' + (st.pin ? ' (terkunci PIN yang sama)' : ''),
         '<div class="btns"><button class="btn" id="d-unduh">Unduh cadangan</button><label class="btn" for="d-pulih">Pulihkan</label></div><input type="file" id="d-pulih" accept=".json,application/json" hidden>' +
@@ -6628,17 +6664,12 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
         const h = await M3.gabung($('#d-undangan', v).value.trim());
         busy(false); S.boot = null;
         toast('Masuk sebagai ' + h.akses.pengguna + ' · ' + h.hasil.tab + ' sheet dimuat.');
-        if (!M3.status().pin && await confirmBox({ title: 'Pasang PIN sekarang?', body: '<p>Perangkat ini sekarang menyimpan NIK dan nama peserta. PIN menyandikan data dan mengunci aplikasi saat ditinggal.</p>', ok: 'Pasang PIN', cancel: 'Nanti' })) await pasangPinUI();
+        await M3.wajibPin(); // 4.0: PIN wajib
         render();
       } catch (e) { fail(e); }
     });
     on('#d-pin', () => pasangPinUI());
     on('#d-kunci-skrg', () => M3.kunciSekarang());
-    on('#d-lepas', async () => {
-      const pin = await M3.layarPin({ pesan: 'Masukkan PIN sekarang untuk melepas kunci.', tombol: 'Lepas PIN', batal: true, cek: M3.cobaPin });
-      if (!pin) return;
-      await M3.lepasPin(); toast('PIN dilepas. Data di perangkat ini tidak lagi tersandi.'); render(true);
-    });
     on('#d-unduh', async () => { await M3.unduhCadangan(); toast('Cadangan diunduh. Simpan di tempat aman: berisi data peserta.'); });
     on('#d-hapus', async () => {
       if (!await confirmBox({ title: 'Hapus semua data di perangkat ini?', danger: true, ok: 'Hapus', body: '<p>Termasuk PIN dan sambungan sinkron. Spreadsheet MyTagihan tidak ikut terhapus.' + (M3.status().antre ? ' <b>' + M3.status().antre + ' perubahan belum terkirim akan hilang.</b>' : '') + '</p>' })) return;
@@ -6652,10 +6683,11 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
     };
   }
   async function pasangPinUI() {
-    const pin = await M3.layarPin({ judul: 'Pasang PIN', pesan: 'Buat PIN 4–12 angka untuk mengunci data MyTagihan di perangkat ini.', tombol: 'Pasang PIN', ulang: true, batal: true });
+    const ganti = M3.status().pin;
+    const pin = await M3.layarPin({ judul: 'Ganti PIN', pesan: 'Buat PIN ' + (ganti ? 'baru ' : '') + '4–12 angka untuk mengunci data MyTagihan di perangkat ini.', tombol: 'Simpan PIN', ulang: true, batal: true });
     if (!pin) return;
     busy('Menyandikan data…');
-    try { await M3.pasangPin(pin); busy(false); toast('PIN terpasang. Data di perangkat ini sekarang tersandi.'); render(true); } catch (e) { fail(e); }
+    try { await M3.pasangPin(pin); busy(false); toast(ganti ? 'PIN diganti. Mulai sekarang buka dengan PIN baru.' : 'PIN terpasang. Data di perangkat ini sekarang tersandi.'); render(true); } catch (e) { fail(e); }
   }
 
   // =====================================================================

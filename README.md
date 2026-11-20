@@ -1,12 +1,12 @@
-# MyTagihan Desa 3.4 · BPJS Ketenagakerjaan KC Pamekasan
+# MyTagihan Desa 4.0 · BPJS Ketenagakerjaan KC Pamekasan
 
-Versi 3.4.0 · butuh skrip spreadsheet `MyTagihan_Desa.gs` 2.5 (satu file).
+Versi 4.0.0 · bagian dari LENSA Suite · butuh skrip spreadsheet `MyTagihan_Desa.gs` 2.5 (satu file).
 
 Iuran pekerja desa Kab. Pamekasan (Aparat, BPD, BUMDes, LKD, Lembaga Adat, Pekerja Rentan): mutasi peserta,
 tagihan bulanan/triwulanan, Trf Bank Jatim, laporan cakupan. Konsepnya sama dengan LENSA PK 2.0.
 
 **Kode di folder ini publik, tetapi tidak berisi data apa pun.** Data peserta (NIK, nama) hanya ada di
-spreadsheet MyTagihan milik Anda dan di browser perangkat Anda (tersandi bila PIN dipasang).
+spreadsheet MyTagihan milik Anda dan di browser perangkat Anda (selalu tersandi PIN).
 
 - `index.html` — satu aplikasi untuk komputer dan HP. Isinya tampilan MyTagihan yang sama dengan versi Apps Script
   (Beranda, Mutasi, Tagihan, Peserta, Pengaturan, Laporan, Riwayat & Urungkan) ditambah **Dasbor** dan
@@ -49,10 +49,13 @@ Setelah tersambung: sinkron otomatis saat aplikasi dibuka, tiap 5 menit, dan 3 d
 Tanpa sinyal: perubahan tersimpan di perangkat dan terkirim saat sinyal kembali (tidak tercatat dua kali; ID peserta
 dan riwayat sama di HP dan spreadsheet, jadi Urungkan tetap berlaku).
 
-## 3. Pasang PIN (wajib dianjurkan — perangkat menyimpan NIK)
-Data & sinkron › **Pasang PIN**. Isi data di perangkat tersandi AES-256 dengan kunci dari PIN, dan terkunci lagi
-setelah 15 menit ditinggal. Lupa PIN → "Hapus data di perangkat ini" di layar PIN, lalu sambungkan ulang:
-data di spreadsheet tetap utuh.
+## 3. PIN wajib (sejak 4.0 — perangkat menyimpan NIK)
+Setelah masuk, perangkat yang belum ber-PIN langsung diminta **membuat PIN** (4–12 angka, diketik dua kali) sebelum
+data tampil; tidak bisa dilewati, dan tidak ada lagi tombol "Lepas PIN". Isi data di perangkat tersandi AES-256 dengan
+kunci dari PIN, dan terkunci lagi setelah 15 menit ditinggal. Rumusnya sama dengan LENSA PK dan Monitor SPPG
+(kit PIN bersama LENSA Suite); perangkat yang sudah ber-PIN di versi 3.x tetap memakai PIN lamanya.
+Ganti PIN: Data & sinkron › **Ganti PIN**. Lupa PIN → "Hapus data di perangkat ini" di layar PIN, lalu masuk lagi
+dengan kode undangan: data di spreadsheet tetap utuh.
 
 ## Yang perlu sinyal
 Hitung tagihan, mutasi, impor peserta/IBR, laporan, dan Urungkan jalan di perangkat. Yang dijalankan Google Drive
@@ -92,5 +95,5 @@ Beranda › Laporan cakupan.
   kelompok, lalu tiap kecamatan. Satu kecamatan: sampul, heatmap, daftar kelompok yang belum ada pesertanya.
 
 ## Catatan
-- Cadangan: Data & sinkron › Unduh cadangan (.json). Kunci / token perangkat tidak ikut; bila PIN aktif cadangan ikut terkunci.
+- Cadangan: Data & sinkron › Unduh cadangan (.json), terkunci PIN yang sama. Kunci / token perangkat tidak ikut.
 - Satu akun GitHub dengan LENSA PK: alamat, simpanan, dan service worker terpisah (`mytagihan-desa-…`).
