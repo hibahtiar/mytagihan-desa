@@ -11,7 +11,7 @@
 <link rel="icon" href="ikon-192.png">
 <link rel="apple-touch-icon" href="ikon-192.png">
 <title>MyTagihan Desa · BPJS Ketenagakerjaan KC Pamekasan</title>
-<!-- MyTagihan Desa 4.0.0 · LENSA Suite · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi PIN, wajib). -->
+<!-- MyTagihan Desa 4.1.0 · LENSA Suite · kode publik tanpa data: data hanya di spreadsheet milik pengguna dan di perangkat (tersandi PIN, wajib). -->
 <style>
 /* MyTagihan Desa 3.0 — warna pembeda: UNGU TERONG (plum) + aksen kuning padi.
    LENSA PK = petrol #0E5A5F (master) · Monitor SPPG = biru · MyTagihan Desa = ungu terong #5B2A6E. */
@@ -2136,14 +2136,14 @@ const FMT_N = '#,##0';
 //  Saldo IBR
 // ---------------------------------------------------------------------------
 
-/** Sheet IBR: kolom B = NPP, kolom J = IJT (saldo). */
+/** Sheet IBR: kolom B = NPP, kolom J = IJT (saldo). 2.6: satu NPP bisa beberapa baris (beberapa transaksi) → dijumlah. */
 function ibrSaldo_() {
   const m = {};
   const sh = getSS().getSheetByName(SH.IBR);
   if (!sh || sh.getLastRow() < 2) return m;
   sh.getRange(2, 1, sh.getLastRow() - 1, Math.max(10, Math.min(sh.getLastColumn(), 10))).getValues().forEach(r => {
     const npp = norm_(r[1]);
-    if (npp) m[npp] = Math.round(num_(r[9]));
+    if (npp) m[npp] = (m[npp] || 0) + Math.round(num_(r[9]));
   });
   return m;
 }
@@ -3279,7 +3279,7 @@ function terapkanNpp_(tx, M, h) {
  * =====================================================================
  */
 
-const APP_VERSION = '2.5.0';
+const APP_VERSION = '2.6.0';
 
 function onOpen() {
   SpreadsheetApp.getUi()
@@ -4141,18 +4141,88 @@ var KitSandi = (function () {
   return { ULANG: ULANG, pinSah: pinSah, garamBaru: garamBaru, kunciDariPin: kunciDariPin, sandikan: sandikan, bukaSandi: bukaSandi, keTeks: keTeks, keB64: keB64, dariB64: dariB64 };
 })();
 
+/* === kit/baris.js (LENSA Suite) === */
+/* =====================================================================
+ *  KitBaris — sinkron per baris bersama LENSA Suite (Tahap 3C, dipakai MyTagihan Desa 4.1 + server 2.6).
+ *  ES5, jalan sama persis di Apps Script dan di browser (rumus sidik harus identik di kedua sisi).
+ *
+ *  Server menyimpan "buku besar" per lembar: sidik setiap baris (menurut posisi) + nomor urut perubahan.
+ *  Setiap kali ditanya, server menghitung ulang sidik semua baris; baris yang berbeda dari buku besar mendapat
+ *  nomor urut baru. Perangkat menyimpan nomor urut terakhirnya dan hanya menarik baris bernomor lebih besar.
+ *  Sidik lembar (jumlah baris + sidik semua baris) dipakai memeriksa bahwa isi perangkat = isi spreadsheet;
+ *  bila beda, lembar itu ditarik utuh (memperbaiki diri sendiri).
+ * ===================================================================== */
+var KitBaris = (function () {
+  var LEBAR = 11; // panjang sidik baris (base36, 53 bit)
+  /** Nilai sel seperti yang dikirim: tanggal → {$d: ms}; kosong → ''. */
+  function nilai(x) {
+    if (x === null || x === undefined) return '';
+    if (x instanceof Date || Object.prototype.toString.call(x) === '[object Date]') return { $d: x.getTime() };
+    return x;
+  }
+  function cyrb53(str) {
+    var h1 = 0xdeadbeef, h2 = 0x41c6ce57, i, ch;
+    for (i = 0; i < str.length; i++) { ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507); h1 ^= Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507); h2 ^= Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+  }
+  function b36(n) { var s = n.toString(36); while (s.length < LEBAR) s = '0' + s; return s; }
+  /** Sidik satu baris (array nilai, sudah dalam bentuk kiriman). */
+  function sidik(baris) { return b36(cyrb53(JSON.stringify((baris || []).map(nilai)))); }
+  /** Sidik semua baris → satu teks (LEBAR karakter per baris). */
+  function sidikSemua(isi) { var o = ''; for (var i = 0; i < isi.length; i++) o += sidik(isi[i]); return o; }
+  /** Sidik lembar dari teks sidikSemua. */
+  function sidikLembar(semua) { return (semua.length / LEBAR) + ':' + b36(cyrb53(semua)); }
+
+  /**
+   * Server: perbarui buku besar satu lembar dengan isi sekarang.
+   * buku = { h: teks sidikSemua, s: [nomor urut per baris] } atau null (lembar baru).
+   * Hasil { buku, berubah } — baris yang beda/baru mendapat nomor urut `urutBaru`.
+   */
+  function perbarui(buku, semua, urutBaru) {
+    var n = semua.length / LEBAR, lama = buku || { h: '', s: [] }, s = [], berubah = lama.h.length !== semua.length;
+    for (var i = 0; i < n; i++) {
+      var a = i * LEBAR, sama = lama.h.substr(a, LEBAR) === semua.substr(a, LEBAR) && lama.s[i] !== undefined;
+      s.push(sama ? lama.s[i] : urutBaru);
+      if (!sama) berubah = true;
+    }
+    return { buku: { h: semua, s: s }, berubah: berubah };
+  }
+  /** Server: baris yang nomor urutnya > k → [[posisi, baris], …]. */
+  function ambil(buku, isi, k) {
+    var out = [];
+    for (var i = 0; i < isi.length; i++) if ((buku.s[i] || 0) > k) out.push([i, isi[i]]);
+    return out;
+  }
+  /** Buku besar → teks (disimpan di lembar tersembunyi) dan sebaliknya. */
+  function keTeks(buku) { return JSON.stringify({ h: buku.h, s: buku.s.map(function (x) { return x.toString(36); }).join(',') }); }
+  function dariTeks(t) {
+    var o = JSON.parse(t);
+    return { h: String(o.h || ''), s: o.s ? String(o.s).split(',').map(function (x) { return parseInt(x, 36); }) : [] };
+  }
+  /** Perangkat: tambal isi lembar (array baris) dengan n baris dan potongan [[posisi, baris], …]. */
+  function tambal(isi, n, potongan) {
+    var b = isi.slice(0, n);
+    while (b.length < n) b.push([]);
+    for (var i = 0; i < potongan.length; i++) b[potongan[i][0]] = potongan[i][1];
+    return b;
+  }
+  return { LEBAR: LEBAR, nilai: nilai, sidik: sidik, sidikSemua: sidikSemua, sidikLembar: sidikLembar, perbarui: perbarui, ambil: ambil, keTeks: keTeks, dariTeks: dariTeks, tambal: tambal, cyrb53: cyrb53 };
+})();
+
 /* === 20-simpan.js === */
 /* ----------------------------------------------------------------------
  *  Penyimpanan di perangkat: IndexedDB 'mytagihan_desa_3'. Semua sheet + pengaturan aplikasi +
  *  antrean sinkron. Isi disandikan AES-GCM 256 dengan kunci turunan PIN (PBKDF2-SHA256); tanpa PIN
  *  yang benar data tidak terbaca. Mulai 4.0 PIN wajib (lihat pastikanPin di 90-jembatan.js).
  * ---------------------------------------------------------------------- */
-var VERSI_APP = '4.0.0';
+var VERSI_APP = '4.1.0';
 var NAMA_DB = 'mytagihan_desa_3';
 var ID_HALAMAN = 'h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 var SIMPAN = { db: null, jenis: 'memori', tertunda: null, galat: '', terakhir: '', dimuat: 0, kunci: null, garam: null, setelahMuatUlang: null, rekTerkunci: null };
 function appKosong() {
-  return { pengaturan: {}, impor: [], sinkron: { url: '', kunci: '', idp: '', token: '', idKlien: '', akses: null, terakhirOk: 0, hash: {}, antre: [], gagal: [], terakhir: '', galat: '', urlSheet: '', versiServer: '', nama: '', pengguna: '' } };
+  return { pengaturan: {}, impor: [], sinkron: { url: '', kunci: '', idp: '', token: '', idKlien: '', akses: null, terakhirOk: 0, hash: {}, zaman: '', seq: 0, galatAntre: [], antre: [], gagal: [], terakhir: '', galat: '', urlSheet: '', versiServer: '', nama: '', pengguna: '' } };
 }
 var APP = appKosong();
 var PBKDF2_ULANG = 250000;
@@ -4292,7 +4362,7 @@ async function pulihkanCadangan(file, mintaPin) {
   var sink = APP.sinkron;
   pakaiMuatan(d);
   ['url', 'kunci', 'idp', 'token', 'idKlien', 'akses', 'terakhirOk'].forEach(function (k) { APP.sinkron[k] = sink[k]; });
-  APP.sinkron.hash = {}; // tarik berikutnya mengambil ulang semua sheet
+  APP.sinkron.hash = {}; APP.sinkron.zaman = ''; APP.sinkron.seq = 0; // tarik berikutnya memeriksa ulang semua sheet
   APP.sinkron.pengguna = sink.pengguna || APP.sinkron.pengguna; GAS.email = APP.sinkron.pengguna || '';
   await simpanSekarang();
 }
@@ -4309,8 +4379,11 @@ async function hapusSemua() {
  *  - Setiap tindakan dijalankan di perangkat dulu (langsung tampil, juga tanpa sinyal). Tindakan tulis
  *    dicatat di antrean bersama ID yang dibuatnya, lalu dikirim ke server yang menjalankan FUNGSI YANG
  *    SAMA dengan ID yang sama.
- *  - Kirim dulu sampai antrean kosong, baru tarik sheet yang berubah (sidik MD5 per sheet).
- *    Hasil tarik menggantikan sheet di perangkat: spreadsheet tetap sumber kebenaran.
+ *  - Kirim dulu sampai antrean kosong, baru tarik yang berubah. 4.1 (LENSA Suite 3C): PER BARIS — server 2.6 memberi
+ *    nomor urut pada setiap baris yang berubah; perangkat hanya menarik baris bernomor lebih besar dari nomor
+ *    terakhirnya, lalu memeriksa sidik tiap lembar (kit/baris.js). Bila sidik beda, lembar itu ditarik utuh.
+ *    Server lama (≤ 2.5): seluruh sheet yang berubah ditarik seperti dulu (sidik MD5 per sheet).
+ *    Spreadsheet tetap sumber kebenaran.
  *  - Fitur Google Drive (arsip, PDF sheet, template, daftar arsip) dipanggil langsung (perlu sinyal).
  * ---------------------------------------------------------------------- */
 var FN_TULIS = ['tambahPeserta', 'nonaktifkan', 'ubahPeserta', 'bebasJP', 'imporPeserta', 'ubahAcuanKelompok', 'simpanNpp',
@@ -4354,6 +4427,7 @@ function jalankanLokal(nama, argsJson) {
     return JSON.stringify({ ok: true, data: data === undefined ? null : data });
   } catch (e) {
     console.error(nama + ': ' + (e && e.stack || e));
+    if (e instanceof TypeError || e instanceof ReferenceError || e instanceof RangeError || e instanceof SyntaxError) catatGalatApp('mesin: ' + nama, e.message); // bukan pesan data biasa
     if (GAS.diubah !== ubahAwal) simpanNanti();
     return JSON.stringify({ ok: false, error: (e && e.message) || String(e) });
   } finally {
@@ -4440,7 +4514,58 @@ function gantiTabDariServer(t) {
   gasSentuh();
 }
 
-/** Kirim antrean, lalu tarik sheet yang berubah. Hasil {kirim, gagal, tab}. */
+/* ---------- 4.1: sinkron per baris ---------- */
+var SIDIK_CACHE = { diubah: -1, o: null };
+function sidikLembarPerangkat(n) {
+  var sh = gasCariLembar(n);
+  return sh ? KitBaris.sidikLembar(KitBaris.sidikSemua(sh.baris.slice(0, sh.getLastRow()))) : '';
+}
+/** Sidik semua lembar MyTagihan di perangkat (dikirim agar lembar yang sudah sama tidak ditarik). */
+function sidikPerangkat() {
+  if (SIDIK_CACHE.diubah === GAS.diubah && SIDIK_CACHE.o) return SIDIK_CACHE.o;
+  var o = {};
+  TAB_APP.forEach(function (n) { if (gasCariLembar(n)) o[n] = sidikLembarPerangkat(n); });
+  SIDIK_CACHE = { diubah: GAS.diubah, o: o };
+  return o;
+}
+/** Terapkan jawaban "baris". Hasil: nama lembar yang sidiknya masih beda dengan spreadsheet. */
+function terapkanBaris(t) {
+  var beda = [];
+  Object.keys(t.tab || {}).forEach(function (n) {
+    var x = t.tab[n], baris;
+    if (x.utuh) baris = x.b.map(function (r) { return r.map(gasDariSimpan); });
+    else {
+      var sh = gasCariLembar(n);
+      baris = KitBaris.tambal(sh ? sh.baris : [], x.n, x.b.map(function (p) { return [p[0], p[1].map(gasDariSimpan)]; }));
+    }
+    gasGantiLembar(n, baris);
+    if (sidikLembarPerangkat(n) !== x.sidik) beda.push(n);
+  });
+  if (t.ada) GAS.tab = GAS.tab.filter(function (s) { return TAB_APP.indexOf(s.nama) < 0 || t.ada.indexOf(s.nama) >= 0; });
+  Object.keys(t.props || {}).forEach(function (k) { if (t.props[k]) GAS.props[k] = t.props[k]; else delete GAS.props[k]; });
+  gasSentuh();
+  return beda;
+}
+/** Tarik per baris (+ kirim galat aplikasi). null = ada tindakan baru selama menarik (ulang sebentar lagi). */
+async function tarikBaris(s) {
+  var galat = (s.galatAntre || []).slice();
+  var t = await panggilServer({ aksi: 'baris', zaman: s.zaman || '', seq: s.seq || 0, sidik: sidikPerangkat(), penuh: [], galat: galat });
+  s.galatAntre = (s.galatAntre || []).filter(function (g) { return galat.indexOf(g) < 0; }); // sudah tersimpan di server
+  if (s.antre.length) return null;
+  var nama = Object.keys(t.tab || {}), beda = terapkanBaris(t);
+  if (beda.length) { // isi perangkat menyimpang dari spreadsheet: lembar itu ditarik utuh
+    var t2 = await panggilServer({ aksi: 'baris', zaman: t.zaman, seq: t.seq, sidik: sidikPerangkat(), penuh: beda, galat: [] });
+    if (s.antre.length) return null;
+    var masih = terapkanBaris(t2);
+    if (masih.length) catatGalatApp('sinkron per baris', 'Sidik lembar tetap beda setelah ditarik utuh: ' + masih.join(', '));
+    Object.keys(t2.tab || {}).forEach(function (n) { if (nama.indexOf(n) < 0) nama.push(n); });
+    t = t2;
+  }
+  s.zaman = t.zaman; s.seq = t.seq;
+  return { t: t, n: nama.length };
+}
+
+/** Kirim antrean, lalu tarik yang berubah. Hasil {kirim, gagal, tab}. */
 function sinkronkan() {
   if (!sinkronAktif()) return Promise.reject(new Error('Sinkron belum disambungkan.'));
   if (SINK.janji) return SINK.janji;
@@ -4466,12 +4591,25 @@ function sinkronkan() {
         s.antre = s.antre.filter(function (op) { return !peta[op.cid]; });
         await simpanSekarang();
       }
-      var t = await panggilServer({ aksi: 'tab', hash: s.hash });
-      if (s.antre.length) { jadwalSinkron(1500); return hasil; } // ada tindakan baru selama menarik: ulang sebentar lagi
-      var nama = Object.keys(t.tab || {});
-      gantiTabDariServer(t);
-      hasil.tab = nama.length;
-      s.hash = t.hash || {}; s.urlSheet = t.url || ''; s.versiServer = t.versi || '';
+      var t = null, perBaris = !s.tanpaBaris || Date.now() - s.tanpaBaris > 3 * 3600e3;
+      if (perBaris) {
+        try {
+          var hb = await tarikBaris(s);
+          if (!hb) { jadwalSinkron(1500); return hasil; } // ada tindakan baru selama menarik: ulang sebentar lagi
+          t = hb.t; hasil.tab = hb.n; s.tanpaBaris = 0;
+        } catch (e) {
+          if (!/Aksi tidak dikenal/.test(e.message)) throw e;
+          s.tanpaBaris = Date.now(); // skrip spreadsheet belum 2.6: tarik per sheet seperti dulu
+        }
+      }
+      if (!t) {
+        t = await panggilServer({ aksi: 'tab', hash: s.hash });
+        if (s.antre.length) { jadwalSinkron(1500); return hasil; }
+        hasil.tab = Object.keys(t.tab || {}).length;
+        gantiTabDariServer(t);
+        s.hash = t.hash || {};
+      }
+      s.urlSheet = t.url || ''; s.versiServer = t.versi || '';
       pakaiAkses(t.akses);
       s.terakhir = gasTanggal(new Date(), '', 'yyyy-MM-dd HH:mm'); s.galat = ''; s.terakhirOk = Date.now();
       await simpanSekarang();
@@ -4522,7 +4660,7 @@ async function gabungDenganKode(teks) {
   var s = APP.sinkron;
   if (!s.idKlien) { s.idKlien = idKlienBaru(); await simpanSekarang(); }
   var j = await panggilServer({ aksi: 'gabung', kode: o.kode, idKlien: s.idKlien }, o.url, {});
-  s.url = o.url; s.idp = j.idp; s.token = j.token; s.kunci = ''; s.hash = {}; s.galat = ''; s.terakhirOk = Date.now(); pakaiAkses(j.akses);
+  s.url = o.url; s.idp = j.idp; s.token = j.token; s.kunci = ''; s.hash = {}; s.zaman = ''; s.seq = 0; s.galat = ''; s.terakhirOk = Date.now(); pakaiAkses(j.akses);
   await simpanSekarang();
   var h = await sinkronkan();
   await infoSpreadsheet(); await simpanSekarang();
@@ -4541,7 +4679,7 @@ async function sambungSinkron(url, kunci) {
   if (!POLA_EXEC.test(url)) throw new Error('Alamat harus berbentuk https://script.google.com/macros/s/…/exec');
   if (!kunci) throw new Error('Kunci kosong.');
   var j = await panggilServer({ aksi: 'cek' }, url, { kunci: kunci });
-  APP.sinkron.url = url; APP.sinkron.kunci = kunci; APP.sinkron.token = ''; APP.sinkron.idp = ''; APP.sinkron.hash = {}; APP.sinkron.galat = ''; APP.sinkron.serverLama = 0;
+  APP.sinkron.url = url; APP.sinkron.kunci = kunci; APP.sinkron.token = ''; APP.sinkron.idp = ''; APP.sinkron.hash = {}; APP.sinkron.zaman = ''; APP.sinkron.seq = 0; APP.sinkron.galat = ''; APP.sinkron.serverLama = 0;
   APP.sinkron.nama = j.nama || ''; APP.sinkron.pengguna = j.pengguna || ''; APP.sinkron.versiServer = j.versi || '';
   GAS.email = APP.sinkron.pengguna;
   await simpanSekarang();
@@ -4584,7 +4722,7 @@ async function pindahDariXlsx(file) {
     var b = semua[nama].map(function (r, i) { return (r || []).map(function (x, j) { return i === 0 ? x : (nama === 'IBR' && j === 1) || /^(NIK|NPP|Kode|Kode Bayar|Berlaku Mulai|Bebas JP Mulai|Mulai|Selesai)$/.test(String((semua[nama][0] || [])[j] || '')) ? x : nilaiDariXlsx(x); }); });
     gasGantiLembar(nama, b); n++;
   });
-  APP.sinkron.hash = {};
+  APP.sinkron.hash = {}; APP.sinkron.zaman = ''; APP.sinkron.seq = 0;
   gasSentuh();
   await simpanSekarang();
   return n;
@@ -4748,6 +4886,32 @@ async function periksaGerbang() {
   return false;
 }
 
+/* === 38-galat.js (4.1, LENSA Suite 3C) === */
+/* ----------------------------------------------------------------------
+ *  Pencatat galat aplikasi: kesalahan program (bukan pesan data biasa seperti "Pilih kelompok") dicatat di perangkat,
+ *  lalu terkirim bersama sinkron berikutnya ke skrip spreadsheet MyTagihan (lembar tersembunyi galat_aplikasi)
+ *  dan tampil di Pusat Kendali LENSA PK. NIK dan deret angka panjang lain dihapus sebelum dicatat.
+ * ---------------------------------------------------------------------- */
+function catatGalatApp(tempat, pesan) {
+  try {
+    var s = APP.sinkron, a = s.galatAntre || (s.galatAntre = []);
+    var p = String(pesan === undefined || pesan === null ? '' : pesan).replace(/\d{12,}/g, '[angka]').slice(0, 500);
+    var t = String(tempat || '').replace(/\d{12,}/g, '[angka]').slice(0, 120);
+    if (!p || a.some(function (g) { return g.pesan === p && g.tempat === t; })) return; // satu kali per jenis sampai terkirim
+    a.push({ waktu: gasTanggal(new Date(), '', 'yyyy-MM-dd HH:mm:ss'), tempat: t, pesan: p });
+    if (a.length > 20) a.splice(0, a.length - 20);
+    simpanNanti();
+  } catch (e) { /* pencatat galat tidak boleh menimbulkan galat */ }
+}
+window.addEventListener('error', function (e) {
+  if (!e || !e.message) return;
+  catatGalatApp('halaman' + (e.filename ? ' · baris ' + e.lineno : ''), e.message);
+});
+window.addEventListener('unhandledrejection', function (e) {
+  var r = e && e.reason;
+  if (!r || !(r instanceof TypeError || r instanceof ReferenceError || r instanceof RangeError)) return; // galat jaringan/data sudah tampil di layar
+  catatGalatApp('janji', r.message);
+});
 /* === 90-jembatan.js === */
 /* ----------------------------------------------------------------------
  *  Tampilan MyTagihan (Js.html yang sama dengan aplikasi Apps Script) di atas mesin perangkat.
@@ -6635,7 +6799,7 @@ window.MyTagihan3 = { APP: function () { return APP; }, GAS: GAS, SS: GAS_SS, si
           (st.urlSheet && (!st.akses || st.akses.peran === 'Pemilik') ? '<a class="btn block" href="' + esc(st.urlSheet) + '" target="_blank" rel="noopener">Buka spreadsheet</a>' : '') +
           (st.terdaftar ? '<button class="btn ghost" id="d-keluar" style="color:var(--danger)">Keluar dari perangkat ini</button>' :
             '<div class="note info">Perangkat ini masih memakai KUNCI lama' + (st.serverLama ? ' karena skrip spreadsheet belum versi 2.5. Pasang MyTagihan_Desa.gs terbaru, lalu perangkat ini terdaftar otomatis.' : '; akan terdaftar otomatis saat sinkron berikutnya.') + '</div>') +
-          '<p class="small muted" style="margin:0">Otomatis saat aplikasi dibuka, tiap 5 menit, dan beberapa detik setelah setiap perubahan. Tanpa sinyal, perubahan tersimpan di perangkat lalu terkirim saat sinyal kembali (tidak tercatat dua kali). Perangkat yang ' + st.hariKunci + ' hari tidak sinkron terkunci sampai sinkron berhasil. Keluar = semua perubahan dikirim dulu, lalu data MyTagihan di perangkat ini dihapus.</p>', { open: true })
+          '<p class="small muted" style="margin:0">Otomatis saat aplikasi dibuka, tiap 5 menit, dan beberapa detik setelah setiap perubahan. Tanpa sinyal, perubahan tersimpan di perangkat lalu terkirim saat sinyal kembali (tidak tercatat dua kali). Yang ditarik hanya baris yang berubah (sejak skrip spreadsheet 2.6). Perangkat yang ' + st.hariKunci + ' hari tidak sinkron terkunci sampai sinkron berhasil. Keluar = semua perubahan dikirim dulu, lalu data MyTagihan di perangkat ini dihapus.</p>', { open: true })
         : acc('Masuk dengan kode undangan', 'perangkat ini belum terdaftar',
           '<div class="note info">Kode undangan dibuat di LENSA PK › Perangkat &amp; pengguna (aplikasi MyTagihan Desa). Sekali pakai.</div>' +
           '<div class="field"><label for="d-undangan">Kode undangan</label><textarea id="d-undangan" rows="3" placeholder="MTD.…" autocomplete="off"></textarea></div>' +

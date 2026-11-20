@@ -1,6 +1,6 @@
-# MyTagihan Desa 4.0 · BPJS Ketenagakerjaan KC Pamekasan
+# MyTagihan Desa 4.1 · BPJS Ketenagakerjaan KC Pamekasan
 
-Versi 4.0.0 · bagian dari LENSA Suite · butuh skrip spreadsheet `MyTagihan_Desa.gs` 2.5 (satu file).
+Versi 4.1.0 · bagian dari LENSA Suite · butuh skrip spreadsheet `MyTagihan_Desa.gs` 2.6 (satu file; 2.5 masih bisa, tanpa sinkron per baris).
 
 Iuran pekerja desa Kab. Pamekasan (Aparat, BPD, BUMDes, LKD, Lembaga Adat, Pekerja Rentan): mutasi peserta,
 tagihan bulanan/triwulanan, Trf Bank Jatim, laporan cakupan. Konsepnya sama dengan LENSA PK 2.0.
@@ -46,6 +46,9 @@ Sambungan ke LENSA PK (sekali, di laptop): menu **MyTagihan Desa › Aplikasi 3.
 → di LENSA PK › Perangkat & pengguna › MyTagihan Desa: tempel alamat /exec deployment sinkron + kunci admin itu.
 
 Setelah tersambung: sinkron otomatis saat aplikasi dibuka, tiap 5 menit, dan 3 detik setelah setiap perubahan.
+Sejak 4.1 (skrip 2.6) yang ditarik hanya **baris yang berubah**, bukan seluruh sheet; bila isi perangkat ternyata berbeda
+dengan spreadsheet, sheet itu ditarik utuh sekali (memperbaiki diri). Galat program di perangkat ikut terkirim (tanpa NIK)
+dan tampil di Pusat Kendali LENSA PK.
 Tanpa sinyal: perubahan tersimpan di perangkat dan terkirim saat sinyal kembali (tidak tercatat dua kali; ID peserta
 dan riwayat sama di HP dan spreadsheet, jadi Urungkan tetap berlaku).
 
@@ -56,6 +59,12 @@ kunci dari PIN, dan terkunci lagi setelah 15 menit ditinggal. Rumusnya sama deng
 (kit PIN bersama LENSA Suite); perangkat yang sudah ber-PIN di versi 3.x tetap memakai PIN lamanya.
 Ganti PIN: Data & sinkron › **Ganti PIN**. Lupa PIN → "Hapus data di perangkat ini" di layar PIN, lalu masuk lagi
 dengan kode undangan: data di spreadsheet tetap utuh.
+
+## IBR dari Gudang (sejak 4.1 · skrip 2.6)
+Unggah **Daftar Iuran Belum Rinci** (.xlsx, semua pembina) sekali lewat **LENSA PK › Impor laporan**. Laporan disimpan di
+Gudang Laporan KC, lalu saldo IJT NPP desa dikirim otomatis ke spreadsheet MyTagihan (±1 menit; satu NPP dengan beberapa
+transaksi dijumlah). Tercatat di Riwayat sebagai "Impor IBR" oleh Gudang LENSA Suite dan bisa diurungkan. Impor IBR
+langsung di MyTagihan (Pengaturan › Data IBR) tetap ada sebagai cadangan.
 
 ## Yang perlu sinyal
 Hitung tagihan, mutasi, impor peserta/IBR, laporan, dan Urungkan jalan di perangkat. Yang dijalankan Google Drive
