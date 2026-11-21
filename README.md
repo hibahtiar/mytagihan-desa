@@ -1,6 +1,6 @@
 # MyTagihan Desa 4.1 · BPJS Ketenagakerjaan KC Pamekasan
 
-Versi 4.1.0 · bagian dari LENSA Suite · butuh skrip spreadsheet `MyTagihan_Desa.gs` 2.6 (satu file; 2.5 masih bisa, tanpa sinkron per baris).
+Versi 4.1.1 · bagian dari LENSA Suite · butuh skrip spreadsheet `MyTagihan_Desa.gs` 2.6 (satu file; 2.5 masih bisa, tanpa sinkron per baris).
 
 Iuran pekerja desa Kab. Pamekasan (Aparat, BPD, BUMDes, LKD, Lembaga Adat, Pekerja Rentan): mutasi peserta,
 tagihan bulanan/triwulanan, Trf Bank Jatim, laporan cakupan. Konsepnya sama dengan LENSA PK 2.0.
